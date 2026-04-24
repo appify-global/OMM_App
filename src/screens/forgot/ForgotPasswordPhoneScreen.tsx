@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   safe: { paddingHorizontal: spacing.xl, paddingTop: spacing.md },
   title: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     color: colors.text,
     marginBottom: spacing.md,
   },
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
   altLinkText: {
     fontSize: 15,
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   spacer: { flexGrow: 1, minHeight: 48 },
   actions: { gap: spacing.md, paddingBottom: spacing.xl, alignSelf: 'stretch' },

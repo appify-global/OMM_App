@@ -16,6 +16,7 @@ import { Ionicons } from '@expo/vector-icons';
 import type { RootStackScreenProps } from '../navigation/types';
 import { LabeledInput } from '../components/LabeledInput';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { images } from '../constants/images';
 import { colors, radii, spacing } from '../theme/theme';
 
 type Props = RootStackScreenProps<'Login'>;
@@ -36,13 +37,13 @@ export function LoginScreen({ navigation }: Props) {
         <SafeAreaView edges={['top', 'bottom']} style={styles.safe}>
           <View style={styles.logoWrap}>
             <Image
-              source={require('../../assets/icon.png')}
+              source={images.unlistedLogo}
               style={styles.logo}
               resizeMode="contain"
             />
           </View>
           <Text style={styles.title}>Welcome back</Text>
-          <Text style={styles.sub}>Sign in with your OMM agent account.</Text>
+          <Text style={styles.sub}>Sign in with your Unlisted agent account.</Text>
 
           <LabeledInput
             label="Email address"
@@ -115,19 +116,13 @@ const styles = StyleSheet.create({
   safe: { paddingHorizontal: spacing.xl, paddingTop: spacing.md },
   logoWrap: {
     alignSelf: 'center',
-    width: 72,
-    height: 72,
-    borderRadius: 36,
-    backgroundColor: colors.surfaceMuted,
-    alignItems: 'center',
-    justifyContent: 'center',
     marginBottom: spacing.lg,
-    overflow: 'hidden',
+    paddingHorizontal: spacing.sm,
   },
-  logo: { width: 48, height: 48 },
+  logo: { width: 200, height: 62, alignSelf: 'center' },
   title: {
     fontSize: 26,
-    fontWeight: '700',
+    fontWeight: '500',
     color: colors.text,
     textAlign: 'center',
   },
@@ -181,8 +176,8 @@ const styles = StyleSheet.create({
   checkboxOn: { backgroundColor: colors.primary, borderColor: colors.primary },
   checkIcon: { marginTop: -1 },
   rememberLabel: { fontSize: 14, color: colors.text },
-  forgot: { fontSize: 14, color: colors.primary, fontWeight: '600' },
+  forgot: { fontSize: 14, color: colors.primary, fontWeight: '500' },
   footer: { alignItems: 'center', marginTop: spacing.xl, paddingBottom: spacing.xl },
   footerText: { fontSize: 14, color: colors.textSecondary },
-  footerLink: { color: colors.primary, fontWeight: '700' },
+  footerLink: { color: colors.primary, fontWeight: '500' },
 });

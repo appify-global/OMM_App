@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     backgroundColor: colors.inputSurface,
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: colors.text,
     paddingVertical: 0,
     paddingHorizontal: 0,

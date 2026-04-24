@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontWeight: '700',
+    fontWeight: '500',
     color: colors.text,
     marginBottom: spacing.lg,
   },
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
   uploadName: {
     marginTop: spacing.sm,
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '500',
     color: colors.text,
     textAlign: 'center',
   },
@@ -203,5 +203,5 @@ const styles = StyleSheet.create({
   },
   helpWrap: { alignItems: 'center', marginTop: spacing.md },
   help: { fontSize: 14, color: colors.textSecondary },
-  helpLink: { color: colors.primary, fontWeight: '600' },
+  helpLink: { color: colors.primary, fontWeight: '500' },
 });

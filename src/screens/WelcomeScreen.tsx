@@ -1,5 +1,6 @@
 import React from 'react';
 import {
+  Image,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -13,6 +14,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { RootStackScreenProps } from '../navigation/types';
 import { PrimaryButton } from '../components/PrimaryButton';
+import { images } from '../constants/images';
 import { colors, radii, spacing } from '../theme/theme';
 
 const KITCHEN_IMAGE =
@@ -32,8 +34,15 @@ export function WelcomeScreen({ navigation }: Props) {
           <ImageBackground source={{ uri: KITCHEN_IMAGE }} style={styles.hero} resizeMode="cover" />
         </View>
         <SafeAreaView edges={['bottom']} style={styles.panel}>
-          <Text style={styles.kicker}>OMM for A-Z Real Estate</Text>
-          <Text style={styles.title}>Off-market deals in one workspace.</Text>
+          <Image
+            source={images.unlistedLogo}
+            style={styles.wordmark}
+            resizeMode="contain"
+            accessible
+            accessibilityLabel="Unlisted, off market listings"
+          />
+          <Text style={styles.kicker}>Off market listings</Text>
+          <Text style={styles.title}>Deals, briefs, and compliance in one workspace.</Text>
           <Text style={styles.body}>
             Match buyer briefs, run referrals, and track commissions with a full Victorian
             compliance trail.
@@ -65,6 +74,12 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xl,
     gap: spacing.md,
   },
+  wordmark: {
+    width: 220,
+    height: 70,
+    alignSelf: 'center',
+    marginBottom: spacing.sm,
+  },
   kicker: {
     fontSize: 11,
     letterSpacing: 1.2,
@@ -73,7 +88,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontWeight: '700',
+    fontWeight: '500',
     color: colors.text,
     lineHeight: 32,
   },
@@ -93,7 +108,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   footerStrong: {
-    color: colors.text,
-    fontWeight: '700',
+    color: colors.primary,
+    fontWeight: '500',
   },
 });

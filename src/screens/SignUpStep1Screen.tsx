@@ -276,7 +276,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontWeight: '700',
+    fontWeight: '500',
     color: colors.text,
     marginBottom: spacing.lg,
   },
@@ -347,12 +347,12 @@ const styles = StyleSheet.create({
   },
   link: {
     color: colors.text,
-    fontWeight: '700',
+    fontWeight: '500',
     textDecorationLine: 'underline',
   },
   center: { alignItems: 'center', marginTop: spacing.sm },
   footerMuted: { fontSize: 14, color: colors.textSecondary },
-  footerStrong: { color: colors.text, fontWeight: '700' },
+  footerStrong: { color: colors.text, fontWeight: '500' },
   help: { fontSize: 14, color: colors.textSecondary, marginTop: spacing.md },
-  helpLink: { color: colors.primary, fontWeight: '600' },
+  helpLink: { color: colors.primary, fontWeight: '500' },
 });

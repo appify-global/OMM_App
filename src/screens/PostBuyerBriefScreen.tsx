@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -8,26 +8,29 @@ import {
   Text,
   TextInput,
   View,
-} from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import type { RootStackScreenProps } from '../navigation/types';
-import { brand } from '../theme/brand';
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import type { RootStackScreenProps } from "../navigation/types";
+import { brand } from "../theme/brand";
+import { TopBar } from "../components/TopBar";
 
-type Props = RootStackScreenProps<'PostBuyerBrief'>;
+type Props = RootStackScreenProps<"PostBuyerBrief">;
 
 export function PostBuyerBriefScreen({ navigation }: Props) {
-  const [suburbs, setSuburbs] = useState('12 Denham St — period home');
-  const [budget, setBudget] = useState('$1.80m — $2.60m • flexible if sole mandate');
-  const [propertyType, setPropertyType] = useState(
-    'Period home or renovated townhouse • 3+ beds',
+  const [suburbs, setSuburbs] = useState("12 Denham St — period home");
+  const [budget, setBudget] = useState(
+    "$1.80m — $2.60m • flexible if sole mandate",
   );
-  const [minBeds, setMinBeds] = useState('3+ (4 preferred)');
-  const [minBaths, setMinBaths] = useState('2+ (3 preferred)');
-  const [minCars, setMinCars] = useState('2+ (2 preferred)');
+  const [propertyType, setPropertyType] = useState(
+    "Period home or renovated townhouse • 3+ beds",
+  );
+  const [minBeds, setMinBeds] = useState("3+ (4 preferred)");
+  const [minBaths, setMinBaths] = useState("2+ (3 preferred)");
+  const [minCars, setMinCars] = useState("2+ (2 preferred)");
   const [brief, setBrief] = useState(
-    'Renovated Edwardian behind Auburn Rd shops. North living, 2 storeys. Relocating family · need childcare & primary within walk distance.',
+    "Renovated Edwardian behind Auburn Rd shops. North living, 2 storeys. Relocating family · need childcare & primary within walk distance.",
   );
 
   const exit = () => navigation.goBack();
@@ -35,17 +38,11 @@ export function PostBuyerBriefScreen({ navigation }: Props) {
   return (
     <KeyboardAvoidingView
       style={styles.root}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <StatusBar style="dark" />
-      <SafeAreaView style={styles.safeTop} edges={['top']}>
-        <View style={styles.header}>
-          <Pressable onPress={exit} style={styles.back} hitSlop={10} accessibilityLabel="Back">
-            <Ionicons name="chevron-back" size={26} color={brand.charcoal} />
-          </Pressable>
-          <Text style={styles.title}>Post buyer brief</Text>
-          <View style={styles.backSpacer} />
-        </View>
+      <SafeAreaView style={styles.safeTop} edges={["top"]}>
+        <TopBar title="Post buyer brief" onBack={exit} />
       </SafeAreaView>
 
       <ScrollView
@@ -54,13 +51,18 @@ export function PostBuyerBriefScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
       >
         <Text style={styles.intro}>
-          Be specific on suburbs, budget, and timing. Matches are private, only agents with
-          relevant off-market stock will see your brief.
+          Be specific on suburbs, budget, and timing. Matches are private, only
+          agents with relevant off-market stock will see your brief.
         </Text>
 
         <FieldLabel text="Preferred suburbs or areas" />
         <View style={styles.inputWithIcon}>
-          <Ionicons name="location-outline" size={18} color={brand.sage} style={styles.inputIcon} />
+          <Ionicons
+            name="location-outline"
+            size={18}
+            color={brand.sage}
+            style={styles.inputIcon}
+          />
           <TextInput
             value={suburbs}
             onChangeText={setSuburbs}
@@ -153,17 +155,17 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: brand.warmWhite },
   safeTop: { paddingHorizontal: 16 },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 6,
   },
-  back: { width: 44, height: 44, justifyContent: 'center' },
+  back: { width: 44, height: 44, justifyContent: "center" },
   backSpacer: { width: 44 },
   title: {
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: "500",
     color: brand.charcoal,
   },
   scroll: { paddingHorizontal: 16, paddingBottom: 24 },
@@ -175,7 +177,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontWeight: "500",
     letterSpacing: 0.5,
     color: brand.sage,
     marginBottom: 8,
@@ -184,7 +186,7 @@ const styles = StyleSheet.create({
     backgroundColor: brand.cream,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(138,155,142,0.35)',
+    borderColor: "rgba(138,155,142,0.35)",
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 15,
@@ -192,12 +194,12 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   inputWithIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: brand.cream,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(138,155,142,0.35)',
+    borderColor: "rgba(138,155,142,0.35)",
     paddingLeft: 12,
     paddingRight: 14,
     marginBottom: 18,
@@ -213,7 +215,7 @@ const styles = StyleSheet.create({
     backgroundColor: brand.cream,
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'rgba(138,155,142,0.35)',
+    borderColor: "rgba(138,155,142,0.35)",
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 15,
@@ -225,27 +227,27 @@ const styles = StyleSheet.create({
     backgroundColor: brand.terracotta,
     borderRadius: 12,
     paddingVertical: 16,
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: 12,
   },
   submitLabel: {
     color: brand.warmWhite,
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: "500",
     letterSpacing: 1,
   },
   draftBtn: {
     backgroundColor: brand.white,
     borderRadius: 12,
     paddingVertical: 16,
-    alignItems: 'center',
+    alignItems: "center",
     borderWidth: 1,
-    borderColor: 'rgba(138,155,142,0.45)',
+    borderColor: "rgba(138,155,142,0.45)",
   },
   draftLabel: {
     color: brand.charcoal,
     fontSize: 13,
-    fontWeight: '800',
+    fontWeight: "500",
     letterSpacing: 0.8,
   },
 });

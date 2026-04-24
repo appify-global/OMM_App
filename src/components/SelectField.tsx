@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   },
   valueText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     color: colors.text,
     letterSpacing: 0.3,
   },
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   },
   sheetTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: spacing.md,
     color: colors.text,
   },
@@ -151,5 +151,5 @@ const styles = StyleSheet.create({
     borderBottomColor: colors.border,
   },
   optionText: { fontSize: 16, color: colors.text },
-  optionTextActive: { color: colors.primary, fontWeight: '600' },
+  optionTextActive: { color: colors.primary, fontWeight: '500' },
 });

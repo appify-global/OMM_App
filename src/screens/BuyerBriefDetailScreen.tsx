@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontFamily: brand.fontSans,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: brand.charcoal,
   },
   scrollMain: { flex: 1 },
@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   name: {
     fontFamily: brand.fontSans,
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: '500',
     color: brand.charcoal,
     marginTop: 14,
   },
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     fontFamily: brand.fontSans,
     fontSize: 12,
     letterSpacing: 1.2,
-    fontWeight: '700',
+    fontWeight: '500',
     color: brand.warmWhite,
   },
 });

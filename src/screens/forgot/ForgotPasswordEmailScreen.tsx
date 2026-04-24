@@ -33,7 +33,7 @@ export function ForgotPasswordEmailScreen({ navigation }: Props) {
         <SafeAreaView edges={['top', 'bottom']} style={styles.safe}>
           <Text style={styles.title}>Reset your password</Text>
           <Text style={styles.body}>
-            Enter the email of your OMM account. We will send a 5-digit code, valid 10 minutes, to
+            Enter the email of your Unlisted account. We will send a 5-digit code, valid 10 minutes, to
             verify it is you.
           </Text>
 
@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   safe: { paddingHorizontal: spacing.xl, paddingTop: spacing.md },
   title: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     color: colors.text,
     marginBottom: spacing.md,
   },
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   altLinkText: {
     fontSize: 15,
     color: colors.primary,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   spacer: { flexGrow: 1, minHeight: 48 },
   actions: { gap: spacing.md, paddingBottom: spacing.xl, alignSelf: 'stretch' },

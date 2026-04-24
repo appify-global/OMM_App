@@ -1,8 +1,9 @@
 import React, { useEffect } from 'react';
-import { ImageBackground, StyleSheet, Text, View } from 'react-native';
+import { Image, ImageBackground, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
+import { images } from '../constants/images';
 import type { RootStackScreenProps } from '../navigation/types';
-import { colors, radii, spacing } from '../theme/theme';
+import { radii, spacing } from '../theme/theme';
 
 const HOUSE_IMAGE =
   'https://images.unsplash.com/photo-1568605114967-8130f3a36994?auto=format&fit=crop&w=1200&q=80';
@@ -22,7 +23,13 @@ export function SplashScreen({ navigation }: Props) {
       <StatusBar style="light" />
       <ImageBackground source={{ uri: HOUSE_IMAGE }} style={styles.bg} resizeMode="cover">
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>OMM</Text>
+          <Image
+            source={images.unlistedLogo}
+            style={styles.badgeLogo}
+            resizeMode="contain"
+            accessible
+            accessibilityLabel="Unlisted"
+          />
         </View>
         <View style={styles.footer}>
           <View style={styles.footerIcon} />
@@ -40,16 +47,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   badge: {
-    backgroundColor: 'rgba(0,0,0,0.72)',
-    paddingHorizontal: spacing.xxl + 8,
+    backgroundColor: 'rgba(255,253,251,0.95)',
+    paddingHorizontal: spacing.xl,
     paddingVertical: spacing.lg,
     borderRadius: radii.md,
+    maxWidth: '92%',
   },
-  badgeText: {
-    color: '#fff',
-    fontSize: 28,
-    fontWeight: '800',
-    letterSpacing: 2,
+  badgeLogo: {
+    width: 280,
+    height: 88,
   },
   footer: {
     position: 'absolute',

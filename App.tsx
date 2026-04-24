@@ -1,6 +1,6 @@
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { SignUpProvider } from './src/context/SignUpContext';
+import { WebPreviewZoom } from './src/components/WebPreviewZoom';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { colors } from './src/theme/theme';
 
@@ -19,11 +19,11 @@ const navTheme = {
 export default function App() {
   return (
     <SafeAreaProvider>
-      <SignUpProvider>
+      <WebPreviewZoom>
         <NavigationContainer theme={navTheme}>
           <RootNavigator />
         </NavigationContainer>
-      </SignUpProvider>
+      </WebPreviewZoom>
     </SafeAreaProvider>
   );
 }

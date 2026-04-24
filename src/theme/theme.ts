@@ -1,7 +1,7 @@
 export const colors = {
-  /** Primary actions (Figma sign-up flow) */
-  primary: '#D17D5D',
-  primaryDark: '#B86A4E',
+  /** Unlisted — primary actions (wordmark / CTAs) */
+  primary: '#0f2918',
+  primaryDark: '#0a1f12',
   background: '#FFFFFF',
   surfaceMuted: '#F3F3F5',
   /** Form fields — Step 2 & 3 */
@@ -12,14 +12,14 @@ export const colors = {
   border: '#E5E5EA',
   cardBorder: '#E0E0E0',
   overlay: 'rgba(0,0,0,0.45)',
-  modalTitle: '#D17D5D',
+  modalTitle: '#0f2918',
   destructive: '#D92D20',
   black: '#1C1C1E',
   /** Step 4 “upcoming” status dot */
   statusPendingFill: '#D4D4D4',
-  /** Step 4 “Contact support” — Figma terracotta (screenshot 3) */
-  verificationCta: '#C6866B',
-  verificationCtaPressed: '#B3785E',
+  /** Step 4 “Contact support” */
+  verificationCta: '#1a3d2e',
+  verificationCtaPressed: '#0f2918',
   /** Hourglass circle on verification screen */
   verificationIconBg: '#EEEEEE',
 } as const;

@@ -107,13 +107,13 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   labelPrimary: {
     color: '#FFFFFF',
   },
   labelVerification: {
-    fontWeight: '700',
+    fontWeight: '500',
     fontSize: 16,
   },
   labelSecondary: {

@@ -1,20 +1,29 @@
-import React, { useState } from 'react';
-import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import type { RootStackScreenProps } from '../navigation/types';
-import { images } from '../constants/images';
-import { brand } from '../theme/brand';
+import React, { useState } from "react";
+import {
+  Image,
+  Modal,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import type { RootStackScreenProps } from "../navigation/types";
+import { images } from "../constants/images";
+import { brand } from "../theme/brand";
+import { TopBar } from "../components/TopBar";
 
-type Props = RootStackScreenProps<'Notifications'>;
-type FilterId = 'all' | 'unread' | 'matches' | 'system';
+type Props = RootStackScreenProps<"Notifications">;
+type FilterId = "all" | "unread" | "matches" | "system";
 
 const FILTERS: { id: FilterId; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'unread', label: 'Unread' },
-  { id: 'matches', label: 'Matches' },
-  { id: 'system', label: 'System' },
+  { id: "all", label: "All" },
+  { id: "unread", label: "Unread" },
+  { id: "matches", label: "Matches" },
+  { id: "system", label: "System" },
 ];
 
 type Notif = {
@@ -27,16 +36,16 @@ type Notif = {
 
 const RECENT: Notif[] = [
   {
-    title: 'New match for Brutal House 01',
+    title: "New match for Brutal House 01",
     body: "Buyer brief 'Hawthorn / Kew' matches 12 Denham St. Score 92.",
-    time: '2m',
+    time: "2m",
     unread: true,
     thumb: images.propertyHouse1,
   },
   {
-    title: 'Camberwell Agent viewed your contract',
-    body: 'Digital contract for Auburn Road was opened.',
-    time: '1h',
+    title: "Camberwell Agent viewed your contract",
+    body: "Digital contract for Auburn Road was opened.",
+    time: "1h",
     unread: true,
     thumb: images.propertyHouse2,
   },
@@ -44,41 +53,29 @@ const RECENT: Notif[] = [
 
 const EARLIER: Notif[] = [
   {
-    title: 'New match for Brutal House 01',
+    title: "New match for Brutal House 01",
     body: "Buyer brief updated — still matches 12 Denham St.",
-    time: '1d',
+    time: "1d",
     thumb: images.propertyHouse3,
   },
   {
-    title: 'Camberwell Agent viewed your contract',
-    body: 'Second view logged for Auburn Road contract.',
-    time: '2d',
+    title: "Camberwell Agent viewed your contract",
+    body: "Second view logged for Auburn Road contract.",
+    time: "2d",
     thumb: images.propertyHouse1,
   },
 ];
 
 export function NotificationsScreen({ navigation }: Props) {
-  const [filter, setFilter] = useState<FilterId>('all');
+  const [filter, setFilter] = useState<FilterId>("all");
   const [featuredOpen, setFeaturedOpen] = useState(true);
   const [detailOpen, setDetailOpen] = useState(false);
 
   return (
     <View style={styles.root}>
       <StatusBar style="dark" />
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.headerRow}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            hitSlop={12}
-            onPress={() => navigation.goBack()}
-            style={styles.backBtn}
-          >
-            <Ionicons name="chevron-back" size={26} color={brand.charcoal} />
-          </Pressable>
-          <Text style={styles.headerTitle}>Notifications</Text>
-          <View style={styles.backPlaceholder} />
-        </View>
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        <TopBar title="Notifications" />
 
         <ScrollView
           contentContainerStyle={styles.scroll}
@@ -97,7 +94,11 @@ export function NotificationsScreen({ navigation }: Props) {
                   onPress={() => setFilter(f.id)}
                   style={[styles.chip, active && styles.chipActive]}
                 >
-                  <Text style={[styles.chipText, active && styles.chipTextActive]}>{f.label}</Text>
+                  <Text
+                    style={[styles.chipText, active && styles.chipTextActive]}
+                  >
+                    {f.label}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -113,7 +114,10 @@ export function NotificationsScreen({ navigation }: Props) {
                 >
                   <Ionicons name="close" size={20} color={brand.charcoal} />
                 </Pressable>
-                <Pressable onPress={() => setDetailOpen(true)} style={styles.featuredImagePress}>
+                <Pressable
+                  onPress={() => setDetailOpen(true)}
+                  style={styles.featuredImagePress}
+                >
                   <Image
                     source={images.propertyHouse1}
                     style={styles.featuredImage}
@@ -122,9 +126,12 @@ export function NotificationsScreen({ navigation }: Props) {
                 </Pressable>
               </View>
               <Pressable onPress={() => setDetailOpen(true)}>
-                <Text style={styles.featuredTitle}>New match for Brutal House 01</Text>
+                <Text style={styles.featuredTitle}>
+                  New match for Brutal House 01
+                </Text>
                 <Text style={styles.featuredSub}>
-                  Buyer brief &apos;Hawthorn / Kew&apos; matches 12 Denham St, score 92.
+                  Buyer brief &apos;Hawthorn / Kew&apos; matches 12 Denham St,
+                  score 92.
                 </Text>
               </Pressable>
             </View>
@@ -137,7 +144,9 @@ export function NotificationsScreen({ navigation }: Props) {
           </Pressable>
           <Pressable style={styles.banner} onPress={() => {}}>
             <Ionicons name="star-outline" size={20} color={brand.sage} />
-            <Text style={styles.bannerText}>2 transactions awaiting review</Text>
+            <Text style={styles.bannerText}>
+              2 transactions awaiting review
+            </Text>
             <Ionicons name="chevron-forward" size={18} color={brand.sage} />
           </Pressable>
 
@@ -170,7 +179,10 @@ export function NotificationsScreen({ navigation }: Props) {
         onRequestClose={() => setDetailOpen(false)}
       >
         <View style={styles.modalOverlay}>
-          <Pressable style={StyleSheet.absoluteFill} onPress={() => setDetailOpen(false)} />
+          <Pressable
+            style={StyleSheet.absoluteFill}
+            onPress={() => setDetailOpen(false)}
+          />
           <View style={styles.modalCard}>
             <Pressable
               style={styles.modalClose}
@@ -186,7 +198,8 @@ export function NotificationsScreen({ navigation }: Props) {
             />
             <Text style={styles.modalTitle}>New match for Brutal House 01</Text>
             <Text style={styles.modalBody}>
-              Buyer brief &apos;Hawthorn / Kew&apos; matches 12 Denham St, score 92.
+              Buyer brief &apos;Hawthorn / Kew&apos; matches 12 Denham St, score
+              92.
             </Text>
           </View>
         </View>
@@ -217,13 +230,18 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: brand.warmWhite },
   safe: { flex: 1 },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: brand.space.xs,
     paddingBottom: brand.space.xs,
   },
-  backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  backBtn: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   backPlaceholder: { width: 44 },
   headerTitle: {
     fontFamily: brand.fontSans,
@@ -240,7 +258,7 @@ const styles = StyleSheet.create({
     borderRadius: brand.radius.pill,
     backgroundColor: brand.white,
     borderWidth: 1,
-    borderColor: 'rgba(26,26,26,0.2)',
+    borderColor: "rgba(26,26,26,0.2)",
   },
   chipActive: {
     backgroundColor: brand.terracotta,
@@ -260,25 +278,30 @@ const styles = StyleSheet.create({
     marginBottom: brand.space.sm,
   },
   featuredImageWrap: {
-    position: 'relative',
+    position: "relative",
     borderRadius: brand.radius.sm,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: brand.space.sm,
   },
   featuredClose: {
-    position: 'absolute',
+    position: "absolute",
     top: 8,
     right: 8,
     zIndex: 2,
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(254,253,251,0.95)',
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: "rgba(254,253,251,0.95)",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  featuredImagePress: { width: '100%' },
-  featuredImage: { width: '100%', height: 160, borderRadius: brand.radius.sm, backgroundColor: brand.cream },
+  featuredImagePress: { width: "100%" },
+  featuredImage: {
+    width: "100%",
+    height: 160,
+    borderRadius: brand.radius.sm,
+    backgroundColor: brand.cream,
+  },
   featuredTitle: {
     fontFamily: brand.fontSans,
     fontSize: brand.type.body,
@@ -293,13 +316,13 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: brand.space.sm,
     backgroundColor: brand.white,
     borderRadius: brand.radius.md,
     borderWidth: 1,
-    borderColor: 'rgba(138,155,142,0.25)',
+    borderColor: "rgba(138,155,142,0.25)",
     padding: brand.space.sm,
     marginBottom: brand.space.xs,
   },
@@ -320,16 +343,21 @@ const styles = StyleSheet.create({
     marginBottom: brand.space.xs,
   },
   notifRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     paddingVertical: brand.space.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(138,155,142,0.35)',
+    borderBottomColor: "rgba(138,155,142,0.35)",
   },
-  thumbWrap: { position: 'relative' },
-  thumb: { width: 48, height: 48, borderRadius: 6, backgroundColor: brand.cream },
+  thumbWrap: { position: "relative" },
+  thumb: {
+    width: 48,
+    height: 48,
+    borderRadius: 6,
+    backgroundColor: brand.cream,
+  },
   unreadDot: {
-    position: 'absolute',
+    position: "absolute",
     top: -2,
     right: -2,
     width: 8,
@@ -360,7 +388,7 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: "rgba(0,0,0,0.4)",
     paddingTop: 64,
     paddingHorizontal: brand.space.sm,
   },
@@ -370,9 +398,9 @@ const styles = StyleSheet.create({
     padding: brand.space.sm,
     zIndex: 1,
   },
-  modalClose: { alignSelf: 'flex-end', marginBottom: brand.space.xs },
+  modalClose: { alignSelf: "flex-end", marginBottom: brand.space.xs },
   modalHero: {
-    width: '100%',
+    width: "100%",
     height: 200,
     borderRadius: brand.radius.md,
     marginBottom: brand.space.sm,

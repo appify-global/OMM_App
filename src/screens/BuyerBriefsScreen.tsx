@@ -1,41 +1,41 @@
-import React from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import type { RootStackScreenProps } from '../navigation/types';
-import { brand } from '../theme/brand';
-import { BUYER_BRIEFS } from '../data/buyerBriefs';
+import React from "react";
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import type { RootStackScreenProps } from "../navigation/types";
+import { brand } from "../theme/brand";
+import { BUYER_BRIEFS } from "../data/buyerBriefs";
+import { TopBar } from "../components/TopBar";
 
-type Props = RootStackScreenProps<'BuyerBriefs'>;
+type Props = RootStackScreenProps<"BuyerBriefs">;
 
-const INFO_BG = '#f7f4f0';
+const INFO_BG = "#f7f4f0";
 
 export function BuyerBriefsScreen({ navigation }: Props) {
   return (
     <View style={styles.root}>
       <StatusBar style="dark" />
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.headerRow}>
-          <Pressable
-            onPress={() => navigation.goBack()}
-            style={styles.back}
-            hitSlop={10}
-            accessibilityLabel="Go back"
-          >
-            <Ionicons name="chevron-back" size={26} color={brand.charcoal} />
-          </Pressable>
-          <Text style={styles.title}>Potential buyers</Text>
-          <View style={styles.backSpacer} />
-        </View>
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        <TopBar title="Potential buyers" />
 
         <Text style={styles.kicker}>6 buyer briefs</Text>
 
         <View style={styles.infoCard}>
-          <Text style={styles.infoTitle}>New briefs land here automatically</Text>
+          <Text style={styles.infoTitle}>
+            New briefs land here automatically
+          </Text>
           <Text style={styles.infoBody}>
-            When a buyer/buyer agent posts a brief that fits your profile, it appears as a
-            private lead, suburbs, budget, and timing come straight from their form.
+            When a buyer/buyer agent posts a brief that fits your profile, it
+            appears as a private lead, suburbs, budget, and timing come straight
+            from their form.
           </Text>
         </View>
 
@@ -52,14 +52,20 @@ export function BuyerBriefsScreen({ navigation }: Props) {
         {BUYER_BRIEFS.map((item) => (
           <Pressable
             key={item.id}
-            onPress={() => navigation.navigate('BuyerBriefDetail', { id: item.id })}
+            onPress={() =>
+              navigation.navigate("BuyerBriefDetail", { id: item.id })
+            }
             style={styles.itemPress}
             accessibilityRole="button"
             accessibilityLabel={`${item.title}, ${item.price}`}
           >
             <View style={styles.itemRow}>
               <View style={styles.thumbBox}>
-                <Image source={item.image} style={styles.thumb} resizeMode="cover" />
+                <Image
+                  source={item.image}
+                  style={styles.thumb}
+                  resizeMode="cover"
+                />
               </View>
               <View style={styles.itemTextCol}>
                 <Text style={styles.itemTitle} numberOfLines={2}>
@@ -68,7 +74,11 @@ export function BuyerBriefsScreen({ navigation }: Props) {
                 <Text style={styles.itemPrice} numberOfLines={1}>
                   {item.price}
                 </Text>
-                <Text style={styles.itemDetails} numberOfLines={2} ellipsizeMode="tail">
+                <Text
+                  style={styles.itemDetails}
+                  numberOfLines={2}
+                  ellipsizeMode="tail"
+                >
                   {item.details}
                 </Text>
                 <View style={styles.itemRule} />
@@ -90,18 +100,24 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: brand.warmWhite },
   safe: { paddingHorizontal: H_PAD },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 4,
   },
-  back: { width: 44, height: 44, marginLeft: -4, alignItems: 'center', justifyContent: 'center' },
+  back: {
+    width: 44,
+    height: 44,
+    marginLeft: -4,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   backSpacer: { width: 40 },
   title: {
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
     fontFamily: brand.fontSans,
     fontSize: brand.type.subtitle,
-    fontWeight: '600',
+    fontWeight: "500",
     color: brand.charcoal,
   },
   kicker: {
@@ -121,7 +137,7 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontFamily: brand.fontSans,
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: "500",
     color: brand.charcoal,
     lineHeight: 22,
     marginBottom: 8,
@@ -133,7 +149,7 @@ const styles = StyleSheet.create({
     color: brand.sage,
   },
   sortRow: {
-    alignItems: 'flex-end',
+    alignItems: "flex-end",
     marginBottom: 10,
   },
   sortText: {
@@ -148,8 +164,8 @@ const styles = StyleSheet.create({
   },
   itemPress: { marginBottom: 0 },
   itemRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingTop: 14,
     paddingBottom: 0,
   },
@@ -157,7 +173,7 @@ const styles = StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 8,
-    overflow: 'hidden',
+    overflow: "hidden",
     backgroundColor: brand.cream,
   },
   thumb: { width: 60, height: 60 },
@@ -169,14 +185,14 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontFamily: brand.fontSans,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "500",
     color: brand.charcoal,
     lineHeight: 21,
   },
   itemPrice: {
     fontFamily: brand.fontSans,
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: "500",
     color: brand.charcoal,
     marginTop: 4,
   },
@@ -189,13 +205,13 @@ const styles = StyleSheet.create({
   },
   itemRule: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(138,155,142,0.28)',
+    backgroundColor: "rgba(138,155,142,0.28)",
     marginTop: 14,
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
     marginRight: -H_PAD,
   },
   endText: {
-    textAlign: 'center',
+    textAlign: "center",
     fontFamily: brand.fontSans,
     fontSize: 12,
     color: brand.sage,

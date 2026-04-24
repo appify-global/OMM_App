@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
   safe: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, flexGrow: 1 },
   title: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     color: colors.text,
     marginBottom: spacing.md,
   },
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   },
   linkBold: {
     color: colors.text,
-    fontWeight: '700',
+    fontWeight: '500',
   },
   linkDisabled: {
     color: colors.textMuted,

@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
   exploreLabel: {
     color: brand.warmWhite,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: '500',
     letterSpacing: 0.6,
   },
   alertBanner: {
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
   },
   alertStar: { marginRight: 10 },
   alertCopy: { flex: 1, paddingRight: 4 },
-  alertTitle: { color: brand.warmWhite, fontSize: 15, fontWeight: '600', marginBottom: 2 },
+  alertTitle: { color: brand.warmWhite, fontSize: 15, fontWeight: '500', marginBottom: 2 },
   alertSub: { color: 'rgba(254,253,251,0.7)', fontSize: 12, lineHeight: 17 },
   alertSwitch: { transform: [{ scaleX: 0.95 }, { scaleY: 0.95 }] },
   listPad: { paddingHorizontal: M, paddingTop: 4 },
@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 4,
   },
-  pillOffText: { color: brand.warmWhite, fontSize: 8, fontWeight: '800', letterSpacing: 0.2 },
+  pillOffText: { color: brand.warmWhite, fontSize: 8, fontWeight: '500', letterSpacing: 0.2 },
   pillMatch: {
     position: 'absolute',
     bottom: 10,
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: 4,
   },
-  pillMatchText: { color: brand.warmWhite, fontSize: 8, fontWeight: '800' },
+  pillMatchText: { color: brand.warmWhite, fontSize: 8, fontWeight: '500' },
   cardBody: {
     flex: 1,
     minWidth: 0,
@@ -365,7 +365,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     fontSize: 16,
     lineHeight: 20,
-    fontWeight: '600',
+    fontWeight: '500',
     color: brand.charcoal,
     fontFamily: brand.fontSans,
   },
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     textAlign: 'left',
     fontSize: 16,
     lineHeight: 20,
-    fontWeight: '600',
+    fontWeight: '500',
     color: brand.charcoal,
     marginTop: 8,
     fontFamily: brand.fontSans,

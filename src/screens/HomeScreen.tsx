@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useRoute, RouteProp } from '@react-navigation/native';
+import React, { useEffect, useRef, useState } from "react";
+import { useRoute, RouteProp } from "@react-navigation/native";
 import {
   Image,
   Pressable,
@@ -8,34 +8,40 @@ import {
   Text,
   TextInput,
   View,
-} from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import type { RootStackParamList, RootStackScreenProps } from '../navigation/types';
-import { images } from '../constants/images';
-import { brand } from '../theme/brand';
+} from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import type {
+  RootStackParamList,
+  RootStackScreenProps,
+} from "../navigation/types";
+import { images } from "../constants/images";
+import { brand } from "../theme/brand";
+import { TopBar, topBarIconBtn } from "../components/TopBar";
 
-type Props = RootStackScreenProps<'Home'>;
+type Props = RootStackScreenProps<"Home">;
 
-type MainTab = 'home' | 'properties' | 'add' | 'tasks' | 'profile';
-type HomeMode = 'selling' | 'buying';
+type MainTab = "home" | "properties" | "add" | "tasks" | "profile";
+type HomeMode = "selling" | "buying";
 
 export function HomeScreen({ navigation }: Props) {
-  const route = useRoute<RouteProp<RootStackParamList, 'Home'>>();
-  const [mode, setMode] = useState<HomeMode>('selling');
-  const [mainTab, setMainTab] = useState<MainTab>('home');
-  const [buyingSearch, setBuyingSearch] = useState('Hawthorn');
-  const buyingSearchInputRef = useRef<React.ComponentRef<typeof TextInput>>(null);
+  const route = useRoute<RouteProp<RootStackParamList, "Home">>();
+  const [mode, setMode] = useState<HomeMode>("selling");
+  const [mainTab, setMainTab] = useState<MainTab>("home");
+  const [buyingSearch, setBuyingSearch] = useState("Hawthorn");
+  const buyingSearchInputRef =
+    useRef<React.ComponentRef<typeof TextInput>>(null);
 
   useEffect(() => {
     const m = route.params?.mode;
-    if (m === 'selling' || m === 'buying') setMode(m);
+    if (m === "selling" || m === "buying") setMode(m);
   }, [route.params?.mode]);
 
   useEffect(() => {
     if (route.params?.focusSearch !== true) return;
-    setMode('buying');
+    setMode("buying");
     const t = setTimeout(() => {
       buyingSearchInputRef.current?.focus();
       navigation.setParams({ focusSearch: undefined });
@@ -46,28 +52,43 @@ export function HomeScreen({ navigation }: Props) {
   return (
     <View style={styles.root}>
       <StatusBar style="dark" />
-      <SafeAreaView style={styles.safeTop} edges={['top']}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Home</Text>
-          <View style={styles.headerActions}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Notifications"
-              style={styles.headerIconBtn}
-              onPress={() => navigation.navigate('Notifications')}
-            >
-              <Ionicons name="notifications-outline" size={22} color={brand.charcoal} />
-            </Pressable>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Messages"
-              style={styles.headerIconBtn}
-              onPress={() => navigation.navigate('Messages')}
-            >
-              <Ionicons name="chatbubble-outline" size={21} color={brand.charcoal} />
-            </Pressable>
-          </View>
-        </View>
+      <SafeAreaView style={styles.safeTop} edges={["top"]}>
+        <TopBar
+          title="Home"
+          leftSlot={
+            <View style={styles.headerHomeActiveTab} pointerEvents="none">
+              <Ionicons name="home" size={22} color={brand.warmWhite} />
+            </View>
+          }
+          rightSlot={
+            <>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Notifications"
+                style={topBarIconBtn}
+                onPress={() => navigation.navigate("Notifications")}
+              >
+                <Ionicons
+                  name="notifications-outline"
+                  size={22}
+                  color={brand.charcoal}
+                />
+              </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Messages"
+                style={topBarIconBtn}
+                onPress={() => navigation.navigate("Messages")}
+              >
+                <Ionicons
+                  name="chatbubble-outline"
+                  size={21}
+                  color={brand.charcoal}
+                />
+              </Pressable>
+            </>
+          }
+        />
 
         <ScrollView
           contentContainerStyle={styles.scroll}
@@ -75,24 +96,40 @@ export function HomeScreen({ navigation }: Props) {
         >
           <View style={styles.segmentWrap}>
             <Pressable
-              onPress={() => setMode('selling')}
-              style={[styles.segmentItem, mode === 'selling' && styles.segmentItemActive]}
+              onPress={() => setMode("selling")}
+              style={[
+                styles.segmentItem,
+                mode === "selling" && styles.segmentItemActive,
+              ]}
             >
-              <Text style={[styles.segmentText, mode === 'selling' && styles.segmentTextActive]}>
+              <Text
+                style={[
+                  styles.segmentText,
+                  mode === "selling" && styles.segmentTextActive,
+                ]}
+              >
                 Selling
               </Text>
             </Pressable>
             <Pressable
-              onPress={() => setMode('buying')}
-              style={[styles.segmentItem, mode === 'buying' && styles.segmentItemActive]}
+              onPress={() => setMode("buying")}
+              style={[
+                styles.segmentItem,
+                mode === "buying" && styles.segmentItemActive,
+              ]}
             >
-              <Text style={[styles.segmentText, mode === 'buying' && styles.segmentTextActive]}>
+              <Text
+                style={[
+                  styles.segmentText,
+                  mode === "buying" && styles.segmentTextActive,
+                ]}
+              >
                 Buying
               </Text>
             </Pressable>
           </View>
 
-          {mode === 'selling' ? (
+          {mode === "selling" ? (
             <SellingHomeContent navigation={navigation} />
           ) : (
             <BuyingHomeContent
@@ -107,28 +144,39 @@ export function HomeScreen({ navigation }: Props) {
         </ScrollView>
       </SafeAreaView>
 
-      <SafeAreaView edges={['bottom']} style={styles.tabSafe}>
+      <SafeAreaView edges={["bottom"]} style={styles.tabSafe}>
         <View style={styles.tabBar}>
           <TabItem
             icon="home"
-            active={mainTab === 'home'}
-            onPress={() => setMainTab('home')}
+            active={mainTab === "home"}
+            onPress={() => setMainTab("home")}
           />
           <TabItem
             icon="document-text-outline"
-            active={mainTab === 'properties'}
-            onPress={() => setMainTab('properties')}
+            active={mainTab === "properties"}
+            onPress={() =>
+              navigation.navigate("ListingSeeAll", { context: mode })
+            }
           />
-          <TabItem icon="add" active={mainTab === 'add'} large onPress={() => setMainTab('add')} />
+          <TabItem
+            icon="add"
+            active={mainTab === "add"}
+            large
+            onPress={() => navigation.navigate("PostBuyerBrief")}
+          />
           <TabItem
             icon="list-outline"
-            active={mainTab === 'tasks'}
-            onPress={() => setMainTab('tasks')}
+            active={mainTab === "tasks"}
+            onPress={() =>
+              navigation.navigate(
+                mode === "selling" ? "AuthorityExpiring" : "SavedSearches",
+              )
+            }
           />
           <TabItem
             icon="person-outline"
-            active={mainTab === 'profile'}
-            onPress={() => setMainTab('profile')}
+            active={mainTab === "profile"}
+            onPress={() => navigation.navigate("AgentProfile", {})}
           />
         </View>
       </SafeAreaView>
@@ -139,11 +187,15 @@ export function HomeScreen({ navigation }: Props) {
 function SellingHomeContent({
   navigation,
 }: {
-  navigation: RootStackScreenProps<'Home'>['navigation'];
+  navigation: RootStackScreenProps<"Home">["navigation"];
 }) {
   return (
     <>
-      <AlertRow icon="flash-outline" label="3 new enquiries" onPress={() => {}} />
+      <AlertRow
+        icon="flash-outline"
+        label="3 new enquiries"
+        onPress={() => {}}
+      />
       <AlertRow
         icon="star-outline"
         label="2 transactions awaiting review"
@@ -158,7 +210,10 @@ function SellingHomeContent({
             Auto-fill from PriceFinder — SOI in 5 steps
           </Text>
         </View>
-        <Pressable style={styles.publishFab} accessibilityLabel="Create listing">
+        <Pressable
+          style={styles.publishFab}
+          accessibilityLabel="Create listing"
+        >
           <Ionicons name="add" size={28} color={brand.charcoal} />
         </Pressable>
       </View>
@@ -173,36 +228,39 @@ function SellingHomeContent({
           image={images.propertyHouse1}
           name="John Doe"
           time="2H AGO"
-          address="12 Walsh St, Hawthorn"
-          tag="RE: Hawthorn City Center"
+          address="502 Glenferrie Rd, Hawthorn"
+          tag="RE: 502 Glenferrie Rd"
         />
         <EnquiryCard
           image={images.propertyHouse2}
           name="Sarah Chen"
           time="5H AGO"
-          address="88 Auburn Rd"
-          tag="RE: Auburn Residence"
+          address="248 Auburn Rd, Hawthorn"
+          tag="RE: 248 Auburn Rd"
         />
         <EnquiryCard
           image={images.propertyHouse3}
           name="Alex Moore"
           time="1D AGO"
-          address="3 Kooyong Rd"
-          tag="RE: South Yarra"
+          address="15 Power St, Hawthorn"
+          tag="RE: Power St"
         />
       </ScrollView>
 
       <SectionHeader
-        title="Your Active Listings"
-        onSeeAll={() => navigation.navigate('ListingSeeAll', { context: 'selling' })}
+        title="Your Hawthorn portfolio"
+        onSeeAll={() =>
+          navigation.navigate("ListingSeeAll", { context: "selling" })
+        }
       />
       <ListingCard
         image={images.propertyHouse1}
         status="ACTIVE"
-        authLabel="AUTH 14D LEFT"
-        title="Hawthorn City Center"
+        authLabel="AUTH · 14D"
+        title="502 Glenferrie Road"
+        locality="Glenferrie · Hawthorn 3122"
         price="$2.0M – $2.2M"
-        specs="4 BED    3 BATH    650M²"
+        specs="4 bed · 3 bath · 650 m²"
         views="128"
         leads="6"
         soiHeadline="Attached"
@@ -211,10 +269,11 @@ function SellingHomeContent({
       <ListingCard
         image={images.propertyHouse2}
         status="SOI PENDING"
-        authLabel="AUTH 6D LEFT"
-        title="Auburn Residence"
+        authLabel="AUTH · 6D"
+        title="248 Auburn Road"
+        locality="Auburn · Hawthorn 3122"
         price="$1.45M – $1.55M"
-        specs="3 BED    2 BATH    420M²"
+        specs="3 bed · 2 bath · 420 m²"
         views="84"
         leads="4"
         soiHeadline="Pending"
@@ -223,17 +282,31 @@ function SellingHomeContent({
 
       <SectionHeader
         title="Authority Expiring Soon"
-        onSeeAll={() => navigation.navigate('AuthorityExpiring')}
+        onSeeAll={() => navigation.navigate("AuthorityExpiring")}
       />
-      <AuthorityRow name="Kooyong Family Home" sub="14 Kooyong Rd" badge="6D LEFT" />
-      <AuthorityRow name="Brighton Waterfront" sub="2 Esplanade" badge="9D LEFT" />
+      <AuthorityRow
+        name="Kooyong Family Home"
+        sub="14 Kooyong Rd"
+        badge="6D LEFT"
+      />
+      <AuthorityRow
+        name="Brighton Waterfront"
+        sub="2 Esplanade"
+        badge="9D LEFT"
+      />
 
       <SectionHeader
         title="New Buyer Matches"
-        onSeeAll={() => navigation.navigate('BuyerBriefs')}
+        onSeeAll={() => navigation.navigate("BuyerBriefs")}
       />
-      <BuyerMatchRow area="Boroondara" criteria="4 bed family · $1.8M – $2.3M" />
-      <BuyerMatchRow area="Stonnington" criteria="3 bed · courtyard · $1.2M – $1.6M" />
+      <BuyerMatchRow
+        area="Boroondara"
+        criteria="4 bed family · $1.8M – $2.3M"
+      />
+      <BuyerMatchRow
+        area="Stonnington"
+        criteria="3 bed · courtyard · $1.2M – $1.6M"
+      />
     </>
   );
 }
@@ -244,14 +317,18 @@ function BuyingHomeContent({
   onSearch,
   searchInputRef,
 }: {
-  navigation: RootStackScreenProps<'Home'>['navigation'];
+  navigation: RootStackScreenProps<"Home">["navigation"];
   search: string;
   onSearch: (t: string) => void;
   searchInputRef: React.RefObject<React.ComponentRef<typeof TextInput> | null>;
 }) {
   return (
     <>
-      <AlertRow icon="flash-outline" label="2 new agent replies" onPress={() => navigation.navigate('Messages')} />
+      <AlertRow
+        icon="flash-outline"
+        label="2 new agent replies"
+        onPress={() => navigation.navigate("Messages")}
+      />
       <AlertRow
         icon="star-outline"
         label="1 transaction awaiting review"
@@ -260,7 +337,12 @@ function BuyingHomeContent({
 
       <View style={styles.buyingSearchRow}>
         <View style={styles.buyingSearchField}>
-          <Ionicons name="search" size={18} color={brand.sage} style={styles.buyingSearchIcon} />
+          <Ionicons
+            name="search"
+            size={18}
+            color={brand.sage}
+            style={styles.buyingSearchIcon}
+          />
           <TextInput
             ref={searchInputRef}
             value={search}
@@ -275,8 +357,8 @@ function BuyingHomeContent({
           style={styles.buyingExploreBtn}
           accessibilityLabel="Explore"
           onPress={() =>
-            navigation.navigate('BuyingSearch', {
-              query: search.trim() || 'Hawthorn',
+            navigation.navigate("BuyingSearch", {
+              query: search.trim() || "Hawthorn",
             })
           }
         >
@@ -286,14 +368,16 @@ function BuyingHomeContent({
 
       <Pressable
         style={styles.buyerBriefCard}
-        onPress={() => navigation.navigate('PostBuyerBrief')}
+        onPress={() => navigation.navigate("PostBuyerBrief")}
         accessibilityRole="button"
         accessibilityLabel="Post a buyer brief"
       >
         <View style={styles.buyerBriefTextCol}>
           <Text style={styles.buyerBriefKicker}>BUYER BRIEF</Text>
           <Text style={styles.buyerBriefTitle}>Post a buyer brief</Text>
-          <Text style={styles.buyerBriefSub}>Match listing agents within 24 hours</Text>
+          <Text style={styles.buyerBriefSub}>
+            Match listing agents within 24 hours
+          </Text>
         </View>
         <View style={styles.buyerBriefFab}>
           <Ionicons name="add" size={28} color={brand.charcoal} />
@@ -302,7 +386,7 @@ function BuyingHomeContent({
 
       <SectionHeader
         title="Recent agent replies"
-        onSeeAll={() => navigation.navigate('Messages')}
+        onSeeAll={() => navigation.navigate("Messages")}
       />
       <ScrollView
         horizontal
@@ -313,23 +397,23 @@ function BuyingHomeContent({
           <Text style={styles.agentReplyName}>Sarah Lin</Text>
           <Text style={styles.agentReplyAgency}>Jellis Craig</Text>
           <Text style={styles.agentReplySnippet} numberOfLines={3}>
-            Yes, off-market in Camberwell available next month — I can share floorplan if
-            you&apos;re ready to brief your vendor.
+            Yes, off-market in Camberwell available next month — I can share
+            floorplan if you&apos;re ready to brief your vendor.
           </Text>
         </View>
         <View style={styles.agentReplyCard}>
           <Text style={styles.agentReplyName}>Tom Reid</Text>
           <Text style={styles.agentReplyAgency}>Marshall White</Text>
           <Text style={styles.agentReplySnippet} numberOfLines={3}>
-            I have two pre-matched listings that align with your brief — want a call this
-            week?
+            I have two pre-matched listings that align with your brief — want a
+            call this week?
           </Text>
         </View>
       </ScrollView>
 
       <SectionHeader
         title="Saved searches"
-        onSeeAll={() => navigation.navigate('SavedSearches')}
+        onSeeAll={() => navigation.navigate("SavedSearches")}
       />
       <View style={styles.savedSearchStack}>
         <View style={styles.savedSearchCard}>
@@ -337,7 +421,9 @@ function BuyingHomeContent({
             <Text style={styles.newBadgeText}>8 NEW</Text>
           </View>
           <Text style={styles.savedSearchTitle}>Boroondara, VIC</Text>
-          <Text style={styles.savedSearchLine}>4+ beds · House · $1.8M–2.4M</Text>
+          <Text style={styles.savedSearchLine}>
+            4+ beds · House · $1.8M–2.4M
+          </Text>
           <Text style={styles.savedSearchAlerts}>
             <Text style={styles.savedSearchDot}>●</Text> DAILY ALERTS ON
           </Text>
@@ -356,7 +442,9 @@ function BuyingHomeContent({
 
       <SectionHeader
         title="Off-market matches"
-        onSeeAll={() => navigation.navigate('ListingSeeAll', { context: 'buying' })}
+        onSeeAll={() =>
+          navigation.navigate("ListingSeeAll", { context: "buying" })
+        }
       />
       <OffMarketCard
         image={images.propertyHouse1}
@@ -392,7 +480,11 @@ function OffMarketCard({
   return (
     <View style={styles.offMarketCard}>
       <View style={styles.offMarketImage}>
-        <Image source={image} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+        <Image
+          source={image}
+          style={StyleSheet.absoluteFillObject}
+          resizeMode="cover"
+        />
         <View style={styles.offMarketBadgeLeft}>
           <Text style={styles.offMarketBadgeLeftText}>OFF-MARKET</Text>
         </View>
@@ -427,7 +519,13 @@ function AlertRow({
   );
 }
 
-function SectionHeader({ title, onSeeAll }: { title: string; onSeeAll: () => void }) {
+function SectionHeader({
+  title,
+  onSeeAll,
+}: {
+  title: string;
+  onSeeAll: () => void;
+}) {
   return (
     <View style={styles.sectionHead}>
       <Text style={styles.sectionTitle}>{title}</Text>
@@ -454,7 +552,11 @@ function EnquiryCard({
   return (
     <View style={styles.enquiryCard}>
       <View style={styles.enquiryImageFrame}>
-        <Image source={image} style={StyleSheet.absoluteFillObject} resizeMode="cover" />
+        <Image
+          source={image}
+          style={StyleSheet.absoluteFillObject}
+          resizeMode="cover"
+        />
       </View>
       <View style={styles.enquiryCol}>
         <View style={styles.enquiryTextBlock}>
@@ -479,6 +581,7 @@ function ListingCard({
   status,
   authLabel,
   title,
+  locality,
   price,
   specs,
   views,
@@ -490,6 +593,7 @@ function ListingCard({
   status: string;
   authLabel: string;
   title: string;
+  locality?: string;
   price: string;
   specs: string;
   views: string;
@@ -497,33 +601,67 @@ function ListingCard({
   soiHeadline: string;
   soiSub: string;
 }) {
+  const statusPending = status.toLowerCase().includes("pending");
   return (
     <View style={styles.listingCard}>
+      <View style={styles.listingAccent} />
       <View style={styles.listingImage}>
-        <Image source={image} style={styles.listingImageInner} resizeMode="cover" />
+        <Image
+          source={image}
+          style={styles.listingImageInner}
+          resizeMode="cover"
+        />
+        <LinearGradient
+          pointerEvents="none"
+          colors={[
+            "transparent",
+            "rgba(12, 14, 18, 0.08)",
+            "rgba(8, 10, 14, 0.58)",
+          ]}
+          locations={[0, 0.35, 1]}
+          style={StyleSheet.absoluteFill}
+        />
         <View style={styles.listingBadges} pointerEvents="box-none">
-          <View style={[styles.badge, styles.badgeStatusPill]}>
-            <Text style={styles.badgeTextLight}>{status}</Text>
+          <View
+            style={[
+              styles.badge,
+              statusPending ? styles.badgeStatusLight : styles.badgeStatusLux,
+            ]}
+          >
+            <Text
+              style={
+                statusPending
+                  ? styles.badgeTextStatusLight
+                  : styles.badgeTextLux
+              }
+            >
+              {status}
+            </Text>
           </View>
-          <View style={[styles.badge, styles.badgeAuthPill]}>
-            <Text style={styles.badgeTextAuthPill}>{authLabel}</Text>
+          <View style={[styles.badge, styles.badgeAuthLux]}>
+            <Text style={styles.badgeTextAuthLux}>{authLabel}</Text>
           </View>
         </View>
       </View>
       <View style={styles.listingBody}>
         <Text style={styles.listingTitle}>{title}</Text>
+        {locality ? (
+          <Text style={styles.listingLocality}>{locality}</Text>
+        ) : null}
         <Text style={styles.listingPrice}>{price}</Text>
         <Text style={styles.listingSpecs}>{specs}</Text>
       </View>
       <View style={styles.listingFooter}>
         <View style={styles.listingFooterCol}>
           <Text style={styles.listingFooterVal}>{views}</Text>
-          <Text style={styles.listingFooterLabel}>VIEWS (7D)</Text>
+          <Text style={styles.listingFooterLabel}>7-day views</Text>
         </View>
+        <View style={styles.listingFooterRule} />
         <View style={styles.listingFooterCol}>
           <Text style={styles.listingFooterVal}>{leads}</Text>
-          <Text style={styles.listingFooterLabel}>LEADS</Text>
+          <Text style={styles.listingFooterLabel}>Enquiries</Text>
         </View>
+        <View style={styles.listingFooterRule} />
         <View style={styles.listingFooterCol}>
           <Text style={styles.listingFooterValSoi} numberOfLines={1}>
             {soiHeadline}
@@ -535,7 +673,15 @@ function ListingCard({
   );
 }
 
-function AuthorityRow({ name, sub, badge }: { name: string; sub: string; badge: string }) {
+function AuthorityRow({
+  name,
+  sub,
+  badge,
+}: {
+  name: string;
+  sub: string;
+  badge: string;
+}) {
   return (
     <View style={styles.authRow}>
       <View style={{ flex: 1 }}>
@@ -595,35 +741,20 @@ function TabItem({
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: brand.warmWhite },
   safeTop: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: brand.space.sm,
-    paddingBottom: brand.space.xs,
-  },
-  headerTitle: {
-    fontFamily: brand.fontSans,
-    fontSize: brand.type.title,
-    fontWeight: brand.type.weightMedium,
-    color: brand.charcoal,
-    letterSpacing: -0.5,
-  },
-  headerActions: { flexDirection: 'row', alignItems: 'center', gap: brand.space.xs },
-  headerIconBtn: {
+  headerHomeActiveTab: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: brand.cream,
-    alignItems: 'center',
-    justifyContent: 'center',
+    backgroundColor: brand.charcoal,
+    alignItems: "center",
+    justifyContent: "center",
   },
   scroll: {
     paddingHorizontal: brand.space.sm,
     paddingTop: brand.space.xs,
   },
   segmentWrap: {
-    flexDirection: 'row',
+    flexDirection: "row",
     backgroundColor: brand.cream,
     borderRadius: brand.radius.md,
     padding: 4,
@@ -633,7 +764,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 10,
     borderRadius: brand.radius.sm,
-    alignItems: 'center',
+    alignItems: "center",
   },
   segmentItemActive: {
     backgroundColor: brand.white,
@@ -653,15 +784,15 @@ const styles = StyleSheet.create({
     color: brand.charcoal,
   },
   alertCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: brand.space.sm,
     backgroundColor: brand.white,
     borderRadius: brand.radius.md,
     padding: brand.space.sm,
     marginBottom: brand.space.xs,
     borderWidth: 1,
-    borderColor: 'rgba(138,155,142,0.25)',
+    borderColor: "rgba(138,155,142,0.25)",
   },
   alertText: {
     flex: 1,
@@ -671,13 +802,13 @@ const styles = StyleSheet.create({
     color: brand.charcoal,
   },
   publishCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: brand.charcoal,
     borderRadius: brand.radius.md,
-    padding: brand.space.md,
+    padding: brand.space.sm,
     marginTop: brand.space.xs,
-    marginBottom: brand.space.md,
+    marginBottom: brand.space.sm,
   },
   publishTextCol: { flex: 1, paddingRight: brand.space.sm },
   publishKicker: {
@@ -685,7 +816,7 @@ const styles = StyleSheet.create({
     fontSize: 11,
     letterSpacing: 1.2,
     fontWeight: brand.type.weightMedium,
-    color: 'rgba(254,253,251,0.65)',
+    color: "rgba(254,253,251,0.65)",
     marginBottom: 6,
   },
   publishTitle: {
@@ -699,23 +830,23 @@ const styles = StyleSheet.create({
     fontFamily: brand.fontSans,
     fontSize: brand.type.caption,
     fontWeight: brand.type.weightRegular,
-    color: 'rgba(254,253,251,0.75)',
+    color: "rgba(254,253,251,0.75)",
     lineHeight: 20,
   },
   publishFab: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: brand.warmWhite,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   sectionHead: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: brand.space.md,
-    marginBottom: brand.space.sm,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginTop: brand.space.sm,
+    marginBottom: brand.space.xs,
   },
   sectionTitle: {
     fontFamily: brand.fontSans,
@@ -734,27 +865,27 @@ const styles = StyleSheet.create({
     paddingBottom: brand.space.sm,
   },
   enquiryCard: {
-    width: 216,
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    width: 232,
+    flexDirection: "row",
+    alignItems: "flex-start",
     backgroundColor: brand.white,
     borderRadius: brand.radius.md,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(138,155,142,0.22)',
+    borderColor: "rgba(138,155,142,0.22)",
     gap: 12,
   },
   enquiryImageFrame: {
     width: 64,
     height: 80,
     borderRadius: brand.radius.md,
-    overflow: 'hidden',
+    overflow: "hidden",
     backgroundColor: brand.cream,
   },
   enquiryCol: {
     flex: 1,
     minWidth: 0,
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
   },
   enquiryTextBlock: {
     flexShrink: 1,
@@ -782,7 +913,7 @@ const styles = StyleSheet.create({
   },
   enquiryTag: {
     marginTop: 10,
-    alignSelf: 'stretch',
+    alignSelf: "stretch",
     backgroundColor: brand.cream,
     borderRadius: brand.radius.sm,
     paddingHorizontal: 8,
@@ -795,131 +926,171 @@ const styles = StyleSheet.create({
     fontWeight: brand.type.weightRegular,
   },
   listingCard: {
-    backgroundColor: brand.white,
+    backgroundColor: brand.luxury.bone,
     borderRadius: brand.radius.lg,
     marginBottom: brand.space.md,
-    overflow: 'hidden',
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: 'rgba(138,155,142,0.2)',
-    shadowColor: brand.charcoal,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
+    borderColor: brand.luxury.parchmentLine,
+    shadowColor: brand.luxury.ink,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 24,
+    elevation: 4,
+  },
+  listingAccent: {
+    height: 2,
+    width: "100%",
+    backgroundColor: brand.luxury.gold,
+    opacity: 0.9,
   },
   listingImage: {
-    height: 192,
+    height: 208,
     backgroundColor: brand.cream,
-    position: 'relative',
-    overflow: 'hidden',
+    position: "relative",
+    overflow: "hidden",
   },
   listingImageInner: { ...StyleSheet.absoluteFillObject },
   listingBadges: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-    right: 10,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
+    position: "absolute",
+    top: 12,
+    left: 12,
+    right: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
   },
   badge: {
-    paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: brand.radius.pill,
-    maxWidth: '48%',
+    maxWidth: "52%",
   },
-  badgeStatusPill: { backgroundColor: brand.charcoal },
-  badgeAuthPill: {
-    backgroundColor: 'rgba(255,255,255,0.95)',
+  badgeStatusLux: {
+    backgroundColor: brand.luxury.ink,
     borderWidth: 1,
-    borderColor: 'rgba(0,0,0,0.08)',
+    borderColor: "rgba(184, 149, 106, 0.5)",
   },
-  badgeTextLight: {
+  badgeStatusLight: {
+    backgroundColor: brand.luxury.mist,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.35)",
+  },
+  badgeTextLux: {
     fontFamily: brand.fontSans,
     fontSize: 10,
-    letterSpacing: 0.5,
-    fontWeight: '600',
-    color: brand.warmWhite,
+    letterSpacing: 1,
+    textTransform: "uppercase" as const,
+    fontWeight: "600" as const,
+    color: "#E8D9C4",
   },
-  badgeTextAuthPill: {
+  badgeTextStatusLight: {
+    fontFamily: brand.fontSans,
+    fontSize: 10,
+    letterSpacing: 0.6,
+    textTransform: "uppercase" as const,
+    fontWeight: "600" as const,
+    color: brand.luxury.warmBlack,
+  },
+  badgeAuthLux: {
+    backgroundColor: "rgba(255,255,255,0.88)",
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.07)",
+  },
+  badgeTextAuthLux: {
     fontFamily: brand.fontSans,
     fontSize: 9,
-    letterSpacing: 0.4,
-    fontWeight: '600',
-    color: brand.charcoal,
+    letterSpacing: 0.5,
+    fontWeight: "500",
+    color: brand.luxury.warmBlack,
   },
   listingBody: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 14,
-    backgroundColor: brand.white,
+    paddingHorizontal: 18,
+    paddingTop: 18,
+    paddingBottom: 18,
+    backgroundColor: brand.luxury.bone,
   },
   listingTitle: {
+    fontFamily: brand.fontDisplay,
+    fontSize: 22,
+    lineHeight: 28,
+    fontWeight: "400" as const,
+    color: brand.luxury.warmBlack,
+    letterSpacing: 0.2,
+  },
+  listingLocality: {
     fontFamily: brand.fontSans,
-    fontSize: brand.type.body,
-    fontWeight: brand.type.weightMedium,
-    color: brand.charcoal,
+    fontSize: 12,
+    fontWeight: "400" as const,
+    color: brand.sage,
+    marginTop: 6,
+    letterSpacing: 0.2,
   },
   listingPrice: {
     fontFamily: brand.fontSans,
-    fontSize: brand.type.caption,
-    fontWeight: brand.type.weightRegular,
-    color: brand.sage,
-    marginTop: 6,
+    fontSize: 17,
+    fontWeight: "500" as const,
+    color: brand.luxury.ink,
+    marginTop: 10,
+    letterSpacing: 0.3,
   },
   listingSpecs: {
     fontFamily: brand.fontSans,
-    fontSize: 12,
-    fontWeight: brand.type.weightRegular,
-    color: brand.sage,
+    fontSize: 13,
+    fontWeight: "400" as const,
+    color: "rgba(26, 26, 26, 0.5)",
     marginTop: 8,
-    textTransform: 'uppercase',
-    letterSpacing: 0.3,
+    letterSpacing: 0.15,
   },
   listingFooter: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    backgroundColor: '#f2efe9',
-    paddingVertical: 14,
-    paddingHorizontal: 8,
+    flexDirection: "row",
+    alignItems: "stretch",
+    backgroundColor: brand.luxury.parchment,
+    paddingVertical: 16,
+    paddingHorizontal: 0,
+  },
+  listingFooterRule: {
+    width: StyleSheet.hairlineWidth,
+    backgroundColor: "rgba(45, 38, 30, 0.12)",
+    alignSelf: "stretch",
   },
   listingFooterCol: {
     flex: 1,
-    alignItems: 'center',
-    paddingHorizontal: 4,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: 6,
   },
   listingFooterVal: {
-    fontFamily: brand.fontSans,
-    fontSize: 20,
-    fontWeight: '600',
-    color: brand.charcoal,
+    fontFamily: brand.fontDisplay,
+    fontSize: 22,
+    lineHeight: 26,
+    fontWeight: "400" as const,
+    color: brand.luxury.ink,
   },
   listingFooterValSoi: {
     fontFamily: brand.fontSans,
-    fontSize: 16,
-    fontWeight: '600',
-    color: brand.charcoal,
+    fontSize: 15,
+    fontWeight: "500" as const,
+    color: brand.luxury.ink,
   },
   listingFooterLabel: {
     fontFamily: brand.fontSans,
     fontSize: 10,
-    color: brand.sage,
-    marginTop: 4,
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    letterSpacing: 0.2,
+    color: "rgba(26, 26, 26, 0.5)",
+    marginTop: 5,
+    textAlign: "center",
+    letterSpacing: 0.3,
   },
   authRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: brand.space.sm,
     paddingHorizontal: brand.space.sm,
     backgroundColor: brand.white,
     borderRadius: brand.radius.md,
     marginBottom: brand.space.xs,
     borderWidth: 1,
-    borderColor: 'rgba(138,155,142,0.2)',
+    borderColor: "rgba(138,155,142,0.2)",
   },
   authName: {
     fontFamily: brand.fontSans,
@@ -947,14 +1118,14 @@ const styles = StyleSheet.create({
     letterSpacing: 0.3,
   },
   buyerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     padding: brand.space.sm,
     backgroundColor: brand.white,
     borderRadius: brand.radius.md,
     marginBottom: brand.space.xs,
     borderWidth: 1,
-    borderColor: 'rgba(138,155,142,0.2)',
+    borderColor: "rgba(138,155,142,0.2)",
   },
   buyerArea: {
     fontFamily: brand.fontSans,
@@ -969,16 +1140,16 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   buyingSearchRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 10,
     marginTop: 4,
     marginBottom: brand.space.sm,
   },
   buyingSearchField: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: brand.cream,
     borderRadius: brand.radius.md,
     paddingHorizontal: 12,
@@ -997,38 +1168,38 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     borderRadius: brand.radius.sm,
     minHeight: 48,
-    justifyContent: 'center',
+    justifyContent: "center",
     paddingVertical: 12,
   },
   buyingExploreLabel: {
     fontFamily: brand.fontSans,
     fontSize: 12,
-    fontWeight: '700',
+    fontWeight: "500",
     letterSpacing: 0.6,
     color: brand.warmWhite,
   },
   buyerBriefCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: brand.charcoal,
     borderRadius: 14,
-    padding: brand.space.md,
+    padding: brand.space.sm,
     marginTop: 4,
-    marginBottom: brand.space.md,
+    marginBottom: brand.space.sm,
   },
   buyerBriefTextCol: { flex: 1, paddingRight: 12 },
   buyerBriefKicker: {
     fontFamily: brand.fontSans,
     fontSize: 10,
     letterSpacing: 1.1,
-    fontWeight: '600',
-    color: 'rgba(254,253,251,0.65)',
+    fontWeight: "500",
+    color: "rgba(254,253,251,0.65)",
     marginBottom: 4,
   },
   buyerBriefTitle: {
     fontFamily: brand.fontSans,
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: "500",
     color: brand.warmWhite,
     marginBottom: 6,
   },
@@ -1036,15 +1207,15 @@ const styles = StyleSheet.create({
     fontFamily: brand.fontSans,
     fontSize: 13,
     lineHeight: 20,
-    color: 'rgba(254,253,251,0.8)',
+    color: "rgba(254,253,251,0.8)",
   },
   buyerBriefFab: {
-    width: 52,
-    height: 52,
-    borderRadius: 26,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: brand.warmWhite,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   agentRepliesRow: { gap: 12, paddingBottom: brand.space.sm, paddingRight: 4 },
   agentReplyCard: {
@@ -1053,12 +1224,12 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 14,
     borderWidth: 1,
-    borderColor: 'rgba(138,155,142,0.2)',
+    borderColor: "rgba(138,155,142,0.2)",
   },
   agentReplyName: {
     fontFamily: brand.fontSans,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "500",
     color: brand.charcoal,
   },
   agentReplyAgency: {
@@ -1079,12 +1250,12 @@ const styles = StyleSheet.create({
     backgroundColor: brand.white,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(138,155,142,0.2)',
+    borderColor: "rgba(138,155,142,0.2)",
     padding: 16,
-    position: 'relative',
+    position: "relative",
   },
   newBadge: {
-    position: 'absolute',
+    position: "absolute",
     top: 12,
     right: 12,
     backgroundColor: brand.charcoal,
@@ -1095,14 +1266,14 @@ const styles = StyleSheet.create({
   newBadgeText: {
     fontFamily: brand.fontSans,
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "500",
     letterSpacing: 0.3,
     color: brand.warmWhite,
   },
   savedSearchTitle: {
     fontFamily: brand.fontSans,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: "500",
     color: brand.charcoal,
     paddingRight: 72,
   },
@@ -1123,14 +1294,19 @@ const styles = StyleSheet.create({
   offMarketCard: {
     backgroundColor: brand.white,
     borderRadius: 14,
-    marginBottom: brand.space.md,
-    overflow: 'hidden',
+    marginBottom: brand.space.sm,
+    overflow: "hidden",
     borderWidth: 1,
-    borderColor: 'rgba(138,155,142,0.2)',
+    borderColor: "rgba(138,155,142,0.2)",
   },
-  offMarketImage: { height: 200, position: 'relative', backgroundColor: brand.cream, overflow: 'hidden' },
+  offMarketImage: {
+    height: 170,
+    position: "relative",
+    backgroundColor: brand.cream,
+    overflow: "hidden",
+  },
   offMarketBadgeLeft: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     left: 10,
     backgroundColor: brand.charcoal,
@@ -1141,14 +1317,14 @@ const styles = StyleSheet.create({
   offMarketBadgeLeftText: {
     color: brand.warmWhite,
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: "500",
     letterSpacing: 0.4,
   },
   offMarketBadgeRight: {
-    position: 'absolute',
+    position: "absolute",
     top: 10,
     right: 10,
-    backgroundColor: 'rgba(255,255,255,0.95)',
+    backgroundColor: "rgba(255,255,255,0.95)",
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 4,
@@ -1156,10 +1332,15 @@ const styles = StyleSheet.create({
   offMarketBadgeRightText: {
     color: brand.charcoal,
     fontSize: 10,
-    fontWeight: '700',
+    fontWeight: "500",
   },
   offMarketBody: { padding: 16, backgroundColor: brand.white },
-  offMarketTitle: { fontSize: 17, fontWeight: '600', color: brand.charcoal, fontFamily: brand.fontSans },
+  offMarketTitle: {
+    fontSize: 17,
+    fontWeight: "500",
+    color: brand.charcoal,
+    fontFamily: brand.fontSans,
+  },
   offMarketPrice: {
     fontSize: 15,
     color: brand.sage,
@@ -1169,24 +1350,24 @@ const styles = StyleSheet.create({
   offMarketSpecs: {
     fontSize: 12,
     color: brand.sage,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
     marginTop: 6,
     letterSpacing: 0.3,
     fontFamily: brand.fontSans,
   },
   tabSafe: {
-    position: 'absolute',
+    position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   tabBar: {
     marginHorizontal: brand.space.sm,
     marginBottom: 4,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-around',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
     backgroundColor: brand.white,
     borderRadius: brand.radius.xl,
     paddingVertical: 10,
@@ -1197,23 +1378,23 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 8,
     borderWidth: 1,
-    borderColor: 'rgba(138,155,142,0.15)',
+    borderColor: "rgba(138,155,142,0.15)",
   },
-  tabItem: { alignItems: 'center', justifyContent: 'center', minWidth: 48 },
+  tabItem: { alignItems: "center", justifyContent: "center", minWidth: 48 },
   tabIconWrap: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
   },
   tabIconWrapActive: {
     backgroundColor: brand.charcoal,
   },
   tabIconWrapLarge: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: brand.terracotta,
   },
 });

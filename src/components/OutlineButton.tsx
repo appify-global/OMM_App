@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
   pressed: { opacity: 0.88 },
   label: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     color: colors.black,
   },
 });

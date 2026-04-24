@@ -1,64 +1,61 @@
-import React, { useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import type { RootStackScreenProps } from '../navigation/types';
-import { threadAvatarForName } from '../constants/avatars';
-import { brand } from '../theme/brand';
+import React, { useState } from "react";
+import {
+  Image,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import type { RootStackScreenProps } from "../navigation/types";
+import { threadAvatarForName } from "../constants/avatars";
+import { brand } from "../theme/brand";
+import { TopBar } from "../components/TopBar";
 
-type Props = RootStackScreenProps<'Messages'>;
-type FilterId = 'all' | 'unread' | 'buyers' | 'listings';
+type Props = RootStackScreenProps<"Messages">;
+type FilterId = "all" | "unread" | "buyers" | "listings";
 
 const FILTERS: { id: FilterId; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'unread', label: 'Unread' },
-  { id: 'buyers', label: 'Buyers' },
-  { id: 'listings', label: 'Listings' },
+  { id: "all", label: "All" },
+  { id: "unread", label: "Unread" },
+  { id: "buyers", label: "Buyers" },
+  { id: "listings", label: "Listings" },
 ];
 
 const THREADS = [
   {
-    name: 'Anton Zhouk',
-    time: '2hr',
-    preview: 'SOI + floorplan sent — review by 5pm?',
-    address: '12 Walsh St, Hawthorn',
+    name: "Anton Zhouk",
+    time: "2hr",
+    preview: "SOI + floorplan sent — review by 5pm?",
+    address: "12 Walsh St, Hawthorn",
   },
   {
-    name: 'Sarah Jenkins',
-    time: '1d',
-    preview: 'Floorplan v2 received — loading into data room now.',
-    address: '1240 Park Ave',
+    name: "Sarah Jenkins",
+    time: "1d",
+    preview: "Floorplan v2 received — loading into data room now.",
+    address: "1240 Park Ave",
   },
   {
-    name: 'Camberwell Agent',
-    time: '2d',
-    preview: 'Contract opened for Auburn Road — any questions?',
-    address: '88 Auburn Rd',
+    name: "Camberwell Agent",
+    time: "2d",
+    preview: "Contract opened for Auburn Road — any questions?",
+    address: "88 Auburn Rd",
   },
 ];
 
 export function MessagesScreen({ navigation }: Props) {
-  const [filter, setFilter] = useState<FilterId>('all');
-  const [search, setSearch] = useState('');
+  const [filter, setFilter] = useState<FilterId>("all");
+  const [search, setSearch] = useState("");
 
   return (
     <View style={styles.root}>
       <StatusBar style="dark" />
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.headerRow}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel="Go back"
-            hitSlop={12}
-            onPress={() => navigation.goBack()}
-            style={styles.backBtn}
-          >
-            <Ionicons name="chevron-back" size={26} color={brand.charcoal} />
-          </Pressable>
-          <Text style={styles.headerTitle}>Messages</Text>
-          <View style={styles.backPlaceholder} />
-        </View>
+      <SafeAreaView style={styles.safe} edges={["top"]}>
+        <TopBar title="Messages" />
 
         <ScrollView
           contentContainerStyle={styles.scroll}
@@ -66,7 +63,12 @@ export function MessagesScreen({ navigation }: Props) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.searchWrap}>
-            <Ionicons name="search" size={20} color={brand.sage} style={styles.searchIcon} />
+            <Ionicons
+              name="search"
+              size={20}
+              color={brand.sage}
+              style={styles.searchIcon}
+            />
             <TextInput
               value={search}
               onChangeText={setSearch}
@@ -89,7 +91,11 @@ export function MessagesScreen({ navigation }: Props) {
                   onPress={() => setFilter(f.id)}
                   style={[styles.chip, active && styles.chipActive]}
                 >
-                  <Text style={[styles.chipText, active && styles.chipTextActive]}>{f.label}</Text>
+                  <Text
+                    style={[styles.chipText, active && styles.chipTextActive]}
+                  >
+                    {f.label}
+                  </Text>
                 </Pressable>
               );
             })}
@@ -102,7 +108,9 @@ export function MessagesScreen({ navigation }: Props) {
           </Pressable>
           <Pressable style={styles.banner} onPress={() => {}}>
             <Ionicons name="star-outline" size={20} color={brand.sage} />
-            <Text style={styles.bannerText}>2 transactions awaiting review</Text>
+            <Text style={styles.bannerText}>
+              2 transactions awaiting review
+            </Text>
             <Ionicons name="chevron-forward" size={18} color={brand.sage} />
           </Pressable>
 
@@ -111,7 +119,7 @@ export function MessagesScreen({ navigation }: Props) {
               key={t.name}
               style={styles.thread}
               onPress={() =>
-                navigation.navigate('MessageThread', {
+                navigation.navigate("MessageThread", {
                   name: t.name,
                   address: t.address,
                 })
@@ -142,7 +150,10 @@ export function MessagesScreen({ navigation }: Props) {
           style={styles.fab}
           accessibilityLabel="New message"
           onPress={() =>
-            navigation.navigate('MessageThread', { name: 'New thread', address: '' })
+            navigation.navigate("MessageThread", {
+              name: "New thread",
+              address: "",
+            })
           }
         >
           <Ionicons name="create-outline" size={26} color={brand.warmWhite} />
@@ -156,13 +167,18 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: brand.warmWhite },
   safe: { flex: 1 },
   headerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: brand.space.xs,
     paddingBottom: brand.space.xs,
   },
-  backBtn: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  backBtn: {
+    width: 44,
+    height: 44,
+    alignItems: "center",
+    justifyContent: "center",
+  },
   backPlaceholder: { width: 44 },
   headerTitle: {
     fontFamily: brand.fontSans,
@@ -173,8 +189,8 @@ const styles = StyleSheet.create({
   },
   scroll: { paddingHorizontal: brand.space.sm, paddingTop: brand.space.xs },
   searchWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: brand.cream,
     borderRadius: brand.radius.lg,
     paddingHorizontal: brand.space.sm,
@@ -198,7 +214,7 @@ const styles = StyleSheet.create({
     borderRadius: brand.radius.pill,
     backgroundColor: brand.white,
     borderWidth: 1,
-    borderColor: 'rgba(26,26,26,0.2)',
+    borderColor: "rgba(26,26,26,0.2)",
   },
   chipActive: {
     backgroundColor: brand.terracotta,
@@ -212,8 +228,8 @@ const styles = StyleSheet.create({
   },
   chipTextActive: { color: brand.warmWhite },
   banner: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: brand.space.sm,
     backgroundColor: brand.cream,
     borderRadius: brand.radius.md,
@@ -228,14 +244,23 @@ const styles = StyleSheet.create({
     color: brand.charcoal,
   },
   thread: {
-    flexDirection: 'row',
+    flexDirection: "row",
     paddingVertical: brand.space.sm,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(138,155,142,0.35)',
+    borderBottomColor: "rgba(138,155,142,0.35)",
   },
-  threadAvatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: brand.cream },
-  threadBody: { flex: 1, marginLeft: brand.space.sm, justifyContent: 'center' },
-  threadTop: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 4 },
+  threadAvatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: brand.cream,
+  },
+  threadBody: { flex: 1, marginLeft: brand.space.sm, justifyContent: "center" },
+  threadTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
   threadName: {
     flex: 1,
     fontFamily: brand.fontSans,
@@ -255,15 +280,15 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   fab: {
-    position: 'absolute',
+    position: "absolute",
     right: brand.space.sm,
     bottom: 32,
     width: 56,
     height: 56,
     borderRadius: 12,
     backgroundColor: brand.terracotta,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     shadowColor: brand.charcoal,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.15,

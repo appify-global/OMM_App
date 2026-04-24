@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   title: {
     textAlign: 'center',
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: '500',
     color: colors.modalTitle,
     marginTop: spacing.sm,
     paddingHorizontal: spacing.xxl,

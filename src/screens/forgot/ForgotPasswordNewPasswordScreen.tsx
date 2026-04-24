@@ -46,7 +46,7 @@ export function ForgotPasswordNewPasswordScreen({ navigation }: Props) {
         <SafeAreaView edges={['top', 'bottom']} style={styles.safe}>
           <Text style={styles.title}>Create a new password</Text>
           <Text style={styles.body}>
-            Choose something you have not used on OMM before. 12+ characters with upper, lower,
+            Choose something you have not used on Unlisted before. 12+ characters with upper, lower,
             number & symbol.
           </Text>
 
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
   safe: { paddingHorizontal: spacing.xl, paddingTop: spacing.md, flexGrow: 1 },
   title: {
     fontSize: 24,
-    fontWeight: '700',
+    fontWeight: '500',
     color: colors.text,
     marginBottom: spacing.md,
   },

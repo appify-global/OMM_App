@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 26,
-    fontWeight: '700',
+    fontWeight: '500',
     color: colors.text,
     marginBottom: spacing.lg,
   },
@@ -125,11 +125,11 @@ const styles = StyleSheet.create({
     letterSpacing: 0.8,
     color: colors.textSecondary,
     marginBottom: spacing.sm,
-    fontWeight: '600',
+    fontWeight: '500',
   },
   row2: { flexDirection: 'row', gap: spacing.md },
   half: { flex: 1 },
   helpWrap: { alignItems: 'center', marginTop: spacing.lg },
   help: { fontSize: 14, color: colors.textSecondary },
-  helpLink: { color: colors.primary, fontWeight: '600' },
+  helpLink: { color: colors.primary, fontWeight: '500' },
 });

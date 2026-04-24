@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   safe: { backgroundColor: brand.warmWhite },
   topBar: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: brand.space.xs },
   topIcon: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  topTitle: { flex: 1, textAlign: 'center', fontSize: brand.type.subtitle, fontWeight: '600' },
+  topTitle: { flex: 1, textAlign: 'center', fontSize: brand.type.subtitle, fontWeight: '500' },
   agentStrip: {
     flexDirection: 'row',
     paddingHorizontal: brand.space.sm,
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   agentPh: { width: 40, height: 40, borderRadius: 20, marginRight: 10 },
-  agentN: { fontWeight: '600', color: brand.charcoal },
+  agentN: { fontWeight: '500', color: brand.charcoal },
   agentA: { fontSize: 12, color: brand.sage, marginTop: 2 },
   chips: { gap: 8, paddingHorizontal: brand.space.sm, marginBottom: 8 },
   chip: {
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0,0,0,0.1)',
   },
   chipOn: { backgroundColor: brand.terracotta, borderColor: brand.terracotta },
-  chipT: { fontSize: 12, color: brand.charcoal, fontWeight: '600' },
+  chipT: { fontSize: 12, color: brand.charcoal, fontWeight: '500' },
   chipTOn: { color: brand.warmWhite },
   subHeadRow: {
     flexDirection: 'row',
@@ -221,10 +221,10 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 4,
   },
-  badgeT: { color: brand.warmWhite, fontSize: 9, fontWeight: '800', letterSpacing: 0.5 },
-  addr: { fontSize: 16, fontWeight: '700', color: brand.charcoal, marginTop: 10, marginHorizontal: 12 },
+  badgeT: { color: brand.warmWhite, fontSize: 9, fontWeight: '500', letterSpacing: 0.5 },
+  addr: { fontSize: 16, fontWeight: '500', color: brand.charcoal, marginTop: 10, marginHorizontal: 12 },
   spec: { fontSize: 10, color: brand.sage, marginTop: 4, marginHorizontal: 12, letterSpacing: 0.3 },
-  pr: { fontSize: 17, fontWeight: '700', marginTop: 8, marginHorizontal: 12 },
+  pr: { fontSize: 17, fontWeight: '500', marginTop: 8, marginHorizontal: 12 },
   foot: { height: 1, backgroundColor: 'rgba(138,155,142,0.25)', marginTop: 12, marginHorizontal: 12 },
   footR: {
     flexDirection: 'row',

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -8,47 +8,46 @@ import {
   Text,
   TextInput,
   View,
-} from 'react-native';
-import { StatusBar } from 'expo-status-bar';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import type { RootStackScreenProps } from '../navigation/types';
-import { LabeledInput } from '../components/LabeledInput';
-import { PrimaryButton } from '../components/PrimaryButton';
-import { colors, radii, spacing } from '../theme/theme';
+} from "react-native";
+import { StatusBar } from "expo-status-bar";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import type { RootStackScreenProps } from "../navigation/types";
+import { LabeledInput } from "../components/LabeledInput";
+import { PrimaryButton } from "../components/PrimaryButton";
+import { colors, radii, spacing } from "../theme/theme";
+import { TopBar } from "../components/TopBar";
 
-type Props = RootStackScreenProps<'ContactSupport'>;
+type Props = RootStackScreenProps<"ContactSupport">;
 
 export function ContactSupportScreen({ navigation }: Props) {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [message, setMessage] = useState('');
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [message, setMessage] = useState("");
 
   return (
     <KeyboardAvoidingView
       style={styles.flex}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
       <StatusBar style="dark" />
-      <SafeAreaView edges={['top']} style={styles.header}>
-        <Pressable
-          accessibilityRole="button"
-          accessibilityLabel="Go back"
-          hitSlop={12}
-          onPress={() => navigation.goBack()}
-          style={styles.back}
-        >
-          <Ionicons name="chevron-back" size={26} color={colors.text} />
-        </Pressable>
-        <Text style={styles.headerTitle}>Contact support</Text>
-        <View style={styles.backPlaceholder} />
+      <SafeAreaView edges={["top"]}>
+        <TopBar title="Contact support" />
       </SafeAreaView>
-      <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+      >
         <Text style={styles.intro}>
           Tell us what went wrong and we will reply within one business day.
         </Text>
-        <LabeledInput label="Full name" value={name} onChangeText={setName} placeholder="John Lim" />
+        <LabeledInput
+          label="Full name"
+          value={name}
+          onChangeText={setName}
+          placeholder="John Lim"
+        />
         <LabeledInput
           label="Email address"
           value={email}
@@ -74,7 +73,10 @@ export function ContactSupportScreen({ navigation }: Props) {
           placeholder="Describe the issue…"
           placeholderTextColor={colors.textMuted}
         />
-        <PrimaryButton label="Send message" onPress={() => navigation.goBack()} />
+        <PrimaryButton
+          label="Send message"
+          onPress={() => navigation.goBack()}
+        />
         <PrimaryButton
           label="Done"
           variant="secondary"
@@ -89,19 +91,24 @@ export function ContactSupportScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: colors.background },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: spacing.sm,
     paddingBottom: spacing.sm,
   },
-  back: { width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+  back: {
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
+  },
   backPlaceholder: { width: 40 },
   headerTitle: {
     flex: 1,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: "500",
     color: colors.primary,
   },
   scroll: {
@@ -119,7 +126,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.6,
     color: colors.textSecondary,
     marginBottom: spacing.sm,
-    fontWeight: '500',
+    fontWeight: "500",
   },
   message: {
     minHeight: 140,

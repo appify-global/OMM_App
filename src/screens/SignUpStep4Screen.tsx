@@ -33,7 +33,7 @@ export function SignUpStep4Screen({ navigation }: Props) {
           </View>
           <Text style={styles.title}>Verification in progress</Text>
           <Text style={styles.body}>
-            OMM is exclusive to verified real estate agents. We are reviewing your licence and ID.
+            Unlisted is exclusive to verified real estate agents. We are reviewing your licence and ID.
             You will be able to access listings, message agents, and submit offers once approved.
           </Text>
 
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: '700',
+    fontWeight: '500',
     color: colors.text,
     textAlign: 'center',
     marginBottom: spacing.md,
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.2,
     color: colors.textMuted,
     marginBottom: spacing.lg,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'left',
     alignSelf: 'stretch',
   },

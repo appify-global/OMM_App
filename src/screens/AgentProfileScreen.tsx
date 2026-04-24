@@ -204,7 +204,7 @@ export function AgentProfileScreen({ navigation }: Props) {
             icon="warning-outline"
             color="#b8860b"
             title="Raise a dispute"
-            sub="Open formal ticket with OMM moderators."
+            sub="Open formal ticket with Unlisted moderators."
             onPress={() => {}}
           />
           <ActionRow
@@ -325,7 +325,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
   },
-  btnPrimaryText: { fontFamily: brand.fontSans, color: brand.warmWhite, fontWeight: '600' },
+  btnPrimaryText: { fontFamily: brand.fontSans, color: brand.warmWhite, fontWeight: '500' },
   btnSecondary: {
     flex: 1,
     backgroundColor: brand.white,
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     alignItems: 'center',
   },
-  btnSecondaryText: { fontFamily: brand.fontSans, color: brand.charcoal, fontWeight: '600' },
+  btnSecondaryText: { fontFamily: brand.fontSans, color: brand.charcoal, fontWeight: '500' },
   statBar: {
     flexDirection: 'row',
     backgroundColor: brand.white,
@@ -346,7 +346,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(138,155,142,0.2)',
   },
   statCell: { flex: 1, alignItems: 'center' },
-  statVal: { fontFamily: brand.fontSans, fontSize: 20, fontWeight: '600', color: brand.charcoal },
+  statVal: { fontFamily: brand.fontSans, fontSize: 20, fontWeight: '500', color: brand.charcoal },
   statLabel: { fontSize: 9, color: brand.sage, marginTop: 4, letterSpacing: 0.5 },
   sectionRow: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: brand.space.sm },
   sectionTitle: {
@@ -356,7 +356,7 @@ const styles = StyleSheet.create({
     color: brand.sage,
     fontWeight: brand.type.weightMedium,
   },
-  seeAll: { fontSize: 11, color: brand.terracotta, fontWeight: '600' },
+  seeAll: { fontSize: 11, color: brand.terracotta, fontWeight: '500' },
   reviewCard: {
     backgroundColor: brand.white,
     borderRadius: brand.radius.md,
@@ -366,9 +366,9 @@ const styles = StyleSheet.create({
   reviewTop: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
   reviewAv: { width: 40, height: 40, borderRadius: 20 },
   reviewInfo: { flex: 1, marginLeft: 10 },
-  reviewName: { fontWeight: '600', color: brand.charcoal, fontSize: brand.type.caption },
+  reviewName: { fontWeight: '500', color: brand.charcoal, fontSize: brand.type.caption },
   reviewRole: { color: brand.sage, fontSize: 12, marginTop: 2 },
-  reviewStarNum: { fontSize: 12, fontWeight: '600', color: brand.charcoal },
+  reviewStarNum: { fontSize: 12, fontWeight: '500', color: brand.charcoal },
   reviewBody: { fontSize: 14, color: brand.charcoal, lineHeight: 21 },
   reviewDate: { fontSize: 11, color: brand.sage, marginTop: 8 },
   hList: { gap: 12, paddingBottom: 8 },
@@ -389,10 +389,10 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     borderRadius: 4,
   },
-  livePillText: { color: brand.warmWhite, fontSize: 9, fontWeight: '700', letterSpacing: 0.5 },
-  hAddr: { fontWeight: '600', color: brand.charcoal, fontSize: 12, marginTop: 6 },
+  livePillText: { color: brand.warmWhite, fontSize: 9, fontWeight: '500', letterSpacing: 0.5 },
+  hAddr: { fontWeight: '500', color: brand.charcoal, fontSize: 12, marginTop: 6 },
   hSpec: { fontSize: 10, color: brand.sage, marginTop: 4, textTransform: 'uppercase' },
-  hPrice: { fontWeight: '600', color: brand.charcoal, fontSize: 14, marginTop: 4 },
+  hPrice: { fontWeight: '500', color: brand.charcoal, fontSize: 14, marginTop: 4 },
   hTime: { fontSize: 10, color: brand.sage, marginTop: 4 },
   aboutHead: { marginTop: brand.space.md, marginBottom: 8 },
   aboutText: { color: brand.charcoal, lineHeight: 24, fontSize: brand.type.caption },
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     marginBottom: brand.space.xs,
   },
   actionMid: { flex: 1, marginLeft: 10 },
-  actionTitle: { fontWeight: '600', color: brand.charcoal, fontSize: 15 },
+  actionTitle: { fontWeight: '500', color: brand.charcoal, fontSize: 15 },
   actionSub: { color: brand.sage, fontSize: 12, marginTop: 2 },
   menuRoot: { flex: 1, backgroundColor: 'rgba(0,0,0,0.2)' },
   menuCard: {
