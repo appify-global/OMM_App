@@ -95,7 +95,7 @@ export function LoginScreen({ navigation }: Props) {
             </Pressable>
           </View>
 
-          <PrimaryButton label="Login" onPress={() => navigation.navigate('Home')} />
+          <PrimaryButton label="Login" onPress={() => navigation.navigate('Home', {})} />
 
           <Pressable onPress={() => navigation.navigate('SignUp1')} style={styles.footer}>
             <Text style={styles.footerText}>
