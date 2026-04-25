@@ -203,7 +203,6 @@ export default function HomePage() {
               </div>
               <figcaption>
                 <span>No.&nbsp;0241</span>
-                <span>Hawthorn&nbsp;·&nbsp;VIC</span>
                 <span>Private campaign</span>
               </figcaption>
             </figure>

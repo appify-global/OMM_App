@@ -1852,6 +1852,18 @@ h2 em {
     border-color: var(--ink);
   }
 
+  .account-actions .account-cta.account-cta--signup {
+    font-weight: 400;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+  }
+
+  .account-actions .account-cta.account-cta--signup:hover {
+    background: var(--ink-soft);
+    color: #fff;
+    border-color: var(--ink-soft);
+  }
+
   .quick-link-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -1945,6 +1957,11 @@ h2 em {
   .account-actions .account-cta {
     padding: 6px 11px;
     font-size: 12px;
+  }
+
+  .account-actions .account-cta.account-cta--signup {
+    font-size: 11px;
+    font-weight: 400;
   }
 
   .listing-grid {
@@ -3392,6 +3409,21 @@ h2 em {
 .site-header .account-cta:hover {
   background: var(--forest-pressed);
   border-color: var(--forest-pressed);
+}
+
+/* Marketing header — Sign up only (not /app avatar pill) */
+.site-header .account-cta.account-cta--signup {
+  background: var(--ink);
+  border-color: var(--ink);
+  color: #fff;
+  font-weight: 400;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+}
+.site-header .account-cta.account-cta--signup:hover {
+  background: var(--ink-soft);
+  border-color: var(--ink-soft);
+  color: #fff;
 }
 
 /* ============================================================

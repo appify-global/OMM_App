@@ -47,7 +47,7 @@ export default function SiteHeader() {
         </nav>
         <div className="account-actions">
           <Link href="/members">Members</Link>
-          <Link href="/signup" className="account-cta">
+          <Link href="/sign-up" className="account-cta account-cta--signup">
             Sign up
           </Link>
         </div>
