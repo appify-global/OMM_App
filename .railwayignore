@@ -1,0 +1,31 @@
+# Don't ship dependencies — Railway installs them during build
+node_modules/
+**/node_modules/
+
+# Don't ship build outputs — Railway builds fresh
+.next/
+**/.next/
+dist/
+**/dist/
+out/
+**/out/
+web-build/
+**/web-build/
+.expo/
+**/.expo/
+
+# Local dev / OS clutter
+.DS_Store
+*.log
+.env.local
+.env.*.local
+
+# Mobile native scaffolding (not needed for the website deploy)
+ios/
+android/
+apps/*/ios/
+apps/*/android/
+
+# Backups + Cursor metadata
+*.bak
+.cursor/
