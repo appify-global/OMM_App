@@ -48,6 +48,9 @@ export default function MobileBottomNav() {
   const pathname = usePathname() || "/";
   const [visible, setVisible] = useState(pathname !== "/");
 
+  // never render on /app/* — the workspace has its own bottom nav
+  const isAppRoute = pathname.startsWith("/app");
+
   useEffect(() => {
     // on non-home pages the nav should show straight away
     if (pathname !== "/") {
@@ -72,6 +75,8 @@ export default function MobileBottomNav() {
     io.observe(hero);
     return () => io.disconnect();
   }, [pathname]);
+
+  if (isAppRoute) return null;
 
   return (
     <nav

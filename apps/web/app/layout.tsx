@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
 import MobileBottomNav from "./components/MobileBottomNav";
 
@@ -26,19 +27,31 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link
-          rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&display=swap"
-        />
-      </head>
-      <body>
-        {children}
-        <MobileBottomNav />
-      </body>
-    </html>
+    <ClerkProvider
+      appearance={{
+        variables: {
+          colorPrimary: "#1c1c1c",
+          colorBackground: "#fcfaf6",
+          colorText: "#1c1c1c",
+          fontFamily: "var(--font-fraunces, 'Fraunces'), Georgia, serif",
+          borderRadius: "2px",
+        },
+      }}
+    >
+      <html lang="en">
+        <head>
+          <link rel="preconnect" href="https://fonts.googleapis.com" />
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+          <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&display=swap"
+          />
+        </head>
+        <body>
+          {children}
+          <MobileBottomNav />
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }
