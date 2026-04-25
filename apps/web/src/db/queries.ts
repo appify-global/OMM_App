@@ -7,9 +7,12 @@
 
 import "server-only";
 
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, not, sql } from "drizzle-orm";
 
 import { db, schema } from "./index";
+
+import { DEMO_AGENT_ID, DEMO_BUYER_ID } from "@/lib/app-constants";
+import { getAppUserId } from "@/lib/auth-user";
 
 const HAS_DB = Boolean(process.env.DATABASE_URL);
 
@@ -162,13 +165,122 @@ export async function getReviewsForAgent(agentId: string) {
     .orderBy(desc(schema.reviews.postedAt));
 }
 
-export const DEMO_AGENT_ID = "user_demo_agent_jl";
-export const DEMO_BUYER_ID = "user_demo_buyer_sj";
+export { DEMO_AGENT_ID, DEMO_BUYER_ID } from "@/lib/app-constants";
 
-/**
- * For now, until Clerk is fully wired, every server query uses the demo agent.
- * Once real Clerk sessions are live, swap this for `auth().userId`.
- */
+/** Current Clerk user, or dev impersonation / demo id when auth is bypassed. */
 export async function resolveCurrentUserId(): Promise<string> {
-  return DEMO_AGENT_ID;
+  return getAppUserId();
+}
+
+/* ------------------------------------------------------------ mutations */
+
+export async function markNotificationRead(id: string, userId: string) {
+  if (!HAS_DB) return false;
+  const rows = await db
+    .update(schema.notifications)
+    .set({ read: true, readAt: new Date() })
+    .where(
+      and(
+        eq(schema.notifications.id, id),
+        eq(schema.notifications.userId, userId),
+      ),
+    )
+    .returning({ id: schema.notifications.id });
+  return rows.length > 0;
+}
+
+/* ------------------------------------------------------------ briefs */
+
+export async function getBriefsByBuyer(buyerId: string) {
+  if (!HAS_DB) return [];
+  return db
+    .select()
+    .from(schema.briefs)
+    .where(eq(schema.briefs.buyerId, buyerId))
+    .orderBy(desc(schema.briefs.createdAt));
+}
+
+/** Briefs posted by *other* buyers (visible to an agent). */
+export async function getIncomingBriefsForAgent(agentId: string) {
+  if (!HAS_DB) return [];
+  return db
+    .select()
+    .from(schema.briefs)
+    .where(not(eq(schema.briefs.buyerId, agentId)))
+    .orderBy(desc(schema.briefs.createdAt));
+}
+
+/* ------------------------------------------------------------ threads + messages */
+
+export async function getThreadsForOwner(ownerId: string) {
+  if (!HAS_DB) return [];
+  return db
+    .select()
+    .from(schema.threads)
+    .where(eq(schema.threads.ownerId, ownerId))
+    .orderBy(desc(schema.threads.lastMessageAt), desc(schema.threads.updatedAt));
+}
+
+export async function getThreadByIdForOwner(threadId: string, ownerId: string) {
+  if (!HAS_DB) return null;
+  const rows = await db
+    .select()
+    .from(schema.threads)
+    .where(
+      and(
+        eq(schema.threads.id, threadId),
+        eq(schema.threads.ownerId, ownerId),
+      ),
+    )
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getMessagesForThread(threadId: string) {
+  if (!HAS_DB) return [];
+  return db
+    .select()
+    .from(schema.messages)
+    .where(eq(schema.messages.threadId, threadId))
+    .orderBy(schema.messages.sentAt);
+}
+
+export async function getAttachmentsForMessage(messageId: string) {
+  if (!HAS_DB) return [];
+  return db
+    .select()
+    .from(schema.messageAttachments)
+    .where(eq(schema.messageAttachments.messageId, messageId));
+}
+
+/* ------------------------------------------------------------ listings (grouped) */
+
+export async function getListingsByAgentGrouped(agentId: string) {
+  if (!HAS_DB) {
+    return { active: [], draft: [], offMarket: [], archive: [] };
+  }
+  const all = await db
+    .select()
+    .from(schema.listings)
+    .where(eq(schema.listings.agentId, agentId));
+  return {
+    active: all.filter((l) =>
+      ["LIVE", "UNDER_OFFER"].includes(l.status),
+    ),
+    draft: all.filter((l) => l.status === "DRAFT"),
+    offMarket: all.filter((l) => l.status === "PRE_MARKET"),
+    archive: all.filter((l) =>
+      ["SOLD", "WITHDRAWN", "ARCHIVED"].includes(l.status),
+    ),
+  };
+}
+
+export async function getOffMarketListingsPublic(limit = 8) {
+  if (!HAS_DB) return [];
+  return db
+    .select()
+    .from(schema.listings)
+    .where(eq(schema.listings.status, "PRE_MARKET"))
+    .orderBy(desc(schema.listings.updatedAt))
+    .limit(limit);
 }

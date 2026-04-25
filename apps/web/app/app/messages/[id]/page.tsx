@@ -1,23 +1,25 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { getAppUserId } from "@/lib/auth-user";
 import SiteFooter from "../../../components/SiteFooter";
-import {
-  getThreadById,
-  threads,
-  type Message,
-} from "../../_data/fixtures";
+import { loadMessagesInbox, loadThreadForDetail } from "../../_data/rsc-loaders";
+import { type Message } from "../../_data/fixtures";
 import ThreadComposer from "./ThreadComposer";
 
 type Params = Promise<{ id: string }>;
 
 export default async function ThreadDetailPage({ params }: { params: Params }) {
   const { id } = await params;
-  const thread = getThreadById(id);
+  const userId = await getAppUserId();
+  const thread = await loadThreadForDetail(id, userId);
   if (!thread) notFound();
 
   const groupedMessages = groupByDate(thread.messages);
 
-  const otherThreads = threads.filter((t) => t.id !== thread.id).slice(0, 4);
+  const inbox = await loadMessagesInbox(userId);
+  const otherThreads = inbox.threads
+    .filter((t) => t.id !== thread.id)
+    .slice(0, 4);
 
   return (
     <>

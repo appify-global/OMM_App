@@ -13,7 +13,15 @@ const appNavItems = [
   { label: "Profile", href: "/app/profile", section: "V" },
 ];
 
-export default function AppShell({ children }: { children: ReactNode }) {
+export default function AppShell({
+  children,
+  userInitials = "U",
+  hasUnreadNotifications = false,
+}: {
+  children: ReactNode;
+  userInitials?: string;
+  hasUnreadNotifications?: boolean;
+}) {
   const pathname = usePathname();
 
   return (
@@ -86,10 +94,12 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   fill="none"
                 />
               </svg>
-              <span className="account-bell-dot" aria-hidden="true" />
+              {hasUnreadNotifications ? (
+                <span className="account-bell-dot" aria-hidden="true" />
+              ) : null}
             </Link>
             <Link href="/app/profile" className="account-cta">
-              JL
+              {userInitials}
             </Link>
           </div>
         </div>
