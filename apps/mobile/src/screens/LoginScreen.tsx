@@ -13,6 +13,8 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { isClerkAPIResponseError } from '@clerk/expo';
+import { useSignIn } from '@clerk/expo/legacy';
 import type { RootStackScreenProps } from '../navigation/types';
 import { LabeledInput } from '../components/LabeledInput';
 import { PrimaryButton } from '../components/PrimaryButton';
@@ -22,10 +24,46 @@ import { colors, radii, spacing } from '../theme/theme';
 type Props = RootStackScreenProps<'Login'>;
 
 export function LoginScreen({ navigation }: Props) {
+  const { signIn, setActive, isLoaded: signInLoaded } = useSignIn();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secure, setSecure] = useState(true);
   const [remember, setRemember] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const onLogin = async () => {
+    setError(null);
+    if (!signInLoaded || !signIn) {
+      setError('Still loading. Try again in a moment.');
+      return;
+    }
+    if (!email.trim() || !password) {
+      setError('Enter your email and password.');
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const result = await signIn.create({
+        identifier: email.trim(),
+        password,
+      });
+      if (result.status === 'complete' && result.createdSessionId) {
+        await setActive({ session: result.createdSessionId });
+        return;
+      }
+      setError('This account needs an extra sign-in step. Complete it on the web app for now.');
+    } catch (e: unknown) {
+      if (isClerkAPIResponseError(e)) {
+        const msg = e.errors?.[0]?.message;
+        setError(msg ?? 'Sign-in failed.');
+      } else {
+        setError('Something went wrong. Try again.');
+      }
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -96,7 +134,14 @@ export function LoginScreen({ navigation }: Props) {
             </Pressable>
           </View>
 
-          <PrimaryButton label="Login" onPress={() => navigation.navigate('Home', {})} />
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+
+          <PrimaryButton
+            label="Login"
+            onPress={onLogin}
+            disabled={!signInLoaded}
+            loading={submitting}
+          />
 
           <Pressable onPress={() => navigation.navigate('SignUp1')} style={styles.footer}>
             <Text style={styles.footerText}>
@@ -180,4 +225,10 @@ const styles = StyleSheet.create({
   footer: { alignItems: 'center', marginTop: spacing.xl, paddingBottom: spacing.xl },
   footerText: { fontSize: 14, color: colors.textSecondary },
   footerLink: { color: colors.primary, fontWeight: '500' },
+  error: {
+    color: colors.destructive,
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: spacing.md,
+  },
 });

@@ -16,7 +16,7 @@ This document explains how the product fits together today and a practical path 
 | `apps/mobile` | **Expo (React Native)** app — `app.json` sets `com.unlisted.app` for iOS and Android. Screens live under `apps/mobile/src/screens`, navigation in `src/navigation`. |
 | Root `package.json` | Monorepo scripts: `dev:web` → Next dev; `build:website` / `start:website` for the web app; `android` / `ios` in workspaces point at mobile where configured. |
 
-**Today there is no `eas.json` in the repo.** Local development uses `expo start` and `expo run:ios` / `expo run:android` after prebuild. **Store builds** should use **EAS Build** (Expo’s cloud builders) so you do not have to own macOS build farms for iOS in CI.
+**`apps/mobile/eas.json`** is in the repo (preview + production profiles); **`eas-cli`** is a devDependency on the mobile workspace with scripts `eas:build`, `eas:build:preview`, `eas:build:production`, `eas:submit`. [done] You still need **Step A** (Expo login / project link) before cloud builds succeed. Local development uses `expo start` and `expo run:ios` / `expo run:android` after prebuild. **Store builds** should use **EAS Build** (Expo’s cloud builders) so you do not have to own macOS build farms for iOS in CI.
 
 ---
 
@@ -61,12 +61,12 @@ This is the usual sequence for Expo SDK 50+; adjust versions from Expo docs if t
 1. In `apps/mobile`: `npx expo login` (or create org for the team).
 2. Run `npx eas-cli init` or `npx create-expo-app` pattern from current Expo docs so **project ID** is registered — follow [Expo: Get started with EAS](https://docs.expo.dev/eas/) for the exact command for your SDK.
 
-### Step B — Add EAS configuration (not yet in repo)
+### Step B — Add EAS configuration
 
-1. `npm i -D eas-cli` at repo root or use `npx eas-cli`.
+1. `npm i -D eas-cli` at repo root or use `npx eas-cli`. [done — `eas-cli` in `apps/mobile` devDependencies.]
 2. `cd apps/mobile && eas build:configure`  
-   - This creates **`eas.json`** with `development`, `preview`, and `production` profiles.
-3. Commit `eas.json` and any `app.config.js` / `app.json` updates Expo suggests.
+   - **`eas.json`** with **`preview`** and **`production`** profiles is in the repo. [done — run CLI later if you want merged defaults or `extra.eas.projectId` in `app.json`.]
+3. Commit `eas.json` and any `app.config.js` / `app.json` updates Expo suggests. [done — `eas.json` + mobile `package.json` scripts; `app.json` EAS fields pending Step A.]
 
 **Typical `eas.json` idea (you will get concrete JSON from the CLI):**
 
@@ -147,7 +147,7 @@ Use a **real device** before calling any milestone “done” — especially pus
 
 ## 9. Suggested next 2 sprints (mobile)
 
-1. Add **EAS** + first **internal** iOS and Android builds; wire **Clerk Expo** to staging.
+1. Add **EAS** [config + `eas-cli` in repo — done] + first **internal** iOS and Android builds; wire **Clerk Expo** to staging.
 2. Replace mock/static data in sensitive flows with **real API** calls; add error boundaries and session refresh.
 
 ---

@@ -20,6 +20,8 @@ import type {
 import { images } from "../constants/images";
 import { brand } from "../theme/brand";
 import { TopBar, topBarIconBtn } from "../components/TopBar";
+import { ClerkSignOutFooter } from "../components/ClerkSignOutFooter";
+import { hasClerkConfigured } from "../config/env";
 
 type Props = RootStackScreenProps<"Home">;
 
@@ -140,6 +142,7 @@ export function HomeScreen({ navigation }: Props) {
             />
           )}
 
+          {hasClerkConfigured() ? <ClerkSignOutFooter /> : null}
           <View style={{ height: 100 }} />
         </ScrollView>
       </SafeAreaView>
