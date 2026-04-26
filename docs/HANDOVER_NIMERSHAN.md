@@ -118,9 +118,11 @@ Use a **real device** before calling any milestone “done” — especially pus
 
 ## 6. Aligning mobile with the web backend
 
-- **Clerk:** Web uses `@clerk/nextjs`. Mobile should use **Clerk’s Expo / React Native SDK** and the **same** Clerk project; configure allowed origins and native redirect URLs in the Clerk dashboard.
-- **API:** Point the app at the deployed Next app (or a dedicated API) via `EXPO_PUBLIC_API_URL` (or similar). Reuse the same RLS/authorization rules as the server — **tokens from Clerk** in `Authorization` headers.
-- **Parity:** Treat `apps/web` route handlers and Drizzle access patterns as the contract. Document any new mobile-only endpoints in this repo’s README or OpenAPI as you add them.
+- **Clerk:** Web uses `@clerk/nextjs`. Mobile uses **`@clerk/expo`** with **`ClerkProvider`**, **`AuthRoot`** (signed-in vs auth stack), **email/password sign-in**, and **secure token cache**. [done in code — set `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`; still configure **native URLs / origins** in the Clerk dashboard.]
+- **API base URL:** Mobile reads **`EXPO_PUBLIC_API_URL`** (see `apps/mobile/src/config/env.ts`, `apps/mobile/.env.example`). [done]
+- **Bearer auth + first mobile HTTP API:** Next.js exposes **`GET /api/mobile/home`** (`apps/web/app/api/mobile/home/route.ts`) — verifies **`Authorization: Bearer`** (session JWT from Expo **`getToken()`**) with **`CLERK_SECRET_KEY`** (`apps/web/src/lib/mobile-bearer-auth.ts`), then returns the same payload as web **`loadHomePageData`**. Middleware skips cookie auth for **`/api/mobile/*`**. [done]
+- **Home screen live data:** When Clerk + API URL are set, **`HomeScreen`** loads that endpoint and maps **selling / buying** sections (listings, authority, buyer matches, saved searches, off-market cards) from JSON; otherwise it keeps the previous mock UI. [partial — other screens still mock-first]
+- **Parity:** Add more **`/api/mobile/...`** route handlers as you need messages, briefs, notifications, etc.; keep reusing **`@/db/queries`** / loaders from `apps/web/app/app/_data/`. OpenAPI/README for mobile-only endpoints is still optional.
 
 ---
 
@@ -147,8 +149,8 @@ Use a **real device** before calling any milestone “done” — especially pus
 
 ## 9. Suggested next 2 sprints (mobile)
 
-1. Add **EAS** [config + `eas-cli` in repo — done] + first **internal** iOS and Android builds; wire **Clerk Expo** to staging.
-2. Replace mock/static data in sensitive flows with **real API** calls; add error boundaries and session refresh.
+1. Add **EAS** [config + `eas-cli` in repo — done] + first **internal** iOS and Android builds; wire **Clerk Expo** to staging [app code done — **Step A** project link + **first EAS build** still on you].
+2. Replace mock/static data with **real API** calls [partial — **Home** can use **`/api/mobile/home`** when env is set; **messages / briefs / other tabs** still mock]; add **error boundaries** and explicit **session refresh** UX [not done].
 
 ---
 
@@ -156,7 +158,7 @@ Use a **real device** before calling any milestone “done” — especially pus
 
 - **Expo (EAS):** https://docs.expo.dev/eas/  
 - **Clerk (Expo):** check Clerk’s current Expo quickstart.  
-- **This codebase:** `apps/mobile/App.tsx` and `src/navigation/RootNavigator.tsx` for entry and routes.
+- **This codebase:** `apps/mobile/App.tsx` (Clerk + navigation tree); `src/navigation/AuthRoot.tsx`, `AuthNavigator.tsx`, `MainNavigator.tsx` (routes — `RootNavigator.tsx` re-exports); `src/lib/api.ts` (authenticated `fetch`); `apps/web/app/api/mobile/home/route.ts` (first mobile JSON API).
 
 **Questions** — Prefer issues or internal Slack with @mobile + link to a build URL from EAS for reproducibility.
 

@@ -6,6 +6,8 @@ const bypassClerkAuth =
   process.env.BYPASS_CLERK_AUTH === "1";
 
 const isProtected = createRouteMatcher(["/app(.*)"]);
+/** Native app calls these with `Authorization: Bearer`; session is verified in the route handler. */
+const isMobileApi = createRouteMatcher(["/api/mobile(.*)"]);
 const isPublicAuth = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
@@ -16,6 +18,7 @@ const isPublicAuth = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
+  if (isMobileApi(req)) return;
   if (isPublicAuth(req)) return;
   if (isProtected(req) && !bypassClerkAuth) {
     await auth.protect();

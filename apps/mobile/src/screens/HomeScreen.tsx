@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useRoute, RouteProp } from "@react-navigation/native";
 import {
   Image,
@@ -21,12 +21,48 @@ import { images } from "../constants/images";
 import { brand } from "../theme/brand";
 import { TopBar, topBarIconBtn } from "../components/TopBar";
 import { ClerkSignOutFooter } from "../components/ClerkSignOutFooter";
+import { HomeRemoteBridge } from "../components/HomeRemoteBridge";
 import { hasClerkConfigured } from "../config/env";
+import type { MobileHomePayload, RemoteHomeState } from "../types/mobileHome";
 
 type Props = RootStackScreenProps<"Home">;
 
 type MainTab = "home" | "properties" | "add" | "tasks" | "profile";
 type HomeMode = "selling" | "buying";
+
+function listingRemoteToCard(
+  l: MobileHomePayload["selling"]["activeListings"][number],
+  idx: number,
+) {
+  const cycle = [
+    images.propertyHouse1,
+    images.propertyHouse2,
+    images.propertyHouse3,
+  ] as const;
+  const image = cycle[idx % cycle.length]!;
+  const authD = l.authorityDaysLeft;
+  const authLabel = authD != null ? `AUTH · ${authD}D` : "AUTH · —";
+  const localityParts = l.address.split(",");
+  const locality =
+    localityParts.length > 1
+      ? localityParts.slice(0, 2).join(" · ").trim()
+      : l.address;
+  const status =
+    l.status.toLowerCase().includes("pending") ? "SOI PENDING" : l.status;
+  return {
+    image,
+    status,
+    authLabel,
+    title: l.title,
+    locality,
+    price: l.priceRange,
+    specs: `${l.beds} bed · ${l.baths} bath · ${l.landSqm} m²`,
+    views: String(l.views7d),
+    leads: String(l.leads),
+    soiHeadline: l.soiAttached ? "Attached" : "None",
+    soiSub: "SOI" as const,
+  };
+}
 
 export function HomeScreen({ navigation }: Props) {
   const route = useRoute<RouteProp<RootStackParamList, "Home">>();
@@ -35,6 +71,10 @@ export function HomeScreen({ navigation }: Props) {
   const [buyingSearch, setBuyingSearch] = useState("Hawthorn");
   const buyingSearchInputRef =
     useRef<React.ComponentRef<typeof TextInput>>(null);
+  const [remoteHome, setRemoteHome] = useState<RemoteHomeState>({
+    status: "idle",
+  });
+  const onRemoteHome = useCallback((s: RemoteHomeState) => setRemoteHome(s), []);
 
   useEffect(() => {
     const m = route.params?.mode;
@@ -56,7 +96,11 @@ export function HomeScreen({ navigation }: Props) {
       <StatusBar style="dark" />
       <SafeAreaView style={styles.safeTop} edges={["top"]}>
         <TopBar
-          title="Home"
+          title={
+            remoteHome.status === "ready"
+              ? `Hi, ${remoteHome.data.userFirstName}`
+              : "Home"
+          }
           leftSlot={
             <View style={styles.headerHomeActiveTab} pointerEvents="none">
               <Ionicons name="home" size={22} color={brand.warmWhite} />
@@ -91,6 +135,15 @@ export function HomeScreen({ navigation }: Props) {
             </>
           }
         />
+
+        {hasClerkConfigured() ? (
+          <HomeRemoteBridge onRemote={onRemoteHome} />
+        ) : null}
+        {remoteHome.status === "error" ? (
+          <Text style={styles.apiError} accessibilityLiveRegion="polite">
+            {remoteHome.message}
+          </Text>
+        ) : null}
 
         <ScrollView
           contentContainerStyle={styles.scroll}
@@ -132,13 +185,21 @@ export function HomeScreen({ navigation }: Props) {
           </View>
 
           {mode === "selling" ? (
-            <SellingHomeContent navigation={navigation} />
+            <SellingHomeContent
+              navigation={navigation}
+              remote={
+                remoteHome.status === "ready" ? remoteHome.data.selling : null
+              }
+            />
           ) : (
             <BuyingHomeContent
               navigation={navigation}
               search={buyingSearch}
               onSearch={setBuyingSearch}
               searchInputRef={buyingSearchInputRef}
+              remote={
+                remoteHome.status === "ready" ? remoteHome.data.buying : null
+              }
             />
           )}
 
@@ -189,19 +250,35 @@ export function HomeScreen({ navigation }: Props) {
 
 function SellingHomeContent({
   navigation,
+  remote,
 }: {
   navigation: RootStackScreenProps<"Home">["navigation"];
+  remote: MobileHomePayload["selling"] | null;
 }) {
+  const enquiriesLabel = remote
+    ? `${remote.newEnquiriesCount} new enquiries`
+    : "3 new enquiries";
+  const txLabel = remote
+    ? `${remote.transactionsAwaitingReviewCount} transactions awaiting review`
+    : "2 transactions awaiting review";
+  const listings = remote?.activeListings ?? [];
+  const card0 =
+    listings[0] != null ? listingRemoteToCard(listings[0], 0) : null;
+  const card1 =
+    listings[1] != null ? listingRemoteToCard(listings[1], 1) : null;
+  const authRows = remote?.authorityExpiringSoon ?? [];
+  const buyerRows = remote?.buyerMatches ?? [];
+
   return (
     <>
       <AlertRow
         icon="flash-outline"
-        label="3 new enquiries"
+        label={enquiriesLabel}
         onPress={() => {}}
       />
       <AlertRow
         icon="star-outline"
-        label="2 transactions awaiting review"
+        label={txLabel}
         onPress={() => {}}
       />
 
@@ -256,60 +333,92 @@ function SellingHomeContent({
           navigation.navigate("ListingSeeAll", { context: "selling" })
         }
       />
-      <ListingCard
-        image={images.propertyHouse1}
-        status="ACTIVE"
-        authLabel="AUTH · 14D"
-        title="502 Glenferrie Road"
-        locality="Glenferrie · Hawthorn 3122"
-        price="$2.0M – $2.2M"
-        specs="4 bed · 3 bath · 650 m²"
-        views="128"
-        leads="6"
-        soiHeadline="Attached"
-        soiSub="SOI"
-      />
-      <ListingCard
-        image={images.propertyHouse2}
-        status="SOI PENDING"
-        authLabel="AUTH · 6D"
-        title="248 Auburn Road"
-        locality="Auburn · Hawthorn 3122"
-        price="$1.45M – $1.55M"
-        specs="3 bed · 2 bath · 420 m²"
-        views="84"
-        leads="4"
-        soiHeadline="Pending"
-        soiSub="SOI"
-      />
+      {card0 ? (
+        <ListingCard {...card0} />
+      ) : (
+        <ListingCard
+          image={images.propertyHouse1}
+          status="ACTIVE"
+          authLabel="AUTH · 14D"
+          title="502 Glenferrie Road"
+          locality="Glenferrie · Hawthorn 3122"
+          price="$2.0M – $2.2M"
+          specs="4 bed · 3 bath · 650 m²"
+          views="128"
+          leads="6"
+          soiHeadline="Attached"
+          soiSub="SOI"
+        />
+      )}
+      {card1 ? (
+        <ListingCard {...card1} />
+      ) : (
+        <ListingCard
+          image={images.propertyHouse2}
+          status="SOI PENDING"
+          authLabel="AUTH · 6D"
+          title="248 Auburn Road"
+          locality="Auburn · Hawthorn 3122"
+          price="$1.45M – $1.55M"
+          specs="3 bed · 2 bath · 420 m²"
+          views="84"
+          leads="4"
+          soiHeadline="Pending"
+          soiSub="SOI"
+        />
+      )}
 
       <SectionHeader
         title="Authority Expiring Soon"
         onSeeAll={() => navigation.navigate("AuthorityExpiring")}
       />
-      <AuthorityRow
-        name="Kooyong Family Home"
-        sub="14 Kooyong Rd"
-        badge="6D LEFT"
-      />
-      <AuthorityRow
-        name="Brighton Waterfront"
-        sub="2 Esplanade"
-        badge="9D LEFT"
-      />
+      {authRows[0] ? (
+        <AuthorityRow
+          name={authRows[0].title}
+          sub={authRows[0].address}
+          badge={`${authRows[0].daysLeft}D LEFT`}
+        />
+      ) : (
+        <AuthorityRow
+          name="Kooyong Family Home"
+          sub="14 Kooyong Rd"
+          badge="6D LEFT"
+        />
+      )}
+      {authRows[1] ? (
+        <AuthorityRow
+          name={authRows[1].title}
+          sub={authRows[1].address}
+          badge={`${authRows[1].daysLeft}D LEFT`}
+        />
+      ) : (
+        <AuthorityRow
+          name="Brighton Waterfront"
+          sub="2 Esplanade"
+          badge="9D LEFT"
+        />
+      )}
 
       <SectionHeader
         title="New Buyer Matches"
         onSeeAll={() => navigation.navigate("BuyerBriefs")}
       />
-      <BuyerMatchRow
-        area="Boroondara"
-        criteria="4 bed family · $1.8M – $2.3M"
-      />
-      <BuyerMatchRow
-        area="Stonnington"
-        criteria="3 bed · courtyard · $1.2M – $1.6M"
-      />
+      {buyerRows[0] ? (
+        <BuyerMatchRow area={buyerRows[0].suburb} criteria={buyerRows[0].criteria} />
+      ) : (
+        <BuyerMatchRow
+          area="Boroondara"
+          criteria="4 bed family · $1.8M – $2.3M"
+        />
+      )}
+      {buyerRows[1] ? (
+        <BuyerMatchRow area={buyerRows[1].suburb} criteria={buyerRows[1].criteria} />
+      ) : (
+        <BuyerMatchRow
+          area="Stonnington"
+          criteria="3 bed · courtyard · $1.2M – $1.6M"
+        />
+      )}
     </>
   );
 }
@@ -319,12 +428,17 @@ function BuyingHomeContent({
   search,
   onSearch,
   searchInputRef,
+  remote,
 }: {
   navigation: RootStackScreenProps<"Home">["navigation"];
   search: string;
   onSearch: (t: string) => void;
   searchInputRef: React.RefObject<React.ComponentRef<typeof TextInput> | null>;
+  remote: MobileHomePayload["buying"] | null;
 }) {
+  const saved = remote?.savedSearches ?? [];
+  const offM = remote?.offMarketMatches ?? [];
+
   return (
     <>
       <AlertRow
@@ -419,28 +533,58 @@ function BuyingHomeContent({
         onSeeAll={() => navigation.navigate("SavedSearches")}
       />
       <View style={styles.savedSearchStack}>
-        <View style={styles.savedSearchCard}>
-          <View style={styles.newBadge}>
-            <Text style={styles.newBadgeText}>8 NEW</Text>
+        {saved[0] ? (
+          <View style={styles.savedSearchCard}>
+            <View style={styles.newBadge}>
+              <Text style={styles.newBadgeText}>{saved[0].newCount} NEW</Text>
+            </View>
+            <Text style={styles.savedSearchTitle}>{saved[0].title}</Text>
+            <Text style={styles.savedSearchLine}>{saved[0].criteria}</Text>
+            <Text style={styles.savedSearchAlerts}>
+              <Text style={styles.savedSearchDot}>●</Text>{" "}
+              {saved[0].alertsOn ? "ALERTS ON" : "ALERTS OFF"}
+            </Text>
           </View>
-          <Text style={styles.savedSearchTitle}>Boroondara, VIC</Text>
-          <Text style={styles.savedSearchLine}>
-            4+ beds · House · $1.8M–2.4M
-          </Text>
-          <Text style={styles.savedSearchAlerts}>
-            <Text style={styles.savedSearchDot}>●</Text> DAILY ALERTS ON
-          </Text>
-        </View>
-        <View style={styles.savedSearchCard}>
-          <View style={styles.newBadge}>
-            <Text style={styles.newBadgeText}>5 NEW</Text>
+        ) : (
+          <View style={styles.savedSearchCard}>
+            <View style={styles.newBadge}>
+              <Text style={styles.newBadgeText}>8 NEW</Text>
+            </View>
+            <Text style={styles.savedSearchTitle}>Boroondara, VIC</Text>
+            <Text style={styles.savedSearchLine}>
+              4+ beds · House · $1.8M–2.4M
+            </Text>
+            <Text style={styles.savedSearchAlerts}>
+              <Text style={styles.savedSearchDot}>●</Text> DAILY ALERTS ON
+            </Text>
           </View>
-          <Text style={styles.savedSearchTitle}>Brighton & Brighton East</Text>
-          <Text style={styles.savedSearchLine}>3+ beds · Townhouse · $5M+</Text>
-          <Text style={styles.savedSearchAlerts}>
-            <Text style={styles.savedSearchDot}>●</Text> DAILY ALERTS ON
-          </Text>
-        </View>
+        )}
+        {saved[1] ? (
+          <View style={styles.savedSearchCard}>
+            <View style={styles.newBadge}>
+              <Text style={styles.newBadgeText}>{saved[1].newCount} NEW</Text>
+            </View>
+            <Text style={styles.savedSearchTitle}>{saved[1].title}</Text>
+            <Text style={styles.savedSearchLine}>{saved[1].criteria}</Text>
+            <Text style={styles.savedSearchAlerts}>
+              <Text style={styles.savedSearchDot}>●</Text>{" "}
+              {saved[1].alertsOn ? "ALERTS ON" : "ALERTS OFF"}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.savedSearchCard}>
+            <View style={styles.newBadge}>
+              <Text style={styles.newBadgeText}>5 NEW</Text>
+            </View>
+            <Text style={styles.savedSearchTitle}>
+              Brighton & Brighton East
+            </Text>
+            <Text style={styles.savedSearchLine}>3+ beds · Townhouse · $5M+</Text>
+            <Text style={styles.savedSearchAlerts}>
+              <Text style={styles.savedSearchDot}>●</Text> DAILY ALERTS ON
+            </Text>
+          </View>
+        )}
       </View>
 
       <SectionHeader
@@ -449,20 +593,40 @@ function BuyingHomeContent({
           navigation.navigate("ListingSeeAll", { context: "buying" })
         }
       />
-      <OffMarketCard
-        image={images.propertyHouse1}
-        matchPct="92%"
-        title="Camberwell Family Home"
-        price="$2.1M – $2.3M"
-        specs="4 BED  3 BATH  720M²"
-      />
-      <OffMarketCard
-        image={images.propertyHouse2}
-        matchPct="88%"
-        title="Hawthorn Victorian"
-        price="$1.6M – $1.8M"
-        specs="3 BED  2 BATH  480M²"
-      />
+      {offM[0] ? (
+        <OffMarketCard
+          image={images.propertyHouse1}
+          matchPct={`${offM[0].matchPercent}%`}
+          title={offM[0].title}
+          price={offM[0].priceRange}
+          specs={`${offM[0].beds} BED  ${offM[0].baths} BATH  ${offM[0].landSqm}M²`}
+        />
+      ) : (
+        <OffMarketCard
+          image={images.propertyHouse1}
+          matchPct="92%"
+          title="Camberwell Family Home"
+          price="$2.1M – $2.3M"
+          specs="4 BED  3 BATH  720M²"
+        />
+      )}
+      {offM[1] ? (
+        <OffMarketCard
+          image={images.propertyHouse2}
+          matchPct={`${offM[1].matchPercent}%`}
+          title={offM[1].title}
+          price={offM[1].priceRange}
+          specs={`${offM[1].beds} BED  ${offM[1].baths} BATH  ${offM[1].landSqm}M²`}
+        />
+      ) : (
+        <OffMarketCard
+          image={images.propertyHouse2}
+          matchPct="88%"
+          title="Hawthorn Victorian"
+          price="$1.6M – $1.8M"
+          specs="3 BED  2 BATH  480M²"
+        />
+      )}
     </>
   );
 }
@@ -744,6 +908,15 @@ function TabItem({
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: brand.warmWhite },
   safeTop: { flex: 1 },
+  apiError: {
+    marginHorizontal: brand.space.sm,
+    marginBottom: brand.space.xs,
+    padding: brand.space.sm,
+    borderRadius: brand.radius.sm,
+    backgroundColor: "#fdecea",
+    color: "#b42318",
+    fontSize: 13,
+  },
   headerHomeActiveTab: {
     width: 44,
     height: 44,
