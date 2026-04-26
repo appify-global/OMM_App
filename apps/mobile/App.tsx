@@ -1,8 +1,11 @@
+import type { ReactNode } from 'react';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ClerkProvider } from '@clerk/expo';
 import { tokenCache } from '@clerk/expo/token-cache';
+import { AppErrorBoundary } from './src/components/AppErrorBoundary';
 import { WebPreviewZoom } from './src/components/WebPreviewZoom';
+import { ApiAuthProvider } from './src/context/ApiAuthContext';
 import { AuthRoot } from './src/navigation/AuthRoot';
 import { MainNavigator } from './src/navigation/MainNavigator';
 import { clerkPublishableKey, hasClerkConfigured } from './src/config/env';
@@ -28,6 +31,16 @@ function NavigationTree() {
   );
 }
 
+function AppShell({ children }: { children: ReactNode }) {
+  return (
+    <SafeAreaProvider>
+      <AppErrorBoundary>
+        <WebPreviewZoom>{children}</WebPreviewZoom>
+      </AppErrorBoundary>
+    </SafeAreaProvider>
+  );
+}
+
 export default function App() {
   if (__DEV__ && !hasClerkConfigured()) {
     console.warn(
@@ -35,16 +48,12 @@ export default function App() {
     );
   }
 
-  const tree = (
-    <SafeAreaProvider>
-      <WebPreviewZoom>
-        <NavigationTree />
-      </WebPreviewZoom>
-    </SafeAreaProvider>
-  );
-
   if (!hasClerkConfigured()) {
-    return tree;
+    return (
+      <AppShell>
+        <NavigationTree />
+      </AppShell>
+    );
   }
 
   return (
@@ -52,7 +61,11 @@ export default function App() {
       publishableKey={clerkPublishableKey}
       tokenCache={tokenCache ?? undefined}
     >
-      {tree}
+      <ApiAuthProvider>
+        <AppShell>
+          <NavigationTree />
+        </AppShell>
+      </ApiAuthProvider>
     </ClerkProvider>
   );
 }

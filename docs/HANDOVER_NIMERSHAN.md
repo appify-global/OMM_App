@@ -150,7 +150,7 @@ Use a **real device** before calling any milestone “done” — especially pus
 ## 9. Suggested next 2 sprints (mobile)
 
 1. Add **EAS** [config + `eas-cli` in repo — done] + first **internal** iOS and Android builds; wire **Clerk Expo** to staging [app code done — **Step A** project link + **first EAS build** still on you].
-2. Replace mock/static data with **real API** calls [partial — **Home** can use **`/api/mobile/home`** when env is set; **messages / briefs / other tabs** still mock]; add **error boundaries** and explicit **session refresh** UX [not done].
+2. Replace mock/static data with **real API** calls [partial — **Home** can use **`/api/mobile/home`** when env is set; **messages / briefs / other tabs** still mock]; **error boundary** (`AppErrorBoundary` around the app shell) and **session invalidation** (`apiMobileGetJson` 401 retry + `signOut` via `ApiAuthProvider` / `HomeRemoteBridge`) [baseline done — extend the same pattern to other API calls].
 
 ---
 

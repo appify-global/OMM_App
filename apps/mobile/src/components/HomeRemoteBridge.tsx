@@ -1,5 +1,6 @@
 import React, { useEffect } from "react";
 import { useAuth } from "@clerk/expo";
+import { useOptionalApiAuth } from "../context/ApiAuthContext";
 import { hasApiConfigured, hasClerkConfigured } from "../config/env";
 import { apiMobileGetJson } from "../lib/api";
 import type { MobileHomePayload, RemoteHomeState } from "../types/mobileHome";
@@ -14,6 +15,7 @@ type Props = {
  */
 export function HomeRemoteBridge({ onRemote }: Props) {
   const { getToken, isSignedIn, isLoaded } = useAuth();
+  const apiAuth = useOptionalApiAuth();
 
   useEffect(() => {
     if (!hasClerkConfigured() || !hasApiConfigured()) {
@@ -35,6 +37,7 @@ export function HomeRemoteBridge({ onRemote }: Props) {
       const out = await apiMobileGetJson<MobileHomePayload>(
         "/api/mobile/home",
         getToken,
+        { onSessionInvalid: apiAuth?.onSessionInvalid },
       );
       if (cancelled) return;
       if (out.ok) {
@@ -51,7 +54,7 @@ export function HomeRemoteBridge({ onRemote }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [getToken, isLoaded, isSignedIn, onRemote]);
+  }, [apiAuth?.onSessionInvalid, getToken, isLoaded, isSignedIn, onRemote]);
 
   return null;
 }
