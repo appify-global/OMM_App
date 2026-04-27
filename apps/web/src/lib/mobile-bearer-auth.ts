@@ -1,29 +1,21 @@
 import { verifyToken } from "@clerk/backend";
 
 /**
- * Validates `Authorization: Bearer <session_jwt>` from the Expo app.
- * Requires `CLERK_SECRET_KEY` (same as Clerk Dashboard → API keys → Secret).
+ * Verifies `Authorization: Bearer <session_jwt>` from the native app (Clerk Expo `getToken()`).
  */
 export async function getUserIdFromMobileRequest(
   req: Request,
-): Promise<{ userId: string } | { error: string; status: number }> {
-  const auth = req.headers.get("authorization");
-  if (!auth?.toLowerCase().startsWith("bearer ")) {
-    return { error: "Missing or invalid Authorization header", status: 401 };
-  }
-  const token = auth.slice(7).trim();
+): Promise<string | null> {
+  const header = req.headers.get("authorization");
+  if (!header?.startsWith("Bearer ")) return null;
+  const token = header.slice(7).trim();
+  if (!token) return null;
   const secretKey = process.env.CLERK_SECRET_KEY;
-  if (!secretKey) {
-    return { error: "Server missing CLERK_SECRET_KEY", status: 500 };
-  }
+  if (!secretKey) return null;
   try {
     const payload = await verifyToken(token, { secretKey });
-    const sub = payload.sub;
-    if (!sub || typeof sub !== "string") {
-      return { error: "Invalid token", status: 401 };
-    }
-    return { userId: sub };
+    return typeof payload.sub === "string" ? payload.sub : null;
   } catch {
-    return { error: "Unauthorized", status: 401 };
+    return null;
   }
 }

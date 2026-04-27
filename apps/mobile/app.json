@@ -1,32 +1,42 @@
 {
   "expo": {
-    "name": "Unlisted",
-    "slug": "unlisted",
+    "name": "PreMarket",
+    "slug": "premarket",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "scheme": "premarket",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#fcfaf6"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.unlisted.app"
+      "bundleIdentifier": "com.premarket.app"
     },
     "android": {
-      "package": "com.unlisted.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#fcfaf6"
       },
+      "package": "com.premarket.app",
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "replace-with-expo-project-id"
+      }
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-web-browser"
+    ]
   }
 }

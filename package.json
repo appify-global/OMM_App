@@ -10,20 +10,28 @@
     "node": ">=20.19.4 <26",
     "npm": ">=10"
   },
+  "overrides": {
+    "@clerk/clerk-expo": {
+      "expo-auth-session": "7.0.10",
+      "expo-crypto": "15.0.8",
+      "expo-linking": "8.0.11",
+      "expo-web-browser": "15.0.10"
+    },
+    "expo-auth-session": "7.0.10",
+    "expo-crypto": "15.0.8",
+    "expo-linking": "8.0.11",
+    "expo-web-browser": "15.0.10",
+    "react": "19.1.0",
+    "react-dom": "19.1.0"
+  },
   "scripts": {
-    "start": "npm run start -w apps/mobile",
-    "dev:mobile": "npm run start -w apps/mobile",
-    "dev:mobile:web": "npm run dev:web -w apps/mobile",
-    "android": "npm run android -w apps/mobile",
-    "ios": "npm run ios -w apps/mobile",
-    "web": "npm run dev:web -w apps/mobile",
-    "build:web": "npm run build:web -w apps/mobile",
-    "start:web:prod": "serve apps/mobile/dist -s -l tcp://0.0.0.0:${PORT:-3000}",
+    "start": "npm run start -w apps/web",
+    "dev": "npm run dev -w apps/web",
+    "web": "npm run dev -w apps/web",
     "dev:web": "npm run dev -w apps/web",
+    "dev:mobile": "npm run start -w apps/mobile",
+    "dev:mobile:lan": "npm run start:lan -w apps/mobile",
     "build:website": "npm run build -w apps/web",
     "start:website": "npm run start -w apps/web"
-  },
-  "dependencies": {
-    "serve": "^14.2.6"
   }
 }

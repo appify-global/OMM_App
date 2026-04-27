@@ -6,7 +6,7 @@ const bypassClerkAuth =
   process.env.BYPASS_CLERK_AUTH === "1";
 
 const isProtected = createRouteMatcher(["/app(.*)"]);
-/** Native app calls these with `Authorization: Bearer`; session is verified in the route handler. */
+/** Native app: Bearer session verified inside route handlers. */
 const isMobileApi = createRouteMatcher(["/api/mobile(.*)"]);
 const isPublicAuth = createRouteMatcher([
   "/sign-in(.*)",
