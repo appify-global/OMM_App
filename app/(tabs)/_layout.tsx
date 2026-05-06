@@ -1,59 +1,175 @@
-import React from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, Tabs } from 'expo-router';
-import { Pressable } from 'react-native';
+import {
+  TAB_ICON_INACTIVE,
+  TAB_SLOT_SIZE,
+  TabActivitiesGlyph,
+  TabAddGlyph,
+  TabHomeGlyph,
+  TabListGlyph,
+  TabProfileGlyph,
+} from "@/components/TabBarGlyphs";
+import type { BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
+import { PlatformPressable } from "@react-navigation/elements";
+import { Tabs } from "expo-router";
+import { Platform, StyleSheet, View } from "react-native";
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+type TabName = "home" | "activities" | "add" | "list" | "profile";
 
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
+function TabBarIcon({ tab, focused }: { tab: TabName; focused: boolean }) {
+  const inactive = TAB_ICON_INACTIVE;
+  const active = "#ffffff";
+
+  const glyph = (color: string) => {
+    switch (tab) {
+      case "home":
+        return <TabHomeGlyph color={color} />;
+      case "activities":
+        return <TabActivitiesGlyph color={color} />;
+      case "add":
+        return <TabAddGlyph color={color} />;
+      case "list":
+        return <TabListGlyph color={color} />;
+      case "profile":
+        return <TabProfileGlyph color={color} />;
+    }
+  };
+
+  return (
+    <View style={[styles.slot, focused && styles.slotActive]}>
+      {glyph(focused ? active : inactive)}
+    </View>
+  );
+}
+
+/**
+ * Navigation’s UIKit tab item uses `justifyContent: 'flex-start'` for icon-above-label.
+ * With labels hidden the icon stays glued to the top of the pill — override to center.
+ */
+function TabBarButton({ style, ...rest }: BottomTabBarButtonProps) {
+  return (
+    <PlatformPressable
+      {...rest}
+      android_ripple={{ borderless: true }}
+      style={[style, styles.tabPressableCentered]}
+    />
+  );
 }
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
     <Tabs
+      safeAreaInsets={{ top: 0, bottom: 0, left: 0, right: 0 }}
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
-      }}>
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarActiveTintColor: "#1c1c1e",
+        tabBarInactiveTintColor: TAB_ICON_INACTIVE,
+        tabBarButton: (p) => <TabBarButton {...p} />,
+        tabBarStyle: styles.tabBar,
+        tabBarItemStyle: styles.tabItem,
+        tabBarIconStyle: styles.tabIconPosition,
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
+          title: "Home",
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon tab="home" focused={focused} />
           ),
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="stats"
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: "Activities",
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon tab="activities" focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="add"
+        options={{
+          title: "Add",
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon tab="add" focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="list"
+        options={{
+          title: "List",
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon tab="list" focused={focused} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Profile",
+          tabBarIcon: ({ focused }) => (
+            <TabBarIcon tab="profile" focused={focused} />
+          ),
         }}
       />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    position: "absolute",
+    height: 64,
+    borderTopWidth: 0,
+    borderRadius: 50,
+    marginHorizontal: 16,
+    marginBottom: Platform.select({ ios: 24, default: 16 }),
+    paddingHorizontal: 10,
+    paddingVertical: 12,
+    backgroundColor: "#ffffff",
+    flexDirection: "row",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 14,
+  },
+  tabItem: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    marginVertical: 0,
+  },
+  tabIconPosition: {
+    marginTop: 0,
+    marginBottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "center",
+  },
+  tabPressableCentered: {
+    flex: 1,
+    flexDirection: "column",
+    justifyContent: "center",
+    alignItems: "center",
+    alignSelf: "stretch",
+    paddingVertical: 0,
+    paddingHorizontal: 0,
+    margin: 0,
+  },
+  slot: {
+    width: TAB_SLOT_SIZE,
+    height: TAB_SLOT_SIZE,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  slotActive: {
+    borderRadius: TAB_SLOT_SIZE / 2,
+    backgroundColor: "#3c3c43",
+  },
+});

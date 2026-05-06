@@ -9,16 +9,13 @@ import 'react-native-reanimated';
 import { useColorScheme } from '@/components/useColorScheme';
 
 export {
-  // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
+  initialRouteName: 'index',
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -27,7 +24,6 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
     if (error) throw error;
   }, [error]);
@@ -51,7 +47,21 @@ function RootLayoutNav() {
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
       <Stack>
+        <Stack.Screen name="welcome" options={{ headerShown: false }} />
+        <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="saved-searches" options={{ headerShown: false }} />
+        <Stack.Screen name="post-buyer-brief" options={{ headerShown: false }} />
+        <Stack.Screen name="authority-expiring" options={{ headerShown: false }} />
+        <Stack.Screen name="recent-listings" options={{ headerShown: false }} />
+        <Stack.Screen name="view-live-listing" options={{ headerShown: false }} />
+        <Stack.Screen name="contact-seller-chat" options={{ headerShown: false }} />
+        <Stack.Screen name="your-matches" options={{ headerShown: false }} />
+        <Stack.Screen name="seller-match-detail" options={{ headerShown: false }} />
+        <Stack.Screen name="potential-buyers" options={{ headerShown: false }} />
+        <Stack.Screen name="buyer-lead-detail" options={{ headerShown: false }} />
+        <Stack.Screen name="notifications" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>
