@@ -6,6 +6,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTabScreenBottomPad } from './_tabScreenPad';
 
+import { ManageListingSheet } from '@/components/ManageListingSheet';
+
 const HERO = require('@/assets/images/welcome-bg.jpg');
 
 /** Dashed card shell (same as listing flow) — kept local so this tab never imports `add/_shared`. */
@@ -136,10 +138,25 @@ export default function ManageListingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const bottomPad = useTabScreenBottomPad();
-  const [tab, setTab] = useState<TabKey>('live');
+  const [activeSegment, setActiveSegment] = useState<TabKey>('live');
+  const [manageSheetOpen, setManageSheetOpen] = useState(false);
 
   return (
     <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
+      <ManageListingSheet
+        visible={manageSheetOpen}
+        onClose={() => setManageSheetOpen(false)}
+        title="12 Denham St, Hawthorn"
+        subtitle="$2,450,000 • Live • Authority expires in 14 days • SOI 20 Apr"
+        onMenuItemPress={(item) => {
+          setManageSheetOpen(false);
+          if (item === 'Edit listing details') router.push('/edit-listing' as Href);
+          if (item === 'Update photos & floorplan') router.push('/photos-floorplan' as Href);
+          if (item === 'View performance') router.push('/view-performance' as Href);
+          if (item === 'Change status') router.push('/change-listing-status' as Href);
+          if (item === 'Archive listing') router.push('/archive-listing' as Href);
+        }}
+      />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: bottomPad + 24 }]}>
@@ -168,16 +185,16 @@ export default function ManageListingsScreen() {
           ).map(({ key, label }) => (
             <Pressable
               key={key}
-              onPress={() => setTab(key)}
-              style={[styles.segItem, tab === key && styles.segItemOn]}
+              onPress={() => setActiveSegment(key)}
+              style={[styles.segItem, activeSegment === key && styles.segItemOn]}
               accessibilityRole="button"
-              accessibilityState={{ selected: tab === key }}>
-              <Text style={[styles.segLabel, tab === key && styles.segLabelOn]}>{label}</Text>
+              accessibilityState={{ selected: activeSegment === key }}>
+              <Text style={[styles.segLabel, activeSegment === key && styles.segLabelOn]}>{label}</Text>
             </Pressable>
           ))}
         </View>
 
-        {tab === 'live' ? (
+        {activeSegment === 'live' ? (
           <View style={styles.listingCard}>
             <View style={styles.imgWrap}>
               <Image source={HERO} style={styles.img} resizeMode="cover" />
@@ -206,14 +223,14 @@ export default function ManageListingsScreen() {
             <Text style={styles.propPrice}>$21,000,000</Text>
             <Pressable
               style={styles.manageBtn}
-              onPress={() => router.push('/view-live-listing' as Href)}
+              onPress={() => setManageSheetOpen(true)}
               accessibilityRole="button">
               <Text style={styles.manageBtnText}>MANAGE LISTING</Text>
             </Pressable>
           </View>
         ) : (
           <View style={styles.emptyTab}>
-            <Text style={styles.emptyTitle}>{tab === 'contract' ? 'Under contract' : 'Drafts'}</Text>
+            <Text style={styles.emptyTitle}>{activeSegment === 'contract' ? 'Under contract' : 'Drafts'}</Text>
             <Text style={styles.emptySub}>Nothing here yet in this demo.</Text>
           </View>
         )}

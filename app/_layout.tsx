@@ -51,17 +51,48 @@ function RootLayoutNav() {
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+        <Stack.Screen name="account-settings" options={{ headerShown: false }} />
+        <Stack.Screen name="payments-billing" options={{ headerShown: false }} />
+        <Stack.Screen name="gst-abn" options={{ headerShown: false, contentStyle: { backgroundColor: '#fff' } }} />
+        <Stack.Screen
+          name="payment-method"
+          options={{ headerShown: false, contentStyle: { backgroundColor: '#fff' } }}
+        />
+        <Stack.Screen name="account-details" options={{ headerShown: false }} />
+        <Stack.Screen name="payout-schedule" options={{ headerShown: false }} />
+        <Stack.Screen name="payout-history" options={{ headerShown: false }} />
+        <Stack.Screen name="invoices" options={{ headerShown: false }} />
+        <Stack.Screen name="invoice-detail" options={{ headerShown: false }} />
+        <Stack.Screen name="delete-account" options={{ headerShown: false }} />
+        <Stack.Screen name="terms-of-service" options={{ headerShown: false }} />
+        <Stack.Screen name="privacy-policy" options={{ headerShown: false }} />
+        <Stack.Screen name="community-guidelines" options={{ headerShown: false }} />
+        <Stack.Screen name="reviews" options={{ headerShown: false }} />
+        <Stack.Screen name="write-review" options={{ headerShown: false }} />
         <Stack.Screen name="saved-searches" options={{ headerShown: false }} />
         <Stack.Screen name="post-buyer-brief" options={{ headerShown: false }} />
         <Stack.Screen name="authority-expiring" options={{ headerShown: false }} />
         <Stack.Screen name="recent-listings" options={{ headerShown: false }} />
         <Stack.Screen name="view-live-listing" options={{ headerShown: false }} />
         <Stack.Screen name="contact-seller-chat" options={{ headerShown: false }} />
+        <Stack.Screen name="messages" options={{ headerShown: false }} />
+        <Stack.Screen name="agent-profile" options={{ headerShown: false }} />
+        <Stack.Screen name="agent-active-listings" options={{ headerShown: false }} />
+        <Stack.Screen name="agent-reviews" options={{ headerShown: false }} />
         <Stack.Screen name="your-matches" options={{ headerShown: false }} />
         <Stack.Screen name="seller-match-detail" options={{ headerShown: false }} />
         <Stack.Screen name="potential-buyers" options={{ headerShown: false }} />
         <Stack.Screen name="buyer-lead-detail" options={{ headerShown: false }} />
+        <Stack.Screen name="edit-listing" options={{ headerShown: false }} />
+        <Stack.Screen name="photos-floorplan" options={{ headerShown: false }} />
+        <Stack.Screen name="view-performance" options={{ headerShown: false }} />
+        <Stack.Screen name="change-listing-status" options={{ headerShown: false }} />
+        <Stack.Screen name="archive-listing" options={{ headerShown: false }} />
         <Stack.Screen name="notifications" options={{ headerShown: false }} />
+        <Stack.Screen name="disputes" options={{ headerShown: false }} />
+        <Stack.Screen name="dispute-detail" options={{ headerShown: false }} />
+        <Stack.Screen name="add-dispute-response" options={{ headerShown: false }} />
+        <Stack.Screen name="raise-dispute" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
       </Stack>
     </ThemeProvider>

@@ -16,9 +16,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
 import { LegalDocModal } from '@/components/LegalDocModal';
+import { clearAuthenticated } from '@/lib/auth-session';
+import { LEGAL_PRIVACY_BODY, LEGAL_TERMS_SIGNUP_MODAL_BODY } from '@/lib/legal-docs';
 
-const TERMS_BODY = `Draft for counsel. These Terms govern your use of OMM. By using the product you agree to our acceptable use, license and listing representations, referral messaging rules, and agency conduct standards. Use OMM only for lawful real-estate coordination consistent with your professional obligations.`;
-const PRIVACY_BODY = `Draft for counsel. We collect contact details, agency affiliation, device telemetry, and deal metadata needed to operate OMM and evidence compliance. Data may be processed in Australia and other regions where subprocessors operate. You may request access or correction in line with applicable Australian privacy law.`;
 const REFERRAL_BODY = `Draft for counsel. This Agency Referral Agreement covers referral or co-agency fees, GST treatment, disclosure expectations, and your obligation to record fees, confirmations, and trail items within OMM to support a Victorian compliance record.`;
 
 const ROLE_OPTIONS = ['Listing Agent', 'Buyers Agent', 'Buyer'] as const;
@@ -461,10 +461,16 @@ export default function SignUpScreen() {
             <AppButton
               variant="filled"
               style={{ marginTop: 16 }}
-              onPress={() => router.push('/contact-support')}>
+              onPress={() => router.push('/(auth)/contact-support')}>
               Contact support
             </AppButton>
-            <Pressable style={styles.signOutBtn} onPress={() => router.replace('/welcome')} accessibilityRole="button">
+            <Pressable
+              style={styles.signOutBtn}
+              onPress={async () => {
+                await clearAuthenticated();
+                router.replace('/welcome');
+              }}
+              accessibilityRole="button">
               <Text style={styles.signOutText}>Sign out</Text>
             </Pressable>
           </>
@@ -493,7 +499,7 @@ export default function SignUpScreen() {
         {step < 4 ? (
           <View style={styles.supportRow}>
             <Text style={styles.supportMuted}>Need help? </Text>
-            <Text style={styles.link} onPress={() => router.push('/contact-support')}>
+            <Text style={styles.link} onPress={() => router.push('/(auth)/contact-support')}>
               Contact support
             </Text>
           </View>
@@ -503,13 +509,13 @@ export default function SignUpScreen() {
       <LegalDocModal
         visible={legalOpen === 'terms'}
         title="Terms of Service"
-        body={TERMS_BODY}
+        body={LEGAL_TERMS_SIGNUP_MODAL_BODY}
         onClose={() => setLegalOpen(null)}
       />
       <LegalDocModal
         visible={legalOpen === 'privacy'}
         title="Privacy Policy"
-        body={PRIVACY_BODY}
+        body={LEGAL_PRIVACY_BODY}
         onClose={() => setLegalOpen(null)}
       />
       <LegalDocModal

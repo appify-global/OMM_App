@@ -1,5 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import { useState } from 'react';
 import {
   Image,
@@ -92,7 +92,11 @@ export default function ContactSellerChatScreen() {
               {MENU_ITEMS_BEFORE.map((item) => (
                 <Pressable
                   key={item.key}
-                  onPress={closeMenu}
+                  onPress={() => {
+                    closeMenu();
+                    if (item.key === 'profile') router.push('/agent-profile' as Href);
+                    if (item.key === 'reviews') router.push('/agent-reviews' as Href);
+                  }}
                   style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowPressed]}
                   accessibilityRole="button">
                   <Text style={styles.menuRowText}>{item.label}</Text>

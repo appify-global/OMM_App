@@ -15,6 +15,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
+import { setAuthenticated } from '@/lib/auth-session';
 
 /** Figma: Log in — node 1053:760, horizontal inset 32px */
 const PAD_H = 32;
@@ -28,8 +29,9 @@ export default function SignInScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
 
-  const onSubmit = () => {
-    // TODO: wire Clerk / API auth
+  const onSubmit = async () => {
+    // TODO: wire Clerk / API auth — session flag gates (tabs) until then
+    await setAuthenticated();
     router.replace('/(tabs)');
   };
 

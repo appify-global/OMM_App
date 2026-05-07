@@ -7,10 +7,12 @@ import {
   TabListGlyph,
   TabProfileGlyph,
 } from "@/components/TabBarGlyphs";
+import { isAuthenticated } from "@/lib/auth-session";
 import type { BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
 import { PlatformPressable } from "@react-navigation/elements";
-import { Tabs } from "expo-router";
-import { Platform, StyleSheet, View } from "react-native";
+import { Redirect, Tabs } from "expo-router";
+import { useEffect, useState } from "react";
+import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
 
 type TabName = "home" | "activities" | "add" | "list" | "profile";
 
@@ -55,6 +57,40 @@ function TabBarButton({ style, ...rest }: BottomTabBarButtonProps) {
 }
 
 export default function TabLayout() {
+  const [gate, setGate] = useState<"loading" | "authed" | "guest">("loading");
+
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      try {
+        const ok = await isAuthenticated();
+        if (alive) setGate(ok ? "authed" : "guest");
+      } catch {
+        if (alive) setGate("guest");
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, []);
+
+  if (gate === "loading") {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: "center",
+          justifyContent: "center",
+          backgroundColor: "#fff",
+        }}>
+        <ActivityIndicator color="#1c1c1e" />
+      </View>
+    );
+  }
+  if (gate === "guest") {
+    return <Redirect href="/welcome" />;
+  }
+
   return (
     <Tabs
       safeAreaInsets={{ top: 0, bottom: 0, left: 0, right: 0 }}
