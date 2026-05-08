@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useTabScreenBottomPad } from './_tabScreenPad';
+import { useTabScreenBottomPad } from '@/lib/useTabScreenBottomPad';
 
 import { ManageListingSheet } from '@/components/ManageListingSheet';
 

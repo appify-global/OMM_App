@@ -2,7 +2,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { useTabScreenBottomPad } from '../_tabScreenPad';
+import { useTabScreenBottomPad } from '@/lib/useTabScreenBottomPad';
 
 /** [Figma Property Listing](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-4465) */
 export const PL_PAD = 32;
