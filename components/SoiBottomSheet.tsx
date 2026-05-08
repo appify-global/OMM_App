@@ -1,8 +1,10 @@
 import { BlurView } from 'expo-blur';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton, APP_BUTTON_STACK_GAP } from '@/components/AppButton';
+import { DEMO_SOI_PROPERTY_LINE } from '@/lib/melbourne-demo-locations';
 
 type Props = {
   visible: boolean;
@@ -17,7 +19,7 @@ type Props = {
 export function SoiBottomSheet({
   visible,
   onClose,
-  propertyLine = '42 Hawthorn City Center — Victoria',
+  propertyLine = DEMO_SOI_PROPERTY_LINE,
 }: Props) {
   const insets = useSafeAreaInsets();
 
@@ -101,19 +103,19 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(60,60,67,0.2)',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
   title: {
     fontSize: 18,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     textAlign: 'center',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 15,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     textAlign: 'center',
     marginBottom: 20,
     lineHeight: 22,
@@ -122,51 +124,51 @@ const styles = StyleSheet.create({
   scroll: { maxHeight: 360 },
   scrollInner: { gap: 14, paddingBottom: 8 },
   infoCard: {
-    backgroundColor: '#f5f1ed',
+    backgroundColor: '#ffffff',
     borderRadius: 14,
     padding: 18,
     borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.08)',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
   cardMeta: {
     fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.55)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
     marginBottom: 10,
   },
   cardBody: {
     fontSize: 15,
     lineHeight: 22,
     fontWeight: '400',
-    color: '#1c1c1e',
+    color: '#000000',
     marginBottom: 12,
   },
   cardPlaceholder: {
     fontSize: 13,
     fontStyle: 'italic',
-    color: 'rgba(60,60,67,0.45)',
+    color: 'rgba(0, 0, 0, 0.45)',
   },
   priceLabel: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     letterSpacing: 0.8,
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     textTransform: 'uppercase',
     marginBottom: 8,
   },
   priceRange: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
     color: '#000',
     marginBottom: 10,
     letterSpacing: -0.3,
   },
   cardDates: {
     fontSize: 14,
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     lineHeight: 20,
   },
   actions: { marginTop: 20, paddingTop: 4 },
-  btnPrimary: { fontSize: 14, fontWeight: '600', letterSpacing: 0.5 },
-  btnSecondary: { fontSize: 14, fontWeight: '600', letterSpacing: 0.5, color: '#555' },
+  btnPrimary: { fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5 },
+  btnSecondary: { fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5, color: 'rgba(0,0,0,0.55)' },
 });

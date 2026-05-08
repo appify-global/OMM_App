@@ -1,14 +1,7 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
-import {
-  Dimensions,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Dimensions, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
@@ -16,14 +9,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  * [Figma 1053:9141](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-9141&t=2eZigRM0BwNtC5wd-4)
  */
 
-const PHOTO = require('@/assets/images/welcome-bg.jpg');
+import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
 
 const H_PAD = 20;
 const GRID_GAP = 10;
 const THUMB_RADIUS = 12;
 const DASH = {
   borderWidth: 1.5,
-  borderColor: 'rgba(60,60,67,0.45)',
+  borderColor: 'rgba(0, 0, 0, 0.45)',
   borderStyle: 'dashed' as const,
   backgroundColor: '#fff',
 };
@@ -46,7 +39,7 @@ export default function PhotosFloorplanScreen() {
         <View style={styles.grid}>
           {/* Row 1 */}
           <View style={[styles.thumbWrap, { width: cell, height: cell }]}>
-            <Image source={PHOTO} style={styles.thumbImg} resizeMode="cover" />
+            <Image source={PROPERTY_IMG_1} style={styles.thumbImg} resizeMode="cover" />
             <View style={styles.coverBadge}>
               <Text style={styles.coverBadgeText}>COVER</Text>
             </View>
@@ -58,23 +51,23 @@ export default function PhotosFloorplanScreen() {
             </View>
           </View>
           <Image
-            source={PHOTO}
+            source={PROPERTY_IMG_1}
             style={[styles.thumbImgOut, { width: cell, height: cell }]}
             resizeMode="cover"
           />
           <Image
-            source={PHOTO}
+            source={PROPERTY_IMG_1}
             style={[styles.thumbImgOut, { width: cell, height: cell }]}
             resizeMode="cover"
           />
           {/* Row 2 */}
           <Image
-            source={PHOTO}
+            source={PROPERTY_IMG_1}
             style={[styles.thumbImgOut, { width: cell, height: cell }]}
             resizeMode="cover"
           />
           <Image
-            source={PHOTO}
+            source={PROPERTY_IMG_1}
             style={[styles.thumbImgOut, { width: cell, height: cell }]}
             resizeMode="cover"
           />
@@ -82,13 +75,13 @@ export default function PhotosFloorplanScreen() {
             style={[styles.uploadTile, { width: cell, height: cell }, DASH]}
             accessibilityRole="button"
             accessibilityLabel="Upload photo">
-            <MaterialCommunityIcons name="tray-arrow-up" size={28} color="rgba(60,60,67,0.4)" />
+            <MaterialCommunityIcons name="tray-arrow-up" size={28} color="rgba(0, 0, 0, 0.4)" />
           </Pressable>
         </View>
 
         <Text style={styles.floorLabel}>FLOOR PLAN</Text>
         <View style={[styles.floorCard, DASH]}>
-          <MaterialCommunityIcons name="file-document-outline" size={28} color="#1c1c1e" />
+          <MaterialCommunityIcons name="file-document-outline" size={28} color="#000000" />
           <View style={styles.floorTextCol}>
             <Text style={styles.floorName} numberOfLines={1}>
               hawthorn_floorplan_v3.pdf
@@ -121,15 +114,15 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: H_PAD, paddingTop: 4 },
   title: {
     fontSize: 28,
-    fontWeight: '600',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: -0.6,
     marginBottom: 10,
   },
   subtitle: {
     fontSize: 14,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     lineHeight: 20,
     marginBottom: 22,
   },
@@ -142,7 +135,7 @@ const styles = StyleSheet.create({
   thumbWrap: {
     borderRadius: THUMB_RADIUS,
     overflow: 'hidden',
-    backgroundColor: '#e8e4df',
+    backgroundColor: 'rgba(0,0,0,0.06)',
   },
   thumbImg: {
     ...StyleSheet.absoluteFillObject,
@@ -151,18 +144,18 @@ const styles = StyleSheet.create({
   },
   thumbImgOut: {
     borderRadius: THUMB_RADIUS,
-    backgroundColor: '#e8e4df',
+    backgroundColor: 'rgba(0,0,0,0.06)',
   },
   coverBadge: {
     position: 'absolute',
     top: 8,
     left: 8,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
   },
-  coverBadgeText: { fontSize: 9, fontWeight: '600', color: '#fff', letterSpacing: 0.35 },
+  coverBadgeText: { fontSize: 9, fontFamily: 'Satoshi-Medium', color: '#fff', letterSpacing: 0.35 },
   uploadingOverlay: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.55)',
@@ -173,7 +166,7 @@ const styles = StyleSheet.create({
   uploadingText: {
     color: '#fff',
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     letterSpacing: 0.25,
     marginBottom: 10,
   },
@@ -197,8 +190,8 @@ const styles = StyleSheet.create({
   },
   floorLabel: {
     fontSize: 11,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.48)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.48)',
     letterSpacing: 0.65,
     marginBottom: 10,
   },
@@ -212,16 +205,16 @@ const styles = StyleSheet.create({
     marginBottom: 28,
   },
   floorTextCol: { flex: 1, minWidth: 0 },
-  floorName: { fontSize: 15, fontWeight: '600', color: '#1c1c1e' },
-  floorMeta: { fontSize: 13, fontWeight: '400', color: 'rgba(60,60,67,0.5)', marginTop: 4 },
+  floorName: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  floorMeta: { fontSize: 13, fontWeight: '400', color: 'rgba(0, 0, 0, 0.5)', marginTop: 4 },
   saveBtn: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     height: 52,
     borderRadius: 0,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  saveBtnText: { color: '#fff', fontSize: 14, fontWeight: '500', letterSpacing: 0.35 },
+  saveBtnText: { color: '#fff', fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.35 },
   cancelWrap: { alignItems: 'center', marginTop: 16, paddingVertical: 8 },
-  cancel: { fontSize: 15, fontWeight: '500', color: 'rgba(60,60,67,0.55)' },
+  cancel: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.55)' },
 });

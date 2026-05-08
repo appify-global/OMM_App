@@ -4,16 +4,8 @@ import * as Sharing from 'expo-sharing';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-  Alert,
-  Platform,
-  Pressable,
-  ScrollView,
-  Share,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Alert, Platform, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -40,11 +32,11 @@ const PRE_ACTION_GAP = 24;
 /** Space between primary and secondary buttons */
 const ACTION_GAP = 12;
 const CARD_R = 8;
-const STROKE = 'rgba(60,60,67,0.55)';
+const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
-const MUTED = 'rgba(60,60,67,0.55)';
-const BTN_BG = '#1c1c1e';
+const MUTED = 'rgba(0, 0, 0, 0.55)';
+const BTN_BG = '#000000';
 
 function DashedFrame({
   width,
@@ -432,7 +424,7 @@ export default function InvoiceDetailScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.navBar}>
         <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <View style={styles.navCenter}>
           <Text style={styles.navTitle}>Invoices</Text>
@@ -475,13 +467,13 @@ const styles = StyleSheet.create({
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 27,
   },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
   missWrap: { paddingHorizontal: H_PAD, paddingTop: 24 },
-  missText: { fontSize: 14, fontWeight: '400', color: '#1a1a1a', lineHeight: 21 },
+  missText: { fontSize: 14, fontWeight: '400', color: '#000000', lineHeight: 21 },
   dashShell: {
     position: 'relative',
     width: '100%',
@@ -525,13 +517,13 @@ const styles = StyleSheet.create({
     backgroundColor: BTN_BG,
   },
   headChipOff: {
-    backgroundColor: 'rgba(60,60,67,0.14)',
+    backgroundColor: 'rgba(0, 0, 0, 0.14)',
     borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.14)',
+    borderColor: 'rgba(0, 0, 0, 0.14)',
   },
   headChipText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     letterSpacing: 0.25,
     textTransform: 'uppercase',
   },
@@ -539,8 +531,8 @@ const styles = StyleSheet.create({
   headChipTextOff: { color: 'rgba(26,26,26,0.75)' },
   invoiceIdNextChip: {
     fontSize: 12,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: 0.11,
     flexShrink: 1,
   },
@@ -573,8 +565,8 @@ const styles = StyleSheet.create({
   },
   heroAmount: {
     fontSize: 32,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: -0.4,
     lineHeight: 38,
     marginBottom: 8,
@@ -599,7 +591,7 @@ const styles = StyleSheet.create({
   bodyVal: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#000000',
     lineHeight: 21,
   },
   issuedAboveLines: {
@@ -630,13 +622,13 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#000000',
     lineHeight: 21,
   },
   lineAmt: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 21,
     textAlign: 'right',
   },
@@ -657,8 +649,8 @@ const styles = StyleSheet.create({
   },
   footerTotalAmt: {
     fontSize: 14,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 21,
   },
   primaryBtn: {
@@ -671,7 +663,7 @@ const styles = StyleSheet.create({
   },
   primaryBtnText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: -0.14,
     textTransform: 'uppercase',
@@ -692,8 +684,8 @@ const styles = StyleSheet.create({
   },
   secondaryBtnText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: 0.35,
     textTransform: 'uppercase',
   },
@@ -723,7 +715,7 @@ const styles = StyleSheet.create({
     width: 27,
     height: 27,
     borderRadius: 14,
-    backgroundColor: 'rgba(60,60,67,0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -735,8 +727,8 @@ const styles = StyleSheet.create({
   },
   toastTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 20,
   },
   toastSub: {
@@ -753,8 +745,8 @@ const styles = StyleSheet.create({
   },
   toastOpen: {
     fontSize: 10,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: 0.18,
     textTransform: 'uppercase',
   },

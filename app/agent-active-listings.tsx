@@ -1,15 +1,8 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import {
-  Image,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
@@ -17,7 +10,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  * [Figma 1053:6822](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-6822&t=2eZigRM0BwNtC5wd-4)
  */
 
-const AVATAR = require('@/assets/images/welcome-bg.jpg');
+import { DEMO_AGENT_AGENCY } from '@/lib/melbourne-demo-locations';
+import { AGENT_IMG, PROPERTY_IMG_1, propertyImageAtIndex } from '@/lib/propertyImages';
 const H_PAD = 16;
 const CARD_R = 12;
 const AGENT_CARD_R = 10;
@@ -38,7 +32,7 @@ type ListingRow = {
 const ALL_LISTINGS: ListingRow[] = [
   {
     id: '1',
-    address: '22 Lilac Ave, Hawthorn',
+    address: '15 Rowe St, Fitzroy North VIC 3068',
     specs: 'HOUSE · 4 BED · 2 BATH · 2 CAR',
     priceLine: '$2.1m — $2.3m',
     status: 'live',
@@ -47,7 +41,7 @@ const ALL_LISTINGS: ListingRow[] = [
   },
   {
     id: '2',
-    address: '18 Gordon St, Balwyn',
+    address: '4 Murray St, Ascot Vale VIC 3032',
     specs: 'HOUSE · 4 BED · 2 BATH · 2 CAR',
     priceLine: '$2.1m — $2.3m',
     status: 'under_offer',
@@ -56,7 +50,7 @@ const ALL_LISTINGS: ListingRow[] = [
   },
   {
     id: '3',
-    address: '7 Wattle Ct, Canterbury',
+    address: '27 Kooyong Rd, Armadale VIC 3143',
     specs: 'HOUSE · 4 BED · 2 BATH · 2 CAR',
     priceLine: 'SOLD $2.65m',
     status: 'sold',
@@ -65,7 +59,7 @@ const ALL_LISTINGS: ListingRow[] = [
   },
   {
     id: '4',
-    address: '6/40 Park Rd, Camberwell',
+    address: '102/8 Joseph Rd, Footscray VIC 3011',
     specs: 'APARTMENT · 2 BED · 1 BATH · 1 CAR',
     priceLine: '$850k — $920k',
     status: 'live',
@@ -111,7 +105,7 @@ export default function AgentActiveListingsScreen() {
           accessibilityRole="button"
           accessibilityLabel="Back"
           style={styles.navSide}>
-          <FontAwesome name="chevron-left" size={20} color="#1c1c1e" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <View style={styles.navCenter}>
           <Text style={styles.navTitle}>Active listings</Text>
@@ -124,14 +118,14 @@ export default function AgentActiveListingsScreen() {
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}>
         <View style={styles.agentCard}>
           <View style={styles.avatarWrap}>
-            <Image source={AVATAR} style={styles.agentAvatar} resizeMode="cover" />
+            <Image source={AGENT_IMG} style={styles.agentAvatar} resizeMode="cover" />
             <View style={styles.verifiedBadge}>
               <FontAwesome name="check" size={8} color="#fff" />
             </View>
           </View>
           <View style={styles.agentText}>
             <Text style={styles.agentName}>Anton Zhouk</Text>
-            <Text style={styles.agentRole}>Listing Agent · Ray White Hawthorn</Text>
+            <Text style={styles.agentRole}>Listing Agent · {DEMO_AGENT_AGENCY}</Text>
           </View>
         </View>
 
@@ -162,7 +156,7 @@ export default function AgentActiveListingsScreen() {
           <Text style={styles.listMetaRight}>NEWEST ↓</Text>
         </View>
 
-        {filtered.map((L) => (
+        {filtered.map((L, index) => (
           <Pressable
             key={L.id}
             onPress={() => router.push('/view-live-listing' as Href)}
@@ -171,7 +165,7 @@ export default function AgentActiveListingsScreen() {
             style={({ pressed }) => [pressed && styles.listingCardPressed]}>
             <View style={styles.listingCard}>
               <View style={styles.listingImageBlock}>
-                <Image source={AVATAR} style={styles.listingHero} resizeMode="cover" />
+                <Image source={propertyImageAtIndex(index)} style={styles.listingHero} resizeMode="cover" />
                 <View
                   style={[
                     styles.statusBadge,
@@ -199,7 +193,7 @@ export default function AgentActiveListingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#f5f5f5' },
+  screen: { flex: 1, backgroundColor: '#ffffff' },
   navBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -209,7 +203,7 @@ const styles = StyleSheet.create({
   },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 18, fontWeight: '700', color: '#1c1c1e' },
+  navTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000' },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 12 },
   agentCard: {
     flexDirection: 'row',
@@ -231,7 +225,7 @@ const styles = StyleSheet.create({
     }),
   },
   avatarWrap: { position: 'relative', marginRight: 14 },
-  agentAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#e8e4df' },
+  agentAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.06)' },
   verifiedBadge: {
     position: 'absolute',
     right: -4,
@@ -239,18 +233,18 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#fff',
   },
   agentText: { flex: 1, minWidth: 0 },
-  agentName: { fontSize: 15, fontWeight: '700', color: '#1a1a1a' },
+  agentName: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000' },
   agentRole: {
     fontSize: 12,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     marginTop: 4,
   },
   chipsScroll: { marginBottom: 14, marginHorizontal: -H_PAD },
@@ -268,16 +262,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#f5f1ed',
+    borderColor: '#ffffff',
   },
   chipOn: {
-    backgroundColor: '#1c1c1e',
-    borderColor: '#1c1c1e',
+    backgroundColor: '#000000',
+    borderColor: '#000000',
   },
   chipLabel: {
     fontSize: 11,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#000000',
     letterSpacing: 0.66,
   },
   chipLabelOn: {
@@ -293,13 +287,13 @@ const styles = StyleSheet.create({
   listMetaLeft: {
     fontSize: 11,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#000000',
     letterSpacing: 0.66,
   },
   listMetaRight: {
     fontSize: 11,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#000000',
     letterSpacing: 0.66,
   },
   listingCardPressed: { opacity: 0.96 },
@@ -323,14 +317,14 @@ const styles = StyleSheet.create({
     height: 180,
     width: '100%',
     position: 'relative',
-    backgroundColor: '#e8e4df',
+    backgroundColor: 'rgba(0,0,0,0.06)',
   },
   listingHero: { width: '100%', height: '100%' },
   statusBadge: {
     position: 'absolute',
     top: 16,
     right: 16,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingHorizontal: 12,
     paddingVertical: 4,
     borderRadius: 11,
@@ -351,18 +345,18 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 20,
   },
-  listingAddr: { fontSize: 17, fontWeight: '700', color: '#1a1a1a' },
+  listingAddr: { fontSize: 17, fontFamily: 'Satoshi-Medium', color: '#000000' },
   listingSpecs: {
     fontSize: 11,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     marginTop: 8,
     letterSpacing: 0.66,
   },
-  listingPrice: { fontSize: 18, fontWeight: '400', color: '#1a1a1a', marginTop: 12 },
+  listingPrice: { fontSize: 18, fontWeight: '400', color: '#000000', marginTop: 12 },
   listingDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#f5f1ed',
+    backgroundColor: '#ffffff',
     marginTop: 16,
   },
   listingFooter: {
@@ -374,7 +368,7 @@ const styles = StyleSheet.create({
   footerMeta: {
     fontSize: 11,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     letterSpacing: 0.66,
   },
 });

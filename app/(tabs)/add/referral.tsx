@@ -2,7 +2,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import Slider from '@react-native-community/slider';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import {
   PL_PAD,
@@ -59,8 +60,8 @@ export default function PublishListingReferral() {
             step={1}
             value={pct}
             onValueChange={setPct}
-            minimumTrackTintColor="#1a1a1a"
-            maximumTrackTintColor="#e8e4df"
+            minimumTrackTintColor="#000000"
+            maximumTrackTintColor="rgba(0,0,0,0.06)"
             thumbTintColor="#fff"
           />
           <View style={styles.tickRow}>
@@ -137,7 +138,7 @@ export default function PublishListingReferral() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#fff' },
   scroll: { paddingTop: 12, paddingHorizontal: PL_PAD, paddingBottom: 16 },
-  pageTitle: { fontSize: 24, fontWeight: '500', color: '#000', marginBottom: 20 },
+  pageTitle: { fontSize: 24, fontFamily: 'Satoshi-Medium', color: '#000', marginBottom: 20 },
 
   heroCard: {
     backgroundColor: PL_CARD,
@@ -152,30 +153,30 @@ const styles = StyleSheet.create({
   heroTop: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   heroLabel: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: 'rgba(255,255,255,0.88)',
     letterSpacing: 0.55,
   },
   recBadge: {
     borderWidth: 1,
-    borderColor: 'rgba(200,125,95,0.4)',
-    backgroundColor: 'rgba(200,125,95,0.2)',
+    borderColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: 'rgba(255,255,255,0.12)',
     borderRadius: 4,
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
-  recBadgeText: { fontSize: 11, fontWeight: '600', color: '#fff', letterSpacing: 0.35 },
+  recBadgeText: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: '#fff', letterSpacing: 0.35 },
   heroPctRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 16 },
   heroPct: {
     fontSize: 72,
-    fontWeight: '900',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: -2,
     lineHeight: 80,
   },
   heroPctSuffix: {
     fontSize: 36,
-    fontWeight: '900',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     marginBottom: 14,
     marginLeft: 2,
@@ -188,7 +189,7 @@ const styles = StyleSheet.create({
   },
   heroFoot: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: 'rgba(255,255,255,0.92)',
     letterSpacing: 0.35,
     lineHeight: 17,
@@ -197,7 +198,7 @@ const styles = StyleSheet.create({
   sliderBlock: { marginBottom: 20 },
   slider: { width: '100%', height: 36 },
   tickRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  tick: { fontSize: 11, fontWeight: '500', color: PL_BORDER },
+  tick: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: PL_BORDER },
 
   earnCard: {
     backgroundColor: PL_CARD,
@@ -214,16 +215,15 @@ const styles = StyleSheet.create({
   },
   earnKicker: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.55,
     marginBottom: 10,
     lineHeight: 16,
   },
-  earnBig: { fontSize: 28, fontWeight: '500', color: '#fff', lineHeight: 38 },
+  earnBig: { fontSize: 28, fontFamily: 'Satoshi-Medium', color: '#fff', lineHeight: 38 },
   earnSub: {
     fontSize: 15,
-    fontWeight: '400',
     color: '#fff',
     opacity: 0.96,
     marginTop: 10,
@@ -247,7 +247,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
   },
   pickerVal: { fontSize: 14, color: '#000' },
-  pickerPlaceholder: { color: 'rgba(60,60,67,0.35)' },
+  pickerPlaceholder: { color: 'rgba(0, 0, 0, 0.35)' },
 
   modalScrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },
   modalSheet: {
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingBottom: 32,
   },
-  modalTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12 },
-  modalOpt: { paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#e8e4df' },
-  modalOptText: { fontSize: 16, color: '#1a1a1a' },
+  modalTitle: { fontSize: 16, fontFamily: 'Satoshi-Medium', marginBottom: 12 },
+  modalOpt: { paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(0,0,0,0.06)' },
+  modalOptText: { fontSize: 16, color: '#000000' },
 });

@@ -2,7 +2,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,10 +20,10 @@ const AFTER_CHIPS = 20;
 const LABEL_GAP = 8;
 const ROW_GAP = 10;
 const CARD_R = 8;
-const STROKE = 'rgba(60,60,67,0.45)';
+const STROKE = 'rgba(0, 0, 0, 0.45)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
-const MUTED = 'rgba(60,60,67,0.55)';
+const MUTED = 'rgba(0, 0, 0, 0.55)';
 const CHIP_INACTIVE_BG = '#efefef';
 
 type FilterKey = 'all' | 'month' | 'months3' | 'year';
@@ -150,7 +151,7 @@ export default function PayoutHistoryScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.navBar}>
         <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <View style={styles.navCenter}>
           <Text style={styles.navTitle}>Payout history</Text>
@@ -222,8 +223,8 @@ const styles = StyleSheet.create({
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 27,
   },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
@@ -254,7 +255,7 @@ const styles = StyleSheet.create({
   },
   summaryAmount: {
     fontSize: 32,
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
     color: '#000',
     letterSpacing: -0.4,
     lineHeight: 38,
@@ -281,22 +282,22 @@ const styles = StyleSheet.create({
   },
   chipSpacing: { marginRight: 8 },
   chipOn: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
   },
   chipOff: {
     backgroundColor: CHIP_INACTIVE_BG,
   },
   chipText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     letterSpacing: 0.15,
   },
   chipTextOn: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
   },
   chipTextOff: {
-    color: '#3c3c43',
+    color: '#000000',
   },
   monthBlock: {
     marginBottom: BLOCK_GAP,
@@ -331,14 +332,14 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   badge: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     paddingHorizontal: 11,
     paddingVertical: 5,
     borderRadius: 10,
   },
   badgeText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.25,
     textTransform: 'uppercase',
@@ -351,7 +352,7 @@ const styles = StyleSheet.create({
   },
   itemAmount: {
     fontSize: 18,
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
     color: '#000',
     lineHeight: 24,
   },

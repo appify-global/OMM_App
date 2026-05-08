@@ -1,15 +1,8 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import {
-  Image,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
@@ -17,7 +10,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  * [Figma 1053:6675](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-6675&t=2eZigRM0BwNtC5wd-4)
  */
 
-const AVATAR = require('@/assets/images/welcome-bg.jpg');
+import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
+import { DEMO_AGENT_AGENCY } from '@/lib/melbourne-demo-locations';
+
 const H_PAD = 20;
 const CARD_R = 14;
 const GOLD = '#c9a227';
@@ -98,7 +93,7 @@ export default function AgentReviewsScreen() {
           accessibilityRole="button"
           accessibilityLabel="Back"
           style={styles.navSide}>
-          <FontAwesome name="chevron-left" size={20} color="#1c1c1e" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <View style={styles.navCenter}>
           <Text style={styles.navTitle}>Reviews</Text>
@@ -111,7 +106,7 @@ export default function AgentReviewsScreen() {
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 28 }]}>
         <View style={styles.summaryCard}>
           <Text style={styles.summaryName}>Anton Zhouk</Text>
-          <Text style={styles.summaryRole}>Listing Agent · Ray White Hawthorn</Text>
+          <Text style={styles.summaryRole}>Listing Agent · {DEMO_AGENT_AGENCY}</Text>
           <View style={styles.summaryRow}>
             <View style={styles.summaryLeft}>
               <Text style={styles.bigScore}>4.9</Text>
@@ -163,7 +158,7 @@ export default function AgentReviewsScreen() {
                   <FontAwesome
                     name="chevron-down"
                     size={10}
-                    color={on ? '#fff' : '#1c1c1e'}
+                    color={on ? '#fff' : '#000000'}
                     style={styles.chipChevron}
                   />
                 ) : null}
@@ -180,7 +175,7 @@ export default function AgentReviewsScreen() {
         {filteredReviews.map((r) => (
           <View key={`${r.name}-${r.date}`} style={styles.reviewCard}>
             <View style={styles.reviewTop}>
-              <Image source={AVATAR} style={styles.reviewAvatar} resizeMode="cover" />
+              <Image source={PROPERTY_IMG_1} style={styles.reviewAvatar} resizeMode="cover" />
               <View style={styles.reviewMeta}>
                 <Text style={styles.reviewName}>{r.name}</Text>
                 <Text style={styles.reviewRole}>{r.role}</Text>
@@ -198,7 +193,7 @@ export default function AgentReviewsScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#f5f5f5' },
+  screen: { flex: 1, backgroundColor: '#ffffff' },
   navBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -208,7 +203,7 @@ const styles = StyleSheet.create({
   },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   navCenter: { flex: 1, alignItems: 'center' },
-  navTitle: { fontSize: 17, fontWeight: '700', color: '#1c1c1e' },
+  navTitle: { fontSize: 17, fontFamily: 'Satoshi-Medium', color: '#000000' },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 16 },
   summaryCard: {
     backgroundColor: '#fff',
@@ -226,25 +221,25 @@ const styles = StyleSheet.create({
       default: {},
     }),
   },
-  summaryName: { fontSize: 18, fontWeight: '600', color: '#1c1c1e' },
-  summaryRole: { fontSize: 13, fontWeight: '400', color: 'rgba(60,60,67,0.5)', marginTop: 4, marginBottom: 16 },
+  summaryName: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  summaryRole: { fontSize: 13, fontWeight: '400', color: 'rgba(0, 0, 0, 0.5)', marginTop: 4, marginBottom: 16 },
   summaryRow: { flexDirection: 'row', gap: 16 },
   summaryLeft: { width: 118 },
   summaryRight: { flex: 1, minWidth: 0, justifyContent: 'center', gap: 8 },
-  bigScore: { fontSize: 36, fontWeight: '600', color: '#1c1c1e', letterSpacing: -1 },
+  bigScore: { fontSize: 36, fontFamily: 'Satoshi-Medium', color: '#000000', letterSpacing: -1 },
   starsRow: { flexDirection: 'row', gap: 3, marginTop: 6 },
-  basedOn: { fontSize: 11, fontWeight: '500', color: 'rgba(60,60,67,0.45)', marginTop: 8 },
+  basedOn: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', marginTop: 8 },
   distRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  distLabel: { width: 22, fontSize: 10, fontWeight: '600', color: 'rgba(60,60,67,0.45)' },
+  distLabel: { width: 22, fontSize: 10, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)' },
   distTrack: {
     flex: 1,
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(60,60,67,0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
     overflow: 'hidden',
   },
-  distFill: { height: '100%', borderRadius: 3, backgroundColor: '#1c1c1e' },
-  distPct: { width: 32, fontSize: 10, fontWeight: '600', color: 'rgba(60,60,67,0.45)', textAlign: 'right' },
+  distFill: { height: '100%', borderRadius: 3, backgroundColor: '#000000' },
+  distPct: { width: 32, fontSize: 10, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', textAlign: 'right' },
   chipsScroll: { marginBottom: 14, marginHorizontal: -H_PAD },
   chipsInner: { paddingHorizontal: H_PAD, gap: 8, flexDirection: 'row', alignItems: 'center' },
   chip: {
@@ -254,17 +249,17 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 20,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(60,60,67,0.22)',
+    borderColor: 'rgba(0, 0, 0, 0.22)',
     backgroundColor: '#fff',
   },
   chipOn: {
-    backgroundColor: '#1c1c1e',
-    borderColor: '#1c1c1e',
+    backgroundColor: '#000000',
+    borderColor: '#000000',
     borderWidth: 1,
   },
-  chipLabel: { fontSize: 11, fontWeight: '600', color: '#1c1c1e', letterSpacing: 0.35 },
+  chipLabel: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: '#000000', letterSpacing: 0.35 },
   chipLabelOn: { color: '#fff' },
-  chipLabelPhotosMuted: { color: 'rgba(60,60,67,0.42)' },
+  chipLabelPhotosMuted: { color: 'rgba(0, 0, 0, 0.42)' },
   chipChevron: { marginLeft: 4 },
   listMetaRow: {
     flexDirection: 'row',
@@ -274,11 +269,11 @@ const styles = StyleSheet.create({
   },
   listMetaLeft: {
     fontSize: 11,
-    fontWeight: '600',
-    color: 'rgba(60,60,67,0.5)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.5)',
     letterSpacing: 0.6,
   },
-  listMetaRight: { fontSize: 11, fontWeight: '600', color: '#1c1c1e', letterSpacing: 0.35 },
+  listMetaRight: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: '#000000', letterSpacing: 0.35 },
   reviewCard: {
     backgroundColor: '#fff',
     borderRadius: CARD_R,
@@ -298,15 +293,15 @@ const styles = StyleSheet.create({
   reviewTop: { flexDirection: 'row', alignItems: 'center' },
   reviewBodyDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(60,60,67,0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
     marginTop: 12,
     marginBottom: 12,
   },
-  reviewAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#e8e4df' },
+  reviewAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.06)' },
   reviewMeta: { flex: 1, marginLeft: 12, minWidth: 0 },
-  reviewName: { fontSize: 15, fontWeight: '600', color: '#1c1c1e' },
-  reviewRole: { fontSize: 12, fontWeight: '400', color: 'rgba(60,60,67,0.5)', marginTop: 2 },
-  reviewStars: { fontSize: 13, fontWeight: '600', color: '#1c1c1e' },
-  reviewQuote: { fontSize: 14, fontWeight: '400', color: '#1c1c1e', lineHeight: 21 },
-  reviewDate: { marginTop: 12, fontSize: 12, fontWeight: '500', color: 'rgba(60,60,67,0.45)' },
+  reviewName: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  reviewRole: { fontSize: 12, fontWeight: '400', color: 'rgba(0, 0, 0, 0.5)', marginTop: 2 },
+  reviewStars: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  reviewQuote: { fontSize: 14, fontWeight: '400', color: '#000000', lineHeight: 21 },
+  reviewDate: { marginTop: 12, fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)' },
 });

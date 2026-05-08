@@ -2,7 +2,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,10 +20,10 @@ const BLOCK_GAP = 24;
 const LIST_GAP = 14;
 const AFTER_INTRO = 16;
 const AFTER_FILTERS = 16;
-const STROKE = 'rgba(60,60,67,0.55)';
+const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
-const MUTED = 'rgba(60,60,67,0.55)';
+const MUTED = 'rgba(0, 0, 0, 0.55)';
 const CARD_R = 8;
 
 type FilterKey = 'all' | DisputeStatus;
@@ -112,13 +113,13 @@ const badge = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: 'rgba(60,60,67,0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
   open: {
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
   },
   resolved: {
     borderRadius: 10,
@@ -126,11 +127,11 @@ const badge = StyleSheet.create({
     paddingVertical: 6,
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#e8e4df',
+    borderColor: 'rgba(0,0,0,0.06)',
   },
   textLight: {
     fontSize: 9,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.225,
     textTransform: 'uppercase',
@@ -138,7 +139,7 @@ const badge = StyleSheet.create({
   },
   textResolved: {
     fontSize: 9,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: MUTED,
     letterSpacing: 0.225,
     textTransform: 'uppercase',
@@ -160,7 +161,7 @@ export default function DisputesScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.navBar}>
         <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <View style={styles.navCenter}>
           <Text style={styles.navTitle}>Disputes</Text>
@@ -254,8 +255,8 @@ const styles = StyleSheet.create({
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 27,
   },
   scroll: {
@@ -291,12 +292,12 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   filterChipOn: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
   },
   filterChipOff: {
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.14)',
+    borderColor: 'rgba(0, 0, 0, 0.14)',
   },
   filterChipText: {
     fontSize: 12,
@@ -337,7 +338,7 @@ const styles = StyleSheet.create({
   },
   cardId: {
     fontSize: 10,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: MUTED,
     letterSpacing: 0.25,
     textTransform: 'uppercase',
@@ -346,7 +347,7 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#000000',
     lineHeight: 21,
   },
   cardMeta: {
@@ -358,13 +359,13 @@ const styles = StyleSheet.create({
   cta: {
     height: 48,
     borderRadius: 4,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
   ctaText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: -0.35,
     textTransform: 'uppercase',

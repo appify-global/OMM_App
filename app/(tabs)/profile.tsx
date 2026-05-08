@@ -4,15 +4,8 @@ import { type Href, useRouter } from 'expo-router';
 import type { ComponentProps, ReactNode } from 'react';
 import { Fragment, useState } from 'react';
 import Svg, { Line } from 'react-native-svg';
-import {
-  Alert,
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { clearAuthenticated } from '@/lib/auth-session';
@@ -22,15 +15,15 @@ import { clearAuthenticated } from '@/lib/auth-session';
  * [Figma 1053:2082](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-2082&t=2eZigRM0BwNtC5wd-4)
  */
 
-const AVATAR = require('@/assets/images/welcome-bg.jpg');
+import { AGENT_IMG } from '@/lib/propertyImages';
 const H_PAD = 20;
 const SECTION_GAP = 24;
 const GROUP_R = 16;
 /** Light gray dashed rules — full profile (ref. second screen) */
-const DASH_COLOR = 'rgba(60,60,67,0.34)';
+const DASH_COLOR = 'rgba(0, 0, 0, 0.34)';
 const DASH_WIDTH = 1;
 const STAR_FILLED = '#6b5344';
-const STAR_EMPTY = 'rgba(60,60,67,0.22)';
+const STAR_EMPTY = 'rgba(0, 0, 0, 0.22)';
 
 type MenuIcon =
   | { family: 'fa'; name: ComponentProps<typeof FontAwesome>['name'] }
@@ -38,9 +31,9 @@ type MenuIcon =
 
 function MenuIconGlyph({ spec, size = 20 }: { spec: MenuIcon; size?: number }) {
   if (spec.family === 'fa') {
-    return <FontAwesome name={spec.name} size={size} color="#1a1a1a" />;
+    return <FontAwesome name={spec.name} size={size} color="#000000" />;
   }
-  return <MaterialCommunityIcons name={spec.name} size={size} color="#1a1a1a" />;
+  return <MaterialCommunityIcons name={spec.name} size={size} color="#000000" />;
 }
 
 /** Full-width dashed rule between rows — image 2 ref; RN border dashed is unreliable on Android. */
@@ -88,7 +81,7 @@ function MenuRow({
         accessibilityLabel={label}>
         <MenuIconGlyph spec={icon} />
         <Text style={styles.menuLabel}>{label}</Text>
-        <FontAwesome name="chevron-right" size={14} color="rgba(60,60,67,0.35)" />
+        <FontAwesome name="chevron-right" size={14} color="rgba(0, 0, 0, 0.35)" />
       </Pressable>
       {!isLast ? <BetweenRowDashedLine /> : null}
     </Fragment>
@@ -154,7 +147,7 @@ export default function ProfileScreen() {
               onPress={() => Alert.alert('Profile photo', 'Photo picker would open here.')}
               accessibilityRole="button"
               accessibilityLabel="Change profile photo">
-              <Image source={AVATAR} style={styles.avatar} resizeMode="cover" />
+              <Image source={AGENT_IMG} style={styles.avatar} resizeMode="cover" />
             </Pressable>
             <Pressable
               style={styles.cameraBtn}
@@ -270,8 +263,8 @@ const styles = StyleSheet.create({
   headerTextCol: { flex: 1, paddingRight: 16 },
   userName: {
     fontSize: 24,
-    fontWeight: '700',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: -0.3,
   },
   ratingRow: {
@@ -285,14 +278,14 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     fontSize: 11,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
   },
   avatarBlock: { position: 'relative', width: 64, height: 64 },
   avatar: {
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: '#e8e4df',
+    backgroundColor: 'rgba(0,0,0,0.06)',
   },
   cameraBtn: {
     position: 'absolute',
@@ -301,16 +294,16 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: '#fefdfb',
+    borderColor: '#ffffff',
   },
   sectionKicker: {
     fontSize: 10,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.55)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
   },
@@ -338,6 +331,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#000000',
   },
 });

@@ -1,16 +1,9 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import {
-  Alert,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import {
   PL_PAD,
@@ -96,9 +89,9 @@ const pickStyles = StyleSheet.create({
     padding: 20,
     paddingBottom: 32,
   },
-  sheetTitle: { fontSize: 16, fontWeight: '700', marginBottom: 12, color: PL_BODY },
+  sheetTitle: { fontSize: 16, fontFamily: 'Satoshi-Medium', marginBottom: 12, color: PL_BODY },
   optionScroll: { maxHeight: 400 },
-  option: { paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: '#e8e4df' },
+  option: { paddingVertical: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: 'rgba(0,0,0,0.06)' },
   optionText: { fontSize: 16, color: PL_BODY },
 });
 
@@ -151,7 +144,7 @@ export default function PublishListingStep1() {
               value={title}
               onChangeText={setTitle}
               placeholder="Property title"
-              placeholderTextColor="rgba(60,60,67,0.35)"
+              placeholderTextColor="rgba(0, 0, 0, 0.35)"
             />
           </View>
         </View>
@@ -164,7 +157,7 @@ export default function PublishListingStep1() {
               value={address}
               onChangeText={setAddress}
               placeholder="Street address, suburb, state, postcode"
-              placeholderTextColor="rgba(60,60,67,0.35)"
+              placeholderTextColor="rgba(0, 0, 0, 0.35)"
             />
           </View>
         </View>
@@ -295,7 +288,7 @@ export default function PublishListingStep1() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#fff' },
   scroll: { paddingTop: 8, paddingBottom: 16 },
-  pageTitle: { fontSize: 24, fontWeight: '500', color: PL_TITLE, marginLeft: PL_PAD, marginBottom: 20 },
+  pageTitle: { fontSize: 24, fontFamily: 'Satoshi-Medium', color: PL_TITLE, marginLeft: PL_PAD, marginBottom: 20 },
   aiBanner: {
     marginHorizontal: PL_PAD - 4,
     marginBottom: 24,
@@ -320,15 +313,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  aiBadgeText: { color: '#fff', fontSize: 11, fontWeight: '600' },
+  aiBadgeText: { color: '#fff', fontSize: 11, fontFamily: 'Satoshi-Medium' },
   aiCopy: { flex: 1 },
-  aiTitle: { fontSize: 13, fontWeight: '700', color: '#2d2d2d' },
+  aiTitle: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: '#000000' },
   aiSub: { fontSize: 11, color: PL_MUTED, marginTop: 4 },
 
   fieldBlock: { marginBottom: 18, paddingHorizontal: PL_PAD },
   floatLabel: {
     fontSize: 10,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: PL_LABEL,
     letterSpacing: 0.1,
     marginBottom: 6,
@@ -342,7 +335,7 @@ const styles = StyleSheet.create({
   },
   inputRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   input: { flex: 1, fontSize: 14, color: PL_BODY },
-  inputPlaceholder: { color: 'rgba(60,60,67,0.35)' },
+  inputPlaceholder: { color: 'rgba(0, 0, 0, 0.35)' },
 
   rangeBlock: { paddingHorizontal: PL_PAD, marginBottom: 20 },
   rangeSectionLabel: {
@@ -369,7 +362,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
     gap: 6,
   },
-  rangeValue: { flex: 1, minWidth: 0, fontSize: 16, fontWeight: '500', color: PL_BODY },
+  rangeValue: { flex: 1, minWidth: 0, fontSize: 16, fontFamily: 'Satoshi-Medium', color: PL_BODY },
   rangeDash: { fontSize: 18, color: PL_LABEL, width: 17, textAlign: 'center' },
 
   tripleRow: { flexDirection: 'row', alignSelf: 'center', gap: 12, marginBottom: 8, width: '100%', paddingHorizontal: PL_PAD },

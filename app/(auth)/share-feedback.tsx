@@ -3,17 +3,9 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -26,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const H_PAD = 20;
 const FIELD_H = 54;
 const FEEDBACK_BOX_H = 150;
-const STROKE = 'rgba(60,60,67,0.55)';
+const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
 const BLOCK_GAP = 24;
@@ -110,7 +102,7 @@ function FeedbackAttachBox() {
         style={[styles.attachMainInner, { minHeight: H }]}
         accessibilityRole="button"
         accessibilityLabel="Add photos or videos">
-        <MaterialCommunityIcons name="paperclip" size={20} color="rgba(60,60,67,0.65)" />
+        <MaterialCommunityIcons name="paperclip" size={20} color="rgba(0, 0, 0, 0.65)" />
         <View style={styles.attachCopyCol}>
           <Text style={styles.attachTitle}>Add photos or videos</Text>
           <Text style={styles.attachSub}>Up to 5 • images & video • 50MB max</Text>
@@ -147,7 +139,7 @@ export default function ShareFeedbackScreen() {
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel="Back">
-            <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
           </Pressable>
           <View style={styles.navCenter}>
             <Text style={styles.navTitle}>Share feedback</Text>
@@ -172,7 +164,7 @@ export default function ShareFeedbackScreen() {
                 placeholder="Topic"
                 autoCapitalize="sentences"
                 autoCorrect
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
               />
             </DashedFieldShell>
           </FieldBlock>
@@ -186,7 +178,7 @@ export default function ShareFeedbackScreen() {
                 placeholder="Your feedback"
                 multiline
                 textAlignVertical="top"
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
               />
             </DashedFieldShell>
           </FieldBlock>
@@ -225,7 +217,7 @@ const styles = StyleSheet.create({
   },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 18, fontWeight: '500', color: '#1a1a1a' },
+  navTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000' },
   scroll: {
     paddingHorizontal: H_PAD,
     paddingTop: 8,
@@ -233,7 +225,7 @@ const styles = StyleSheet.create({
   intro: {
     fontSize: 12,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     lineHeight: 18,
     textAlign: 'center',
     marginBottom: 20,
@@ -244,7 +236,7 @@ const styles = StyleSheet.create({
   label10: {
     fontSize: 10,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     letterSpacing: 0.25,
     textTransform: 'uppercase',
     marginBottom: 8,
@@ -289,19 +281,19 @@ const styles = StyleSheet.create({
   },
   attachTitle: {
     fontSize: 13,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
   },
   attachSub: {
     fontSize: 11,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     lineHeight: 16.5,
   },
   submitBtn: {
     height: 48,
     borderRadius: 4,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -310,7 +302,7 @@ const styles = StyleSheet.create({
   },
   submitBtnText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.8,
     textTransform: 'uppercase',

@@ -2,7 +2,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -28,12 +29,12 @@ const ROW_GAP = 12;
 const CARD_R = 8;
 const SUMMARY_MIN_H = 152;
 const ROW_CARD_MIN_H = 168;
-const STROKE = 'rgba(60,60,67,0.55)';
+const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
-const MUTED = 'rgba(60,60,67,0.55)';
+const MUTED = 'rgba(0, 0, 0, 0.55)';
 const CHIP_INACTIVE_BG = '#efefef';
-const EXPORT_BG = '#1c1c1e';
+const EXPORT_BG = '#000000';
 
 const FILTERS: { key: InvoiceFilterKey; label: string }[] = [
   { key: 'all', label: 'ALL' },
@@ -177,7 +178,7 @@ export default function InvoicesScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.navBar}>
         <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <View style={styles.navCenter}>
           <Text style={styles.navTitle}>Invoices</Text>
@@ -258,8 +259,8 @@ const styles = StyleSheet.create({
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 27,
   },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
@@ -310,14 +311,14 @@ const styles = StyleSheet.create({
   },
   exportBtnText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.24,
   },
   summaryAmount: {
     fontSize: 32,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: -0.4,
     lineHeight: 38,
     marginBottom: 8,
@@ -343,22 +344,22 @@ const styles = StyleSheet.create({
   },
   chipSpacing: { marginRight: 8 },
   chipOn: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
   },
   chipOff: {
     backgroundColor: CHIP_INACTIVE_BG,
   },
   chipText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     letterSpacing: 0.15,
   },
   chipTextOn: {
     color: '#fff',
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
   },
   chipTextOff: {
-    color: '#3c3c43',
+    color: '#000000',
   },
   invoiceInner: {
     paddingHorizontal: 16,
@@ -382,37 +383,37 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
   badgeSent: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 14,
   },
   badgeSentText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.25,
     textTransform: 'uppercase',
   },
   badgeOutstanding: {
-    backgroundColor: 'rgba(60,60,67,0.14)',
+    backgroundColor: 'rgba(0, 0, 0, 0.14)',
     borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.14)',
+    borderColor: 'rgba(0, 0, 0, 0.14)',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 14,
   },
   badgeOutstandingText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: 'rgba(26,26,26,0.75)',
     letterSpacing: 0.25,
     textTransform: 'uppercase',
   },
   invoiceAmount: {
     fontSize: 32,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: -0.4,
     lineHeight: 38,
     marginBottom: 10,

@@ -1,8 +1,11 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
 
 /**
  * Listing performance — stats + views chart.
@@ -12,11 +15,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const H_PAD = 20;
 const CARD_RADIUS = 10;
 const TREND = '#C07A50';
-const BAR_GREY = 'rgba(60,60,67,0.38)';
+const BAR_GREY = 'rgba(0, 0, 0, 0.38)';
 
 const DASH = {
   borderWidth: 1.5,
-  borderColor: 'rgba(60,60,67,0.45)',
+  borderColor: 'rgba(0, 0, 0, 0.45)',
   borderStyle: 'dashed' as const,
   backgroundColor: '#fff',
 };
@@ -63,24 +66,24 @@ export default function ViewPerformanceScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 28 }]}>
         <Text style={styles.title}>Performance</Text>
-        <Text style={styles.subtitle}>Hawthorn City Center • Last 30 days</Text>
+        <Text style={styles.subtitle}>{DEMO_PRIMARY_LISTING_TITLE} • Last 30 days</Text>
 
         <View style={styles.statsRow}>
           <StatCard
-            icon={<MaterialCommunityIcons name="eye-outline" size={16} color="rgba(60,60,67,0.5)" />}
+            icon={<MaterialCommunityIcons name="eye-outline" size={16} color="rgba(0, 0, 0, 0.5)" />}
             label="Views"
             value="2,847"
             trend="+12%"
           />
           <StatCard
-            icon={<MaterialCommunityIcons name="heart-outline" size={16} color="rgba(60,60,67,0.5)" />}
+            icon={<MaterialCommunityIcons name="heart-outline" size={16} color="rgba(0, 0, 0, 0.5)" />}
             label="Saves"
             value="186"
             trend="+8%"
           />
           <StatCard
             icon={
-              <MaterialCommunityIcons name="comment-text-outline" size={16} color="rgba(60,60,67,0.5)" />
+              <MaterialCommunityIcons name="comment-text-outline" size={16} color="rgba(0, 0, 0, 0.5)" />
             }
             label="Enquiries"
             value="23"
@@ -105,7 +108,7 @@ export default function ViewPerformanceScreen() {
                       styles.bar,
                       {
                         height: Math.max(6, frac * chartH),
-                        backgroundColor: i === BAR_FRACS.length - 1 ? '#1c1c1e' : BAR_GREY,
+                        backgroundColor: i === BAR_FRACS.length - 1 ? '#000000' : BAR_GREY,
                       },
                     ]}
                   />
@@ -143,15 +146,15 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: H_PAD, paddingTop: 4 },
   title: {
     fontSize: 28,
-    fontWeight: '600',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: -0.6,
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     lineHeight: 20,
     marginBottom: 22,
   },
@@ -175,13 +178,13 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 11,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.5)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.5)',
   },
   statValue: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: -0.3,
     marginBottom: 6,
   },
@@ -192,7 +195,7 @@ const styles = StyleSheet.create({
   },
   statTrend: {
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: TREND,
   },
   chartWrap: {
@@ -202,8 +205,8 @@ const styles = StyleSheet.create({
   },
   chartKicker: {
     fontSize: 10,
-    fontWeight: '600',
-    color: 'rgba(60,60,67,0.48)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.48)',
     letterSpacing: 0.55,
     marginBottom: 16,
   },
@@ -219,8 +222,8 @@ const styles = StyleSheet.create({
   },
   yTick: {
     fontSize: 11,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.45)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.45)',
     textAlign: 'right',
   },
   chartPlot: {
@@ -246,11 +249,11 @@ const styles = StyleSheet.create({
   },
   xTick: {
     fontSize: 11,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.45)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.45)',
   },
   exportBtn: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     height: 52,
     borderRadius: 12,
     alignItems: 'center',
@@ -259,9 +262,9 @@ const styles = StyleSheet.create({
   exportBtnText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     letterSpacing: 0.45,
   },
   cancelWrap: { alignItems: 'center', marginTop: 16, paddingVertical: 8 },
-  cancel: { fontSize: 15, fontWeight: '500', color: 'rgba(60,60,67,0.55)' },
+  cancel: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.55)' },
 });

@@ -1,7 +1,7 @@
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
-/** Inactive icons — single gray (reference pill). */
-export const TAB_ICON_INACTIVE = '#A1A1AA';
+/** Inactive icons — black at reduced opacity (strict monochrome tab bar). */
+export const TAB_ICON_INACTIVE = 'rgba(0, 0, 0, 0.35)';
 
 /** Drawn glyph box; active chip is slightly smaller than 64px-tall pill. */
 export const TAB_GLYPH_SIZE = 22;

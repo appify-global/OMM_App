@@ -3,24 +3,9 @@ import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  Alert,
-  Dimensions,
-  FlatList,
-  type ListRenderItemInfo,
-  Keyboard,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  View,
-  type ViewToken,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Alert, Dimensions, FlatList, type ListRenderItemInfo, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, View, type ViewToken } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -49,13 +34,13 @@ const SHEET_DASH = '7 5';
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const H_PAD = 20;
-const STROKE = 'rgba(60,60,67,0.55)';
+const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
 /** Inner content height inside dashed stroke for fixed field rows */
 const FIELD_INNER_H = FIELD_MIN_H - STROKE_W * 2;
 const AUTO_PAY_ROW_H = 52;
 const DASH = '5 4';
-const MUTED = 'rgba(60,60,67,0.55)';
+const MUTED = 'rgba(0, 0, 0, 0.55)';
 const BLOCK_AFTER_INTRO = 20;
 const BLOCK_AFTER_CAROUSEL = 20;
 const SECTION_LABEL_GAP = 10;
@@ -236,7 +221,7 @@ function OtherRow({
             <FontAwesome
               name={chevron === 'down' ? 'chevron-down' : 'chevron-right'}
               size={12}
-              color="rgba(60,60,67,0.35)"
+              color="rgba(0, 0, 0, 0.35)"
             />
           </View>
         </View>
@@ -313,7 +298,7 @@ function SheetHeader({ title, onClose }: { title: string; onClose: () => void })
           hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel="Close">
-          <FontAwesome name="times" size={20} color="#1a1a1a" />
+          <FontAwesome name="times" size={20} color="#000000" />
         </Pressable>
       </View>
     </>
@@ -467,7 +452,7 @@ function AddCardSheet({
                   <Switch
                     value={setAsDefault}
                     onValueChange={setSetAsDefault}
-                    trackColor={{ false: '#e9e9ea', true: '#1c1c1e' }}
+                    trackColor={{ false: '#e9e9ea', true: '#000000' }}
                     thumbColor="#fff"
                     ios_backgroundColor="#e9e9ea"
                   />
@@ -742,7 +727,7 @@ function AutoPaySheet({
                 <View style={styles.autoPayOptionInner}>
                   <Text style={styles.autoPayOptionLabel}>{opt}</Text>
                   {selected === opt ? (
-                    <FontAwesome name="check" size={16} color="#1c1c1e" />
+                    <FontAwesome name="check" size={16} color="#000000" />
                   ) : (
                     <View style={styles.autoPayCheckSpacer} />
                   )}
@@ -811,7 +796,7 @@ export default function PaymentMethodScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.navBar}>
         <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <View style={styles.navCenter}>
           <Text style={styles.navTitle}>Payment method</Text>
@@ -940,8 +925,8 @@ const styles = StyleSheet.create({
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 27,
     textAlign: 'center',
   },
@@ -1008,19 +993,19 @@ const styles = StyleSheet.create({
   },
   visaMark: {
     fontSize: 22,
-    fontWeight: '800',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 3,
   },
   defaultChip: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingHorizontal: 15,
     paddingVertical: 6,
     borderRadius: 16,
   },
   defaultChipText: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: 'rgba(255,255,255,0.95)',
     letterSpacing: 0.28,
   },
@@ -1038,7 +1023,7 @@ const styles = StyleSheet.create({
   },
   last4: {
     fontSize: 17,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 1.2,
   },
@@ -1051,14 +1036,14 @@ const styles = StyleSheet.create({
   expiresCol: { alignItems: 'flex-end' },
   cardMetaLabel: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: 'rgba(255,255,255,0.62)',
     marginBottom: 5,
     letterSpacing: 0.15,
   },
   cardMetaVal: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     lineHeight: 21,
   },
@@ -1076,10 +1061,10 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   dotOn: {
-    backgroundColor: 'rgba(60,60,67,0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
   dotOff: {
-    backgroundColor: 'rgba(60,60,67,0.2)',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
   },
   addBtnShell: {
     width: '100%',
@@ -1093,7 +1078,7 @@ const styles = StyleSheet.create({
   },
   addBtnText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#000',
     letterSpacing: 0.35,
     textTransform: 'uppercase',
@@ -1114,7 +1099,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#000000',
     lineHeight: 21,
     paddingRight: 10,
   },
@@ -1126,15 +1111,15 @@ const styles = StyleSheet.create({
   },
   otherValue: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 21,
     textAlign: 'right',
     flexShrink: 1,
   },
   footerNote: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: MUTED,
     lineHeight: 18,
     textAlign: 'center',
@@ -1150,7 +1135,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: ADD_CARD_SHEET_R,
     borderTopRightRadius: ADD_CARD_SHEET_R,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(60,60,67,0.14)',
+    borderColor: 'rgba(0, 0, 0, 0.14)',
     maxHeight: '92%',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
@@ -1186,7 +1171,7 @@ const styles = StyleSheet.create({
   addCardTitle: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#000',
     textAlign: 'center',
     lineHeight: 22,
@@ -1203,7 +1188,7 @@ const styles = StyleSheet.create({
   addCardFieldGap: { height: 4 },
   addCardFieldKicker: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: MUTED,
     letterSpacing: 0.14,
     textTransform: 'uppercase',
@@ -1221,8 +1206,8 @@ const styles = StyleSheet.create({
   addCardInput: {
     width: '100%',
     fontSize: 16,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 22,
     paddingVertical: Platform.OS === 'ios' ? 2 : 0,
     margin: 0,
@@ -1240,8 +1225,8 @@ const styles = StyleSheet.create({
   },
   autoPayOptionLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
   },
   autoPayCheckSpacer: {
     width: 16,
@@ -1272,8 +1257,8 @@ const styles = StyleSheet.create({
   },
   addCardDefaultTitle: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     marginBottom: 6,
   },
   addCardDefaultSub: {
@@ -1285,7 +1270,7 @@ const styles = StyleSheet.create({
   },
   addCardBeforeCta: { height: 20 },
   addCardCta: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     borderRadius: 14,
     minHeight: 48,
     alignItems: 'center',
@@ -1294,7 +1279,7 @@ const styles = StyleSheet.create({
   },
   addCardCtaLabel: {
     fontSize: 15,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.35,
     textTransform: 'uppercase',
@@ -1302,7 +1287,7 @@ const styles = StyleSheet.create({
   addCardSheetFooter: {
     marginTop: 18,
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: MUTED,
     textAlign: 'center',
     letterSpacing: 0.08,

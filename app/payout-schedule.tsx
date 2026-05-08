@@ -2,17 +2,9 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -28,10 +20,10 @@ const AFTER_INTRO = 20;
 const FIELD_MIN_H = 54;
 const CARD_R = 8;
 const ROW_GAP = 10;
-const STROKE = 'rgba(60,60,67,0.45)';
+const STROKE = 'rgba(0, 0, 0, 0.45)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
-const MUTED = 'rgba(60,60,67,0.55)';
+const MUTED = 'rgba(0, 0, 0, 0.55)';
 
 type Frequency = 'instant' | 'daily' | 'weekly' | 'monthly';
 type Weekday = 'MON' | 'TUE' | 'WED' | 'THU' | 'FRI';
@@ -126,7 +118,7 @@ export default function PayoutScheduleScreen() {
         keyboardVerticalOffset={insets.top}>
         <View style={styles.navBar}>
           <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-            <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
           </Pressable>
           <View style={styles.navCenter}>
             <Text style={styles.navTitle}>Payout schedule</Text>
@@ -211,7 +203,7 @@ export default function PayoutScheduleScreen() {
               onChangeText={setMinPayout}
               style={styles.amountInput}
               placeholder="$0.00"
-              placeholderTextColor="rgba(60,60,67,0.45)"
+              placeholderTextColor="rgba(0, 0, 0, 0.45)"
               keyboardType="decimal-pad"
             />
           </DashedBox>
@@ -244,8 +236,8 @@ const styles = StyleSheet.create({
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 27,
   },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
@@ -291,7 +283,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: '#1a1a1a',
+    borderColor: '#000000',
     marginRight: 14,
     marginTop: 2,
     alignItems: 'center',
@@ -299,13 +291,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   radioOuterOn: {
-    borderColor: '#1a1a1a',
+    borderColor: '#000000',
   },
   radioInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
   },
   freqTextCol: {
     flex: 1,
@@ -313,7 +305,7 @@ const styles = StyleSheet.create({
   },
   freqTitle: {
     fontSize: 15,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#000',
     lineHeight: 22,
     marginBottom: 4,
@@ -340,16 +332,16 @@ const styles = StyleSheet.create({
   dayPillOff: {
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#1a1a1a',
+    borderColor: '#000000',
   },
   dayPillOn: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     borderWidth: 1,
-    borderColor: '#1a1a1a',
+    borderColor: '#000000',
   },
   dayPillText: {
     fontSize: 13,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     letterSpacing: 0.3,
   },
   dayPillTextOff: {
@@ -383,14 +375,14 @@ const styles = StyleSheet.create({
   cta: {
     height: 48,
     borderRadius: CARD_R,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: BLOCK_GAP,
   },
   ctaText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.35,
     textTransform: 'uppercase',

@@ -1,17 +1,9 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -25,10 +17,10 @@ const H_PAD = 20;
 const BLOCK_GAP = 24;
 const LABEL_FIELD_GAP = 8;
 const FIELD_MIN_H = 140;
-const STROKE = 'rgba(60,60,67,0.55)';
+const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
-const MUTED = 'rgba(60,60,67,0.55)';
+const MUTED = 'rgba(0, 0, 0, 0.55)';
 
 export default function AddDisputeResponseScreen() {
   const router = useRouter();
@@ -54,7 +46,7 @@ export default function AddDisputeResponseScreen() {
         keyboardVerticalOffset={insets.top}>
         <View style={styles.navBar}>
           <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-            <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
           </Pressable>
           <View style={styles.navCenter}>
             <Text style={styles.navTitle}>Add response</Text>
@@ -125,7 +117,7 @@ function ResponseDashedField({
         onChangeText={onChangeText}
         style={[styles.input, { minHeight }]}
         placeholder="Type your response here."
-        placeholderTextColor="rgba(60,60,67,0.45)"
+        placeholderTextColor="rgba(0, 0, 0, 0.45)"
         multiline
         textAlignVertical="top"
       />
@@ -144,7 +136,7 @@ const styles = StyleSheet.create({
   },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 18, fontWeight: '500', color: '#1a1a1a', lineHeight: 27 },
+  navTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000', lineHeight: 27 },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
   sub: {
     fontSize: 12,
@@ -180,13 +172,13 @@ const styles = StyleSheet.create({
   cta: {
     height: 48,
     borderRadius: 4,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
   ctaText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: -0.35,
     textTransform: 'uppercase',

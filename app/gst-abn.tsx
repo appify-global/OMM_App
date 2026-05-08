@@ -2,7 +2,9 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useCallback, useState } from 'react';
-import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -12,10 +14,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  */
 
 const H_PAD = 20;
-const STROKE = 'rgba(60,60,67,0.55)';
+const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
 const DASH = '7 5';
-const MUTED = 'rgba(60,60,67,0.55)';
+const MUTED = 'rgba(0, 0, 0, 0.55)';
 const SECTION_GAP = 16;
 /** Extra space before tax invoice preferences (checkbox block sits lower). */
 const TAX_PREFS_TOP_SPACER = 28;
@@ -143,7 +145,7 @@ function PrefRow({
       accessibilityState={{ checked }}
       accessibilityLabel={label}>
       <View style={styles.checkboxBox}>
-        {checked ? <FontAwesome name="check" size={12} color="#1a1a1a" /> : null}
+        {checked ? <FontAwesome name="check" size={12} color="#000000" /> : null}
       </View>
       <Text style={styles.prefText}>{label}</Text>
     </Pressable>
@@ -169,7 +171,7 @@ export default function GstAbnScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.navBar}>
         <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <View style={styles.navCenter}>
           <Text style={styles.navTitle}>GST / ABN</Text>
@@ -196,7 +198,7 @@ export default function GstAbnScreen() {
             <Switch
               value={registeredGst}
               onValueChange={setRegisteredGst}
-              trackColor={{ false: '#e9e9ea', true: '#1c1c1e' }}
+              trackColor={{ false: '#e9e9ea', true: '#000000' }}
               thumbColor="#fff"
               ios_backgroundColor="#e9e9ea"
             />
@@ -264,8 +266,8 @@ const styles = StyleSheet.create({
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 19,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 28,
     textAlign: 'center',
   },
@@ -302,8 +304,8 @@ const styles = StyleSheet.create({
   },
   gstTitle: {
     fontSize: 15,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     marginBottom: 5,
     lineHeight: 21,
   },
@@ -316,7 +318,7 @@ const styles = StyleSheet.create({
   },
   fieldLabel: {
     fontSize: 11,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: MUTED,
     letterSpacing: 0.25,
     textTransform: 'uppercase',
@@ -351,7 +353,7 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   verifiedChip: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingHorizontal: 13,
     paddingVertical: 4,
     borderRadius: 14,
@@ -359,13 +361,13 @@ const styles = StyleSheet.create({
   },
   verifiedChipText: {
     fontSize: 12,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: 'rgba(255,255,255,0.9)',
     letterSpacing: 0.22,
   },
   sectionKicker: {
     fontSize: 11,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: MUTED,
     letterSpacing: 0.1,
     textTransform: 'uppercase',
@@ -397,12 +399,12 @@ const styles = StyleSheet.create({
   prefText: {
     flex: 1,
     fontSize: 15,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 22,
   },
   saveBtn: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     borderWidth: STROKE_W,
     borderColor: STROKE,
     borderStyle: 'dashed',
@@ -414,7 +416,7 @@ const styles = StyleSheet.create({
   },
   saveBtnText: {
     fontSize: 15,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: -0.14,
   },

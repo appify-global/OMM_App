@@ -2,7 +2,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -12,10 +13,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const H_PAD = 20;
 const BOX_R = 8;
-const STROKE = 'rgba(60,60,67,0.45)';
+const STROKE = 'rgba(0, 0, 0, 0.45)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
-const BODY_COLOR = 'rgba(60,60,67,0.72)';
+const BODY_COLOR = 'rgba(0, 0, 0, 0.72)';
 
 function DashedFrame({
   width,
@@ -74,7 +75,7 @@ export function LegalDocumentScreen({ title, body }: LegalDocumentScreenProps) {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.navBar}>
         <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <View style={styles.navCenter}>
           <Text style={styles.navTitle}>{title}</Text>
@@ -105,8 +106,8 @@ const styles = StyleSheet.create({
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 27,
   },
   scroll: {

@@ -3,21 +3,13 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { DEMO_AGENT_AGENCY, DEMO_PRIMARY_STREET } from '@/lib/melbourne-demo-locations';
 
 /**
  * Write a review — pending carousel (same as Reviews) + dashed form + publish.
@@ -27,10 +19,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const H_PAD = 20;
 const BLOCK_GAP = 24;
 const LABEL_FIELD_GAP = 8;
-const STROKE = 'rgba(60,60,67,0.55)';
+const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
-const MUTED = 'rgba(60,60,67,0.55)';
+const MUTED = 'rgba(0, 0, 0, 0.55)';
 const CARD_R = 8;
 const PENDING_CARD_W = 180;
 const PENDING_CARD_H = 135;
@@ -42,14 +34,14 @@ const STAR_OVERALL = 24;
 const STAR_OVERALL_GAP = 8;
 const STAR_CAT = 16;
 const STAR_CAT_GAP = 6;
-const LIGHT_STAR = 'rgba(60,60,67,0.35)';
+const LIGHT_STAR = 'rgba(0, 0, 0, 0.35)';
 
 const PENDING = [
   {
     id: '1',
     name: 'Sarah Chen',
-    agency: 'Ray White Hawthorn',
-    address: '42 High St, Boroondara',
+    agency: DEMO_AGENT_AGENCY,
+    address: DEMO_PRIMARY_STREET,
     badge: 'WRITING' as string | null,
     active: true,
   },
@@ -57,7 +49,7 @@ const PENDING = [
     id: '2',
     name: 'Tom Reid',
     agency: 'Marshall White',
-    address: '12 Park St, Brighton',
+    address: '19 Dickens St, Elwood VIC 3184',
     badge: null,
     active: false,
   },
@@ -279,7 +271,7 @@ export default function WriteReviewScreen() {
         keyboardVerticalOffset={insets.top}>
         <View style={styles.navBar}>
           <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-            <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
           </Pressable>
           <View style={styles.navCenter}>
             <Text style={styles.navTitle}>Write a review</Text>
@@ -321,7 +313,7 @@ export default function WriteReviewScreen() {
                 onChangeText={setAgent}
                 style={styles.textInput}
                 placeholder="Agent · agency"
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
                 autoCorrect={false}
               />
             </DashedFieldShell>
@@ -335,7 +327,7 @@ export default function WriteReviewScreen() {
                 onChangeText={setDeal}
                 style={styles.textInput}
                 placeholder="Deal reference · address"
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
                 autoCorrect={false}
               />
             </DashedFieldShell>
@@ -368,7 +360,7 @@ export default function WriteReviewScreen() {
                 onChangeText={setDetails}
                 style={styles.detailsInput}
                 placeholder="What went well, and what could improve? Reference specific steps (e.g. SOI, authority, inspection)."
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
                 multiline
                 textAlignVertical="top"
               />
@@ -400,7 +392,7 @@ function AttachRow() {
         style={[styles.attachInner, { minHeight: H }]}
         accessibilityRole="button"
         accessibilityLabel="Attach screenshot or file">
-        <MaterialCommunityIcons name="paperclip" size={20} color="rgba(60,60,67,0.65)" />
+        <MaterialCommunityIcons name="paperclip" size={20} color="rgba(0, 0, 0, 0.65)" />
         <View style={styles.attachCopy}>
           <Text style={styles.attachTitle}>Attach screenshot or file</Text>
           <Text style={styles.attachSub}>PNG, JPG, PDF · up to 5 files · 25MB max</Text>
@@ -423,8 +415,8 @@ const styles = StyleSheet.create({
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 27,
   },
   scroll: {
@@ -450,7 +442,7 @@ const styles = StyleSheet.create({
   },
   pendingKickerLeft: {
     fontSize: 10,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: MUTED,
     letterSpacing: 0.25,
     textTransform: 'uppercase',
@@ -477,7 +469,7 @@ const styles = StyleSheet.create({
   },
   pendingCardActive: {
     borderRadius: CARD_R,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 14,
@@ -492,8 +484,8 @@ const styles = StyleSheet.create({
   pendingName: {
     flex: 1,
     fontSize: 13,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 19.5,
     minWidth: 0,
   },
@@ -510,8 +502,8 @@ const styles = StyleSheet.create({
   writingChipOnDark: { backgroundColor: '#fff' },
   writingChipText: {
     fontSize: 9,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: 0.225,
     textTransform: 'uppercase',
     lineHeight: 13.5,
@@ -532,7 +524,7 @@ const styles = StyleSheet.create({
   pendingLineLight: { color: '#fff' },
   pendingStatusDark: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(60,60,67,0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
     borderRadius: PENDING_CHIP_R,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -541,7 +533,7 @@ const styles = StyleSheet.create({
   },
   pendingStatusDarkText: {
     fontSize: 9,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.225,
     textTransform: 'uppercase',
@@ -556,12 +548,12 @@ const styles = StyleSheet.create({
     minHeight: 22,
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(60,60,67,0.2)',
+    borderColor: 'rgba(0, 0, 0, 0.2)',
   },
   pendingStatusLightText: {
     fontSize: 9,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: 0.225,
     textTransform: 'uppercase',
     lineHeight: 13.5,
@@ -627,7 +619,7 @@ const styles = StyleSheet.create({
   categoryLabel: {
     fontSize: 13,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#000000',
     lineHeight: 19.5,
     flex: 1,
     marginRight: 12,
@@ -654,8 +646,8 @@ const styles = StyleSheet.create({
   attachCopy: { flex: 1, minWidth: 0, gap: 2 },
   attachTitle: {
     fontSize: 13,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 19.5,
   },
   attachSub: {
@@ -667,13 +659,13 @@ const styles = StyleSheet.create({
   publishBtn: {
     height: 48,
     borderRadius: 4,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
   publishText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: -0.35,
     textTransform: 'uppercase',

@@ -1,16 +1,8 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import {
   PL_PAD,
@@ -24,12 +16,13 @@ import {
   dashedShell,
   useListingFlowBottomPad,
 } from './_shared';
+import { DEMO_SOI_SUBURB_POSTCODE } from '@/lib/melbourne-demo-locations';
 
 type SoiChoice = 'auto' | 'upload';
 type ActiveSoiFlow = null | { kind: 'auto' } | { kind: 'upload' };
 
 const MOCK_SOI_FILE = {
-  name: 'SOI-hawthorn-city-center.pdf',
+  name: 'SOI-west-melbourne-terrace.pdf',
   pages: '4',
   sizeLabel: '1.2 MB',
   progressDoneLabel: '0.94 MB OF 1.2 MB',
@@ -67,7 +60,7 @@ function GeneratingSoiModal({
 
             <View style={genStyles.genStep}>
               <View style={genStyles.iconLoading}>
-                <ActivityIndicator size="small" color="#1a1a1a" />
+                <ActivityIndicator size="small" color="#000000" />
               </View>
               <View style={genStyles.genStepText}>
                 <Text style={genStyles.genStepTitle}>Fetching comparable sales</Text>
@@ -146,7 +139,7 @@ const genStyles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: PL_PAD + 8,
   },
-  genTitle: { fontSize: 20, fontWeight: '700', color: PL_BODY, marginBottom: 10 },
+  genTitle: { fontSize: 20, fontFamily: 'Satoshi-Medium', color: PL_BODY, marginBottom: 10 },
   genLede: { fontSize: 14, color: PL_MUTED, lineHeight: 21, marginBottom: 20 },
   progressCard: {
     borderRadius: 12,
@@ -180,12 +173,12 @@ const genStyles = StyleSheet.create({
     height: 24,
     borderRadius: 12,
     borderWidth: 1.5,
-    borderColor: 'rgba(60,60,67,0.28)',
+    borderColor: 'rgba(0, 0, 0, 0.28)',
     borderStyle: 'dashed',
     marginTop: 2,
   },
   genStepText: { flex: 1 },
-  genStepTitle: { fontSize: 15, fontWeight: '600', color: PL_BODY, marginBottom: 4 },
+  genStepTitle: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: PL_BODY, marginBottom: 4 },
   genStepSub: { fontSize: 12, color: PL_MUTED, lineHeight: 17 },
   cancelBtn: {
     height: 48,
@@ -194,7 +187,7 @@ const genStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelLabel: { color: '#fff', fontSize: 13, fontWeight: '600', letterSpacing: 0.5 },
+  cancelLabel: { color: '#fff', fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5 },
 });
 
 const upStyles = StyleSheet.create({
@@ -216,10 +209,10 @@ const upStyles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(60,60,67,0.3)',
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
     marginBottom: 16,
   },
-  upTitle: { fontSize: 20, fontWeight: '700', color: PL_BODY, marginBottom: 8 },
+  upTitle: { fontSize: 20, fontFamily: 'Satoshi-Medium', color: PL_BODY, marginBottom: 8 },
   upSub: { fontSize: 14, color: PL_MUTED, lineHeight: 21, marginBottom: 20 },
   fileCard: {
     flexDirection: 'row',
@@ -237,20 +230,20 @@ const upStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pdfBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700', letterSpacing: 0.3 },
+  pdfBadgeText: { color: '#fff', fontSize: 11, fontFamily: 'Satoshi-Medium', letterSpacing: 0.3 },
   fileMeta: { flex: 1, minWidth: 0 },
-  fileName: { fontSize: 15, fontWeight: '600', color: PL_BODY, marginBottom: 4 },
+  fileName: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: PL_BODY, marginBottom: 4 },
   fileDims: { fontSize: 12, color: PL_MUTED, marginBottom: 12 },
   barTrack: {
     height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(60,60,67,0.12)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     overflow: 'hidden',
     marginBottom: 8,
   },
   barFill: { height: '100%', backgroundColor: PL_CARD, borderRadius: 4 },
   barLabels: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
-  barLabel: { fontSize: 10, fontWeight: '500', color: PL_MUTED, letterSpacing: 0.35, flex: 1 },
+  barLabel: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: PL_MUTED, letterSpacing: 0.35, flex: 1 },
   statusLine: {
     fontSize: 13,
     color: PL_MUTED,
@@ -266,7 +259,7 @@ const upStyles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelLabel: { color: '#fff', fontSize: 13, fontWeight: '600', letterSpacing: 0.5 },
+  cancelLabel: { color: '#fff', fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5 },
 });
 
 export default function PublishListingSoi() {
@@ -281,7 +274,7 @@ export default function PublishListingSoi() {
   const suburbLine =
     typeof params.suburb === 'string' && params.suburb.trim().length > 0
       ? params.suburb.trim()
-      : 'Hawthorn 3122';
+      : DEMO_SOI_SUBURB_POSTCODE;
 
   const saveDraft = useCallback(() => {
     Alert.alert('Draft saved', 'Your listing draft has been saved.');
@@ -396,7 +389,7 @@ export default function PublishListingSoi() {
               {choice === 'upload' ? (
                 <FontAwesome name="check" size={18} color="#fff" />
               ) : (
-                <FontAwesome name="upload" size={16} color="#1a1a1a" />
+                <FontAwesome name="upload" size={16} color="#000000" />
               )}
             </View>
             <View style={styles.choiceCopy}>
@@ -412,7 +405,7 @@ export default function PublishListingSoi() {
           <View style={[styles.attachedCard, dashedShell]}>
             <View style={styles.attachedRow}>
               <View style={styles.docIcon}>
-                <FontAwesome name="file-text-o" size={18} color="#1a1a1a" />
+                <FontAwesome name="file-text-o" size={18} color="#000000" />
               </View>
               <View style={styles.attachedCopy}>
                 <Text style={styles.attachedName}>{MOCK_SOI_FILE.name}</Text>
@@ -446,7 +439,7 @@ export default function PublishListingSoi() {
           <View style={[styles.statusCard, dashedShell]}>
             <View style={styles.statusRow}>
               <View style={styles.docIcon}>
-                <FontAwesome name="file-text-o" size={18} color="#1a1a1a" />
+                <FontAwesome name="file-text-o" size={18} color="#000000" />
               </View>
               <View>
                 <Text style={styles.statusTitle}>No SOI uploaded yet</Text>
@@ -475,7 +468,7 @@ export default function PublishListingSoi() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#fff' },
   scroll: { paddingTop: 12, paddingHorizontal: PL_PAD, paddingBottom: 16 },
-  pageTitle: { fontSize: 24, fontWeight: '500', color: PL_TITLE, marginBottom: 8 },
+  pageTitle: { fontSize: 24, fontFamily: 'Satoshi-Medium', color: PL_TITLE, marginBottom: 8 },
   lede: { fontSize: 13, color: PL_MUTED, lineHeight: 19.5, marginBottom: 16 },
   requiredBadge: {
     alignSelf: 'flex-start',
@@ -486,7 +479,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     marginBottom: 20,
   },
-  requiredText: { fontSize: 10, fontWeight: '500', color: '#565656', letterSpacing: 0.5 },
+  requiredText: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: '#565656', letterSpacing: 0.5 },
 
   ctaWrap: { paddingBottom: 6, marginTop: -8 },
 
@@ -510,14 +503,14 @@ const styles = StyleSheet.create({
   choiceIconMuted: { backgroundColor: '#cbcbcb' },
   choiceCopy: { flex: 1 },
   titleRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 8 },
-  choiceTitle: { fontSize: 16, fontWeight: '500', color: PL_BODY },
+  choiceTitle: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: PL_BODY },
   recommendedPill: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
   },
-  recommendedText: { color: '#fff', fontSize: 9, fontWeight: '500', letterSpacing: 0.45 },
+  recommendedText: { color: '#fff', fontSize: 9, fontFamily: 'Satoshi-Medium', letterSpacing: 0.45 },
   choiceBody: { fontSize: 13, color: PL_MUTED, lineHeight: 18.2 },
 
   statusCard: { borderRadius: 8, padding: 19 },
@@ -525,8 +518,8 @@ const styles = StyleSheet.create({
   attachedCard: { borderRadius: 8, padding: 19, marginBottom: 0 },
   attachedRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
   attachedCopy: { flex: 1, minWidth: 0 },
-  attachedName: { fontSize: 14, fontWeight: '600', color: '#2d2d2d', marginBottom: 4 },
-  attachedMeta: { fontSize: 11, color: '#737373', lineHeight: 15.4, marginBottom: 10 },
+  attachedName: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: '#000000', marginBottom: 4 },
+  attachedMeta: { fontSize: 11, color: 'rgba(0,0,0,0.55)', lineHeight: 15.4, marginBottom: 10 },
   attachedPill: {
     flexDirection: 'row',
     alignSelf: 'flex-start',
@@ -536,7 +529,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 4,
   },
-  attachedPillText: { color: '#fff', fontSize: 9, fontWeight: '600', letterSpacing: 0.45 },
+  attachedPillText: { color: '#fff', fontSize: 9, fontFamily: 'Satoshi-Medium', letterSpacing: 0.45 },
   attachedActions: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -546,7 +539,7 @@ const styles = StyleSheet.create({
   },
   actionLink: {
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: PL_BODY,
     letterSpacing: 0.4,
     textDecorationLine: 'underline',
@@ -561,6 +554,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#fff',
   },
-  statusTitle: { fontSize: 14, fontWeight: '500', color: '#2d2d2d' },
-  statusSub: { fontSize: 11, color: '#737373', marginTop: 2 },
+  statusTitle: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  statusSub: { fontSize: 11, color: 'rgba(0,0,0,0.55)', marginTop: 2 },
 });

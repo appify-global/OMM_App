@@ -2,15 +2,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useState } from 'react';
-import {
-  Alert,
-  Modal,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import {
@@ -23,16 +16,17 @@ import {
   dashedShell,
   useListingFlowBottomPad,
 } from './_shared';
+import { DEMO_PRIMARY_SUBURB_LINE } from '@/lib/melbourne-demo-locations';
 
 const DEMO = {
   listingId: 'OMM-48291',
-  property: 'Hawthorn City Center, Victoria',
+  property: DEMO_PRIMARY_SUBURB_LINE,
   price: '$2.0—2.2M',
   referralFee: '25% • $500—550K',
   authority: 'in 30 days',
   soi: 'Auto-gen • Attached',
   pdfTitle: 'Listing PDF',
-  pdfLine: 'hawthorn-city-center.pdf • 6 pages • 2.4 MB',
+  pdfLine: 'west-melbourne-terrace.pdf • 6 pages • 2.4 MB',
   pdfShortMeta: 'hawthorn-city-center.pdf • 2.4 MB',
 };
 
@@ -113,7 +107,7 @@ function ShareOrRow({
         <Text style={sm.orTitle}>{title}</Text>
         <Text style={sm.orSub}>{sub}</Text>
       </View>
-      <FontAwesome name="chevron-right" size={12} color="rgba(60,60,67,0.35)" />
+      <FontAwesome name="chevron-right" size={12} color="rgba(0, 0, 0, 0.35)" />
     </Pressable>
   );
 }
@@ -196,7 +190,7 @@ const dm = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: PL_PAD + 8,
   },
-  title: { fontSize: 20, fontWeight: '700', color: PL_BODY, marginBottom: 8 },
+  title: { fontSize: 20, fontFamily: 'Satoshi-Medium', color: PL_BODY, marginBottom: 8 },
   sub: { fontSize: 14, color: PL_MUTED, lineHeight: 21, marginBottom: 20 },
   card: {
     flexDirection: 'row',
@@ -214,20 +208,20 @@ const dm = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  pdfBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  pdfBadgeText: { color: '#fff', fontSize: 11, fontFamily: 'Satoshi-Medium' },
   cardMeta: { flex: 1, minWidth: 0 },
-  fileName: { fontSize: 15, fontWeight: '600', color: PL_BODY, marginBottom: 4 },
+  fileName: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: PL_BODY, marginBottom: 4 },
   fileDims: { fontSize: 12, color: PL_MUTED, marginBottom: 12 },
   barTrack: {
     height: 8,
     borderRadius: 4,
-    backgroundColor: 'rgba(60,60,67,0.12)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     overflow: 'hidden',
     marginBottom: 8,
   },
   barFill: { height: '100%', backgroundColor: PL_CARD, borderRadius: 4 },
   barLabels: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
-  barLabel: { fontSize: 10, fontWeight: '500', color: PL_MUTED, letterSpacing: 0.3, flex: 1 },
+  barLabel: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: PL_MUTED, letterSpacing: 0.3, flex: 1 },
   hint: {
     fontSize: 13,
     color: PL_MUTED,
@@ -243,7 +237,7 @@ const dm = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelLabel: { color: '#fff', fontSize: 13, fontWeight: '600', letterSpacing: 0.5 },
+  cancelLabel: { color: '#fff', fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5 },
 });
 
 const sm = StyleSheet.create({
@@ -277,13 +271,13 @@ const sm = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  headPdfText: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  headPdfText: { color: '#fff', fontSize: 11, fontFamily: 'Satoshi-Medium' },
   headCopy: { flex: 1, minWidth: 0 },
-  headTitle: { fontSize: 16, fontWeight: '700', color: PL_BODY, marginBottom: 4 },
+  headTitle: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: PL_BODY, marginBottom: 4 },
   headMeta: { fontSize: 12, color: PL_MUTED, lineHeight: 17 },
   shareVia: {
     fontSize: 10,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: PL_BORDER,
     letterSpacing: 0.5,
     marginBottom: 12,
@@ -299,11 +293,11 @@ const sm = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 6,
   },
-  chLetter: { fontSize: 13, fontWeight: '700', color: PL_BODY },
-  chLabel: { fontSize: 10, fontWeight: '500', color: PL_MUTED, textAlign: 'center' },
+  chLetter: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: PL_BODY },
+  chLabel: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: PL_MUTED, textAlign: 'center' },
   orLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: PL_BORDER,
     letterSpacing: 0.5,
     marginBottom: 12,
@@ -318,11 +312,11 @@ const sm = StyleSheet.create({
   },
   orIcon: { width: 36, alignItems: 'center' },
   orMid: { flex: 1, minWidth: 0 },
-  orTitle: { fontSize: 15, fontWeight: '600', color: PL_BODY },
+  orTitle: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: PL_BODY },
   orSub: { fontSize: 12, color: PL_MUTED, marginTop: 3, lineHeight: 16 },
   orDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#e8e4df',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     marginLeft: 56,
   },
   cancelBtn: {
@@ -332,7 +326,7 @@ const sm = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelLabel: { color: '#fff', fontSize: 13, fontWeight: '600', letterSpacing: 0.5 },
+  cancelLabel: { color: '#fff', fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5 },
 });
 
 export default function ListingPublishedScreen() {
@@ -453,7 +447,7 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: PL_PAD },
   title: {
     fontSize: 22,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: PL_BODY,
     textAlign: 'center',
     marginBottom: 24,
@@ -478,7 +472,7 @@ const styles = StyleSheet.create({
   },
   listingIdLine: {
     fontSize: 11,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: PL_BORDER,
     letterSpacing: 0.4,
     textAlign: 'center',
@@ -490,7 +484,7 @@ const styles = StyleSheet.create({
     padding: 20,
     marginBottom: 16,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(60,60,67,0.12)',
+    borderColor: 'rgba(0, 0, 0, 0.12)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 8 },
     shadowOpacity: 0.08,
@@ -499,15 +493,15 @@ const styles = StyleSheet.create({
   },
   cardKicker: {
     fontSize: 11,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: PL_BORDER,
     letterSpacing: 0.45,
     marginBottom: 8,
   },
-  propertyName: { fontSize: 18, fontWeight: '600', color: PL_BODY, marginBottom: 16 },
+  propertyName: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: PL_BODY, marginBottom: 16 },
   cardRule: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: '#e8e4df',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     marginBottom: 16,
   },
   grid: { gap: 18 },
@@ -515,12 +509,12 @@ const styles = StyleSheet.create({
   gridCell: { flex: 1, minWidth: 0 },
   gridLabel: {
     fontSize: 10,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: PL_BORDER,
     letterSpacing: 0.35,
     marginBottom: 6,
   },
-  gridValue: { fontSize: 14, fontWeight: '500', color: PL_BODY, lineHeight: 18 },
+  gridValue: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: PL_BODY, lineHeight: 18 },
   pdfCard: {
     backgroundColor: PL_CARD,
     borderRadius: 14,
@@ -538,7 +532,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   pdfCopy: { flex: 1, minWidth: 0 },
-  pdfTitle: { fontSize: 16, fontWeight: '600', color: '#fff', marginBottom: 4 },
+  pdfTitle: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#fff', marginBottom: 4 },
   pdfMeta: { fontSize: 12, color: 'rgba(255,255,255,0.65)', lineHeight: 17 },
   pdfActions: { flexDirection: 'row', gap: 10 },
   shareBtn: {
@@ -551,7 +545,7 @@ const styles = StyleSheet.create({
     height: 46,
     borderRadius: 12,
   },
-  shareBtnText: { fontSize: 12, fontWeight: '600', color: PL_BODY, letterSpacing: 0.3 },
+  shareBtnText: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: PL_BODY, letterSpacing: 0.3 },
   downloadBtn: {
     flex: 1,
     flexDirection: 'row',
@@ -565,7 +559,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.85)',
     borderStyle: 'dashed',
   },
-  downloadBtnText: { fontSize: 12, fontWeight: '600', color: '#fff', letterSpacing: 0.3 },
+  downloadBtnText: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: '#fff', letterSpacing: 0.3 },
   primaryWide: {
     height: 48,
     borderRadius: 14,
@@ -574,7 +568,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
   },
-  primaryWideLabel: { color: '#fff', fontSize: 14, fontWeight: '600', letterSpacing: 0.35 },
+  primaryWideLabel: { color: '#fff', fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.35 },
   secondaryWide: {
     height: 48,
     borderRadius: 14,
@@ -585,7 +579,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 20,
   },
-  secondaryWideLabel: { color: PL_BODY, fontSize: 14, fontWeight: '600', letterSpacing: 0.35 },
+  secondaryWideLabel: { color: PL_BODY, fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.35 },
   linkWrap: { alignSelf: 'center', paddingVertical: 8 },
-  linkText: { fontSize: 15, fontWeight: '500', color: PL_MUTED },
+  linkText: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: PL_MUTED },
 });

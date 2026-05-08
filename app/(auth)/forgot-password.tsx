@@ -1,15 +1,16 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import { useMemo, useRef, useState } from 'react';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
 import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   StyleSheet,
-  Text,
-  TextInput,
   View,
+  type TextInput as RNTextInput,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -23,7 +24,7 @@ const PAD_H = 32;
 type Step = 1 | 2 | 3 | 4 | 5;
 
 function OtpRow({ value, onChange }: { value: string; onChange: (v: string) => void }) {
-  const ref = useRef<TextInput>(null);
+  const ref = useRef<RNTextInput>(null);
   const digits = value.padEnd(6, ' ').slice(0, 6).split('');
 
   return (
@@ -175,7 +176,7 @@ export default function ForgotPasswordScreen() {
               autoCapitalize="none"
               autoComplete="email"
               placeholder="you@example.com"
-              placeholderTextColor="rgba(60,60,67,0.45)"
+              placeholderTextColor="rgba(0, 0, 0, 0.45)"
             />
             <Pressable style={styles.altLinkWrap} onPress={() => setStep(2)} hitSlop={8}>
               <Text style={styles.altLink}>Verify with phone</Text>
@@ -193,7 +194,7 @@ export default function ForgotPasswordScreen() {
               keyboardType="phone-pad"
               autoComplete="tel"
               placeholder="+61 4xx xxx xxx"
-              placeholderTextColor="rgba(60,60,67,0.45)"
+              placeholderTextColor="rgba(0, 0, 0, 0.45)"
             />
             <Pressable style={styles.altLinkWrap} onPress={() => setStep(1)} hitSlop={8}>
               <Text style={styles.altLink}>Verify with email</Text>
@@ -247,13 +248,13 @@ export default function ForgotPasswordScreen() {
                 autoCapitalize="none"
                 autoComplete="password-new"
                 placeholder="Password"
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
               />
               <Pressable
                 style={styles.eyeBtn}
                 onPress={() => setShowPassword((s) => !s)}
                 hitSlop={8}>
-                <FontAwesome name={showPassword ? 'eye' : 'eye-slash'} size={16} color="#3c3c43" />
+                <FontAwesome name={showPassword ? 'eye' : 'eye-slash'} size={16} color="#000000" />
               </Pressable>
             </View>
             <Text style={styles.strengthLine}>{strengthHint}</Text>
@@ -268,13 +269,13 @@ export default function ForgotPasswordScreen() {
                 autoCapitalize="none"
                 autoComplete="password-new"
                 placeholder="Password"
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
               />
               <Pressable
                 style={styles.eyeBtn}
                 onPress={() => setShowConfirm((s) => !s)}
                 hitSlop={8}>
-                <FontAwesome name={showConfirm ? 'eye' : 'eye-slash'} size={16} color="#3c3c43" />
+                <FontAwesome name={showConfirm ? 'eye' : 'eye-slash'} size={16} color="#000000" />
               </Pressable>
             </View>
           </>
@@ -307,7 +308,7 @@ const styles = StyleSheet.create({
   headerBlock: { marginBottom: 24 },
   screenTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#0a0a0a',
     marginBottom: 12,
     letterSpacing: -0.4,
@@ -315,20 +316,20 @@ const styles = StyleSheet.create({
   },
   screenBody: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: 'rgba(26,26,26,0.72)',
     lineHeight: 20,
   },
   inlineLink: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     textDecorationLine: 'underline',
   },
   fieldLabel: {
     fontSize: 10,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.72)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.72)',
     letterSpacing: 0.8,
     marginBottom: 8,
     marginLeft: 2,
@@ -340,7 +341,7 @@ const styles = StyleSheet.create({
     height: 54,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: 'rgba(60,60,67,0.55)',
+    borderColor: 'rgba(0, 0, 0, 0.55)',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 14,
@@ -354,8 +355,8 @@ const styles = StyleSheet.create({
   eyeBtn: { position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' },
   strengthLine: {
     fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.75)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.75)',
     marginBottom: 8,
     marginTop: 4,
     lineHeight: 17,
@@ -363,8 +364,8 @@ const styles = StyleSheet.create({
   altLinkWrap: { alignItems: 'center', marginTop: 8, marginBottom: 28 },
   altLink: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     textDecorationLine: 'underline',
   },
   otpWrap: { marginBottom: 20, alignItems: 'center', minHeight: 52, position: 'relative' },
@@ -380,7 +381,7 @@ const styles = StyleSheet.create({
     maxWidth: OTP_CELL,
     height: 52,
     borderWidth: 1.5,
-    borderColor: 'rgba(60,60,67,0.45)',
+    borderColor: 'rgba(0, 0, 0, 0.45)',
     borderRadius: 8,
     borderStyle: 'dashed',
     alignItems: 'center',
@@ -389,8 +390,8 @@ const styles = StyleSheet.create({
   },
   otpDigit: {
     fontSize: 20,
-    fontWeight: '600',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
   },
   otpInputOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -399,12 +400,12 @@ const styles = StyleSheet.create({
   },
   otpLinks: { gap: 8, marginBottom: 28, alignItems: 'center' },
   otpLinkRow: { flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center' },
-  otpLinkMuted: { fontSize: 14, color: 'rgba(60,60,67,0.85)' },
-  otpLinkBold: { fontSize: 14, fontWeight: '700', color: '#1c1c1e', textDecorationLine: 'underline' },
+  otpLinkMuted: { fontSize: 14, color: 'rgba(0, 0, 0, 0.85)' },
+  otpLinkBold: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: '#000000', textDecorationLine: 'underline' },
   otpLinkCenter: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     textDecorationLine: 'underline',
   },
   buttonStack: {

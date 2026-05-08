@@ -12,7 +12,7 @@ import type { BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
 import { PlatformPressable } from "@react-navigation/elements";
 import { Redirect, Tabs } from "expo-router";
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Platform, StyleSheet, View } from "react-native";
+import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
 
 type TabName = "home" | "activities" | "add" | "list" | "profile";
 
@@ -83,7 +83,7 @@ export default function TabLayout() {
           justifyContent: "center",
           backgroundColor: "#fff",
         }}>
-        <ActivityIndicator color="#1c1c1e" />
+        <ActivityIndicator color="#000000" />
       </View>
     );
   }
@@ -97,7 +97,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarActiveTintColor: "#1c1c1e",
+        tabBarActiveTintColor: "#000000",
         tabBarInactiveTintColor: TAB_ICON_INACTIVE,
         tabBarButton: (p) => <TabBarButton {...p} />,
         tabBarStyle: styles.tabBar,
@@ -206,6 +206,6 @@ const styles = StyleSheet.create({
   },
   slotActive: {
     borderRadius: TAB_SLOT_SIZE / 2,
-    backgroundColor: "#3c3c43",
+    backgroundColor: "#000000",
   },
 });

@@ -2,7 +2,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -19,10 +20,10 @@ const BLOCK_GAP = 24;
 const ROW_GAP = 10;
 const CARD_R = 14;
 const ROW_BOX_R = 8;
-const BALANCE_CARD = '#1A1A1A';
+const BALANCE_CARD = '#000000';
 const MUTED = '#999999';
-const MUTED_ROW = 'rgba(60,60,67,0.55)';
-const STROKE = 'rgba(60,60,67,0.45)';
+const MUTED_ROW = 'rgba(0, 0, 0, 0.55)';
+const STROKE = 'rgba(0, 0, 0, 0.45)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
 
@@ -93,7 +94,7 @@ function DashedListRow({
             <Text style={styles.rowLabel}>{label}</Text>
             <View style={styles.rowRight}>
               {value != null && value !== '' ? <Text style={styles.rowValue}>{value}</Text> : null}
-              <FontAwesome name="chevron-right" size={14} color="rgba(60,60,67,0.35)" />
+              <FontAwesome name="chevron-right" size={14} color="rgba(0, 0, 0, 0.35)" />
             </View>
           </View>
         </View>
@@ -120,7 +121,7 @@ export default function PaymentsBillingScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.navBar}>
         <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <View style={styles.navCenter}>
           <Text style={styles.navTitle}>Payments & Billing</Text>
@@ -171,7 +172,7 @@ const styles = StyleSheet.create({
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#000',
     lineHeight: 27,
     textAlign: 'center',
@@ -195,7 +196,7 @@ const styles = StyleSheet.create({
   },
   balanceAmount: {
     fontSize: 34,
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: -0.5,
     lineHeight: 40,

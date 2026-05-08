@@ -1,7 +1,8 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback } from 'react';
-import { Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 
 import {
   PL_PAD,
@@ -12,9 +13,11 @@ import {
   PublishStepHeader,
   useListingFlowBottomPad,
 } from './_shared';
+import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
+import { DEMO_PRIMARY_SUBURB_LINE } from '@/lib/melbourne-demo-locations';
 
 const DEMO = {
-  address: 'Hawthorn City Center, Victoria',
+  address: DEMO_PRIMARY_SUBURB_LINE,
   price: '$2.0—2.2M',
   referralFee: '$500—550K',
   soi: 'Auto-generated • Attached',
@@ -37,7 +40,7 @@ export default function PublishListingReview() {
 
         <View style={styles.heroWrap}>
           <Image
-            source={require('@/assets/images/welcome-bg.jpg')}
+            source={PROPERTY_IMG_1}
             style={StyleSheet.absoluteFill}
             resizeMode="cover"
           />
@@ -83,7 +86,7 @@ export default function PublishListingReview() {
           </Text>
 
           <View style={styles.draftRow}>
-            <FontAwesome name="clock-o" size={14} color="rgba(60,60,67,0.45)" />
+            <FontAwesome name="clock-o" size={14} color="rgba(0, 0, 0, 0.45)" />
             <Text style={styles.draftMeta}>DRAFT SAVED AT 10:45 AM</Text>
           </View>
         </View>
@@ -107,7 +110,7 @@ const styles = StyleSheet.create({
   scroll: { paddingBottom: 16 },
   pageTitle: {
     fontSize: 24,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#000',
     marginLeft: PL_PAD,
     marginBottom: 12,
@@ -116,7 +119,7 @@ const styles = StyleSheet.create({
   heroWrap: {
     width: '100%',
     height: 256,
-    backgroundColor: '#e8e4df',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     overflow: 'hidden',
   },
   previewPill: {
@@ -128,21 +131,21 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 4,
   },
-  previewPillText: { color: '#fff', fontSize: 11, fontWeight: '600', letterSpacing: 0.55 },
+  previewPillText: { color: '#fff', fontSize: 11, fontFamily: 'Satoshi-Medium', letterSpacing: 0.55 },
   body: { paddingHorizontal: PL_PAD, paddingTop: 24 },
   addrBlock: { marginBottom: 24 },
   label: {
     fontSize: 11,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: PL_BORDER,
     letterSpacing: 0.45,
     textTransform: 'uppercase',
     marginBottom: 8,
   },
-  addrLine: { fontSize: 24, fontWeight: '600', color: PL_BODY, letterSpacing: -0.5, lineHeight: 30 },
+  addrLine: { fontSize: 24, fontFamily: 'Satoshi-Medium', color: PL_BODY, letterSpacing: -0.5, lineHeight: 30 },
   row2: { flexDirection: 'row', gap: 24, marginBottom: 24 },
   colHalf: { flex: 1, minWidth: 0 },
-  value: { fontSize: 20, fontWeight: '600', color: PL_BODY },
+  value: { fontSize: 20, fontFamily: 'Satoshi-Medium', color: PL_BODY },
   soiRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 14, marginBottom: 8 },
   soiCopy: { flex: 1, minWidth: 0 },
   soiIcon: {
@@ -158,7 +161,7 @@ const styles = StyleSheet.create({
   rule: { height: StyleSheet.hairlineWidth, backgroundColor: '#c6c6c8', marginTop: 20, marginBottom: 24 },
   ready: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: PL_BODY,
     letterSpacing: 2.5,
     marginBottom: 12,
@@ -172,8 +175,8 @@ const styles = StyleSheet.create({
   draftRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   draftMeta: {
     fontSize: 11,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.45)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.45)',
     letterSpacing: 0.35,
   },
 
@@ -186,5 +189,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginHorizontal: PL_PAD,
   },
-  publishLabel: { color: '#fff', fontSize: 14, fontWeight: '600', letterSpacing: 0.35 },
+  publishLabel: { color: '#fff', fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.35 },
 });

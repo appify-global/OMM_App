@@ -1,7 +1,8 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Alert, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 
 import { PL_PAD, PL_BORDER, PL_MUTED, PL_TITLE, PrimaryCta, PublishStepHeader, dashedShell, useListingFlowBottomPad } from './_shared';
 
@@ -38,7 +39,7 @@ export default function PublishListingMedia() {
             style={[styles.photoDrop, dashedShell]}
             onPress={() => Alert.alert('Photos', 'Browse photos.')}>
             <View style={styles.uploadGlyph}>
-              <FontAwesome name="cloud-upload" size={22} color="#2d2d2d" />
+              <FontAwesome name="cloud-upload" size={22} color="#000000" />
             </View>
             <Text style={styles.dropTitle}>Drag photos here or click to browse</Text>
             <Text style={styles.dropSub}>JPG, PNG up to 10MB • Max 10 photos</Text>
@@ -69,7 +70,7 @@ export default function PublishListingMedia() {
             style={[styles.sideBox, dashedShell]}
             onPress={() => Alert.alert('Video', 'Upload tour video.')}>
             <View style={styles.sideIcon}>
-              <FontAwesome name="play" size={18} color="#2d2d2d" style={{ marginLeft: 3 }} />
+              <FontAwesome name="play" size={18} color="#000000" style={{ marginLeft: 3 }} />
             </View>
             <View style={styles.sideText}>
               <Text style={styles.sideTitle}>Upload property tour video</Text>
@@ -84,7 +85,7 @@ export default function PublishListingMedia() {
             style={[styles.sideBox, dashedShell]}
             onPress={() => Alert.alert('Floor plan', 'Upload floor plan.')}>
             <View style={styles.sideIcon}>
-              <FontAwesome name="file-o" size={18} color="#2d2d2d" />
+              <FontAwesome name="file-o" size={18} color="#000000" />
             </View>
             <View style={styles.sideText}>
               <Text style={styles.sideTitle}>Upload floor plan</Text>
@@ -105,12 +106,12 @@ export default function PublishListingMedia() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#fff' },
   scroll: { paddingTop: 12, paddingHorizontal: PL_PAD, paddingBottom: 16 },
-  pageTitle: { fontSize: 24, fontWeight: '500', color: PL_TITLE, marginBottom: 28 },
+  pageTitle: { fontSize: 24, fontFamily: 'Satoshi-Medium', color: PL_TITLE, marginBottom: 28 },
   section: { marginBottom: 24 },
   sectionHead: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionLabel: { fontSize: 10, color: '#565656', letterSpacing: 0.25, textTransform: 'uppercase' },
-  addLink: { fontSize: 11, fontWeight: '500', color: '#000' },
-  addPlus: { fontWeight: '700' },
+  addLink: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: '#000' },
+  addPlus: { fontFamily: 'Satoshi-Medium' },
   photoDrop: {
     borderRadius: 8,
     minHeight: 177,
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
   },
-  dropTitle: { fontSize: 14, fontWeight: '500', color: '#2d2d2d' },
+  dropTitle: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: '#000000' },
   dropSub: { fontSize: 11, color: PL_MUTED, marginTop: 6 },
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   gridCell: { borderRadius: 4, alignItems: 'center', justifyContent: 'center' },
@@ -150,6 +151,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   sideText: { flex: 1 },
-  sideTitle: { fontSize: 14, fontWeight: '500', color: '#2d2d2d' },
+  sideTitle: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: '#000000' },
   sideSub: { fontSize: 11, color: PL_MUTED, marginTop: 4 },
 });

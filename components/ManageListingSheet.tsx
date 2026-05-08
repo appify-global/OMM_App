@@ -1,8 +1,10 @@
 import { BlurView } from 'expo-blur';
-import { Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
+import { DEMO_MANAGE_LISTING_HEADER } from '@/lib/melbourne-demo-locations';
 
 export const MANAGE_LISTING_MENU_ITEMS = [
   'Edit listing details',
@@ -20,7 +22,7 @@ const MENU_ITEMS = MANAGE_LISTING_MENU_ITEMS;
 type Props = {
   visible: boolean;
   onClose: () => void;
-  /** e.g. "12 Denham St, Hawthorn" */
+  /** e.g. "15 Rowe St, Fitzroy North" */
   title?: string;
   /** e.g. "$2,450,000 • Live • Authority expires in 14 days • SOI 20 Apr" */
   subtitle?: string;
@@ -33,7 +35,7 @@ type Props = {
 export function ManageListingSheet({
   visible,
   onClose,
-  title = '12 Denham St, Hawthorn',
+  title = DEMO_MANAGE_LISTING_HEADER,
   subtitle = '$2,450,000 • Live • Authority expires in 14 days • SOI 20 Apr',
   onMenuItemPress,
 }: Props) {
@@ -105,18 +107,18 @@ const styles = StyleSheet.create({
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(60,60,67,0.22)',
+    backgroundColor: 'rgba(0, 0, 0, 0.22)',
   },
   title: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     marginBottom: 8,
   },
   subtitle: {
     fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.55)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
     lineHeight: 20,
     marginBottom: 8,
   },
@@ -126,14 +128,14 @@ const styles = StyleSheet.create({
   },
   menuLabel: {
     fontSize: 16,
-    fontWeight: '500',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
   },
   divider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(60,60,67,0.12)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginLeft: DIVIDER_INSET,
     marginRight: DIVIDER_INSET,
   },
-  doneLabel: { fontSize: 14, fontWeight: '700', letterSpacing: 0.6 },
+  doneLabel: { fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.6 },
 });

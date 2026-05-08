@@ -1,17 +1,9 @@
 import { AppButton } from '@/components/AppButton';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { useCallback, useEffect, useState } from 'react';
-import {
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Image, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
@@ -19,8 +11,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  * [Figma 1053:5705](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-5705)
  */
 
-const PAD = 32;
-const IMG = require('@/assets/images/welcome-bg.jpg');
+import { borderHairline, fillWash, inkSubtle, palette } from '@/constants/theme';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+import { AGENT_IMG, PROPERTY_IMG_1 } from '@/lib/propertyImages';
+import { DEMO_PRIMARY_LISTING_TITLE, DEMO_PRIMARY_STREET } from '@/lib/melbourne-demo-locations';
 
 const COMPOSE_DRAFT_DEFAULT =
   'Thanks M. — happy to lift to $2.05m subject to finance 10 days. Can we counter today?';
@@ -71,7 +65,7 @@ const ACTIVITIES: ActivityRow[] = [
     subtitle: 'Offer $2.35m — vendor wants $2.42m walk-away.',
     time: '2m',
     sheetTitle: 'M. Patel',
-    sheetSubtitle: 'Listing agent · Hawthorn City Center',
+    sheetSubtitle: `Listing agent · ${DEMO_PRIMARY_LISTING_TITLE}`,
     sheetBody:
       'Thanks for your offer. It is below what the seller will accept for this property. They are open to a counter closer to the list price.',
     sheetTime: '2 minutes ago',
@@ -83,7 +77,7 @@ const ACTIVITIES: ActivityRow[] = [
     subtitle: "You've booked 137, Art Colony, Colling……",
     time: '8h',
     sheetTitle: 'Inspection scheduled',
-    sheetSubtitle: '12 Denham St, Hawthorn VIC',
+    sheetSubtitle: DEMO_PRIMARY_STREET,
     sheetBody: 'Sat 26 Apr · 10:30—11:15 · Buyer tour · Arrive 10:20 for check-in.',
   },
 ];
@@ -117,7 +111,11 @@ function ActivityRowView({
 }) {
   return (
     <Pressable style={styles.row} onPress={onPress} accessibilityRole="button">
-      <Image source={IMG} style={styles.avatar} resizeMode="cover" />
+      <Image
+        source={row.kind === 'message' ? AGENT_IMG : PROPERTY_IMG_1}
+        style={styles.avatar}
+        resizeMode="cover"
+      />
       <View style={styles.rowText}>
         <View style={styles.rowTop}>
           <Text style={styles.rowTitle} numberOfLines={1}>
@@ -189,6 +187,7 @@ function CalendarMonthApril2026({
 
 export default function ActivitiesScreen() {
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const [role, setRole] = useState<Role>('buyer');
   const [filter, setFilter] = useState<FilterKey>('all');
   const [sheet, setSheet] = useState<ActiveSheet | null>(null);
@@ -196,8 +195,6 @@ export default function ActivitiesScreen() {
   const [selectedDay, setSelectedDay] = useState(26);
   const [selectedSlotId, setSelectedSlotId] = useState<(typeof TIME_SLOTS)[number]['id']>('b');
   const [toast, setToast] = useState<string | null>(null);
-
-  const padH = Math.max(PAD, insets.left, insets.right);
 
   const dismissSheet = useCallback(() => {
     setSheet(null);
@@ -234,59 +231,63 @@ export default function ActivitiesScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Activities" variant="large" />
+      </View>
+
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={[
-          styles.scrollInner,
-          { paddingHorizontal: padH, paddingBottom: insets.bottom + 120 },
-        ]}
-        showsVerticalScrollIndicator={false}>
-        <Text style={styles.pageTitle}>Activities</Text>
-
-        <View style={[styles.segment, { marginTop: 20 }]}>
-          <Pressable
-            onPress={() => setRole('buyer')}
-            style={[styles.segmentBtn, role === 'buyer' && styles.segmentBtnOn]}
-            accessibilityRole="button"
-            accessibilityState={{ selected: role === 'buyer' }}>
-            <Text style={[styles.segmentLabel, role === 'buyer' && styles.segmentLabelOn]}>BUYER</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setRole('seller')}
-            style={[styles.segmentBtn, role === 'seller' && styles.segmentBtnOn]}
-            accessibilityRole="button"
-            accessibilityState={{ selected: role === 'seller' }}>
-            <Text style={[styles.segmentLabel, role === 'seller' && styles.segmentLabelOn]}>SELLER</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.chipRowHost}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            nestedScrollEnabled
-            bounces={false}
-            style={styles.chipScroller}
-            contentContainerStyle={[styles.chipStrip, { paddingHorizontal: 0 }]}>
-            <Chip label="All" active={filter === 'all'} onPress={() => setFilter('all')} />
-            <Chip label="Offers" active={filter === 'offers'} onPress={() => setFilter('offers')} />
-            <Chip
-              label="Inspections"
-              active={filter === 'inspections'}
-              onPress={() => setFilter('inspections')}
-            />
-            <Chip label="Messages" active={filter === 'messages'} onPress={() => setFilter('messages')} />
-          </ScrollView>
-        </View>
-
-        <Text style={styles.kicker}>AGENT INTERACTIONS</Text>
-
-        {filtered.map((row, i) => (
-          <View key={row.id}>
-            <ActivityRowView row={row} onPress={() => openRow(row)} />
-            {i < filtered.length - 1 ? <View style={styles.rule} /> : null}
+        stickyHeaderIndices={[0]}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}>
+        <View style={[styles.stickyHeader, hPad]}>
+          <View style={[styles.segment, { marginTop: 0 }]}>
+            <Pressable
+              onPress={() => setRole('buyer')}
+              style={[styles.segmentBtn, role === 'buyer' && styles.segmentBtnOn]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: role === 'buyer' }}>
+              <Text style={[styles.segmentLabel, role === 'buyer' && styles.segmentLabelOn]}>BUYER</Text>
+            </Pressable>
+            <Pressable
+              onPress={() => setRole('seller')}
+              style={[styles.segmentBtn, role === 'seller' && styles.segmentBtnOn]}
+              accessibilityRole="button"
+              accessibilityState={{ selected: role === 'seller' }}>
+              <Text style={[styles.segmentLabel, role === 'seller' && styles.segmentLabelOn]}>SELLER</Text>
+            </Pressable>
           </View>
-        ))}
+
+          <View style={styles.chipRowHost}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              nestedScrollEnabled
+              bounces={false}
+              style={styles.chipScroller}
+              contentContainerStyle={styles.chipStrip}>
+              <Chip label="All" active={filter === 'all'} onPress={() => setFilter('all')} />
+              <Chip label="Offers" active={filter === 'offers'} onPress={() => setFilter('offers')} />
+              <Chip
+                label="Inspections"
+                active={filter === 'inspections'}
+                onPress={() => setFilter('inspections')}
+              />
+              <Chip label="Messages" active={filter === 'messages'} onPress={() => setFilter('messages')} />
+            </ScrollView>
+          </View>
+        </View>
+
+        <View style={[styles.listBlock, hPad]}>
+          <Text style={styles.kicker}>AGENT INTERACTIONS</Text>
+
+          {filtered.map((row, i) => (
+            <View key={row.id}>
+              <ActivityRowView row={row} onPress={() => openRow(row)} />
+              {i < filtered.length - 1 ? <View style={styles.rule} /> : null}
+            </View>
+          ))}
+        </View>
       </ScrollView>
 
       {toast ? (
@@ -325,7 +326,7 @@ export default function ActivitiesScreen() {
                   variant="filled"
                   onPress={() => setSheet({ row: sheet.row, view: 'message-compose' })}
                   accessibilityLabel="Reply"
-                  textStyle={{ letterSpacing: 0.6, fontWeight: '700' }}>
+                  textStyle={{ letterSpacing: 0.6, fontFamily: 'Satoshi-Medium' }}>
                   REPLY
                 </AppButton>
               </>
@@ -349,7 +350,7 @@ export default function ActivitiesScreen() {
                   style={styles.composeInput}
                   multiline
                   textAlignVertical="top"
-                  placeholderTextColor="rgba(60,60,67,0.35)"
+                  placeholderTextColor="rgba(0, 0, 0, 0.35)"
                 />
                 <View style={styles.composeToolbar}>
                   <Pressable accessibilityRole="button" hitSlop={8}>
@@ -370,14 +371,14 @@ export default function ActivitiesScreen() {
                 <AppButton
                   variant="outlined"
                   onPress={() => setSheet({ row: sheet.row, view: 'inspection-reschedule' })}
-                  textStyle={{ letterSpacing: 0.5, fontWeight: '700' }}>
+                  textStyle={{ letterSpacing: 0.5, fontFamily: 'Satoshi-Medium' }}>
                   ADD TO CALENDAR
                 </AppButton>
                 <View style={{ height: 12 }} />
                 <AppButton
                   variant="filled"
                   onPress={() => setSheet({ row: sheet.row, view: 'message-compose' })}
-                  textStyle={{ letterSpacing: 0.6, fontWeight: '700' }}>
+                  textStyle={{ letterSpacing: 0.6, fontFamily: 'Satoshi-Medium' }}>
                   REPLY
                 </AppButton>
               </>
@@ -386,7 +387,7 @@ export default function ActivitiesScreen() {
             {sheet?.view === 'inspection-reschedule' ? (
               <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.rescheduleScroll}>
                 <Text style={styles.sheetTitle}>Reschedule inspection</Text>
-                <Text style={styles.rescheduleSub}>12 Denham St, Hawthorn VIC • Buyer tour</Text>
+                <Text style={styles.rescheduleSub}>{DEMO_PRIMARY_STREET} • Buyer tour</Text>
                 <CalendarMonthApril2026 selectedDay={selectedDay} onSelectDay={setSelectedDay} />
                 <Text style={styles.slotsKicker}>AVAILABLE SLOTS • SAT {selectedDay} APR</Text>
                 {TIME_SLOTS.map((s) => {
@@ -409,7 +410,7 @@ export default function ActivitiesScreen() {
                 <AppButton
                   variant="outlined"
                   onPress={() => sheet && setSheet({ row: sheet.row, view: 'inspection-summary' })}
-                  textStyle={{ letterSpacing: 0.5, fontWeight: '700' }}>
+                  textStyle={{ letterSpacing: 0.5, fontFamily: 'Satoshi-Medium' }}>
                   CANCEL
                 </AppButton>
                 <View style={{ height: 12 }} />
@@ -419,7 +420,7 @@ export default function ActivitiesScreen() {
                     setToast(confirmToastLine);
                     dismissSheet();
                   }}
-                  textStyle={{ letterSpacing: 0.5, fontWeight: '700' }}>
+                  textStyle={{ letterSpacing: 0.5, fontFamily: 'Satoshi-Medium' }}>
                   CONFIRM NEW TIME
                 </AppButton>
               </ScrollView>
@@ -432,20 +433,27 @@ export default function ActivitiesScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#f7f7f5' },
-  scroll: { flex: 1, minHeight: 0 },
-  scrollInner: { paddingTop: 24 },
-  pageTitle: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: '#1c1c1e',
-    letterSpacing: -0.3,
+  screen: { flex: 1, backgroundColor: palette.white },
+  headBlock: {
+    paddingTop: 8,
+    paddingBottom: 4,
   },
+  stickyHeader: {
+    backgroundColor: palette.white,
+    paddingTop: 12,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: borderHairline,
+  },
+  listBlock: {
+    paddingTop: 16,
+  },
+  scroll: { flex: 1, minHeight: 0 },
   segment: {
     flexDirection: 'row',
     height: 52,
     borderRadius: 12,
-    backgroundColor: '#ebe8e2',
+    backgroundColor: fillWash,
     padding: 4,
     gap: 4,
   },
@@ -456,7 +464,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   segmentBtnOn: {
-    backgroundColor: '#fff',
+    backgroundColor: palette.white,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
@@ -465,12 +473,12 @@ const styles = StyleSheet.create({
   },
   segmentLabel: {
     fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.55)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
   },
   segmentLabelOn: {
-    fontWeight: '700',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
   },
   chipRowHost: {
     flexGrow: 0,
@@ -484,7 +492,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     flexGrow: 0,
-    paddingRight: 8,
+    paddingRight: 4,
   },
   chip: {
     height: 31,
@@ -493,33 +501,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chipOn: { backgroundColor: '#1c1c1e' },
+  chipOn: { backgroundColor: '#000000' },
   chipOff: {
-    backgroundColor: '#ebe8e2',
+    backgroundColor: palette.white,
     borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.2)',
+    borderColor: borderHairline,
   },
-  chipLabel: { fontSize: 13, fontWeight: '500', color: '#2e2e2e' },
+  chipLabel: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: inkSubtle },
   chipLabelOn: { color: '#fff' },
   kicker: {
     marginTop: 8,
     marginBottom: 12,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
     letterSpacing: 0.8,
-    color: 'rgba(60,60,67,0.45)',
+    color: 'rgba(0, 0, 0, 0.45)',
   },
   row: { flexDirection: 'row', alignItems: 'flex-start', paddingVertical: 14, gap: 16 },
   avatar: { width: 48, height: 48, borderRadius: 24, backgroundColor: '#e5e5e5' },
   rowText: { flex: 1, minWidth: 0 },
   rowTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 },
-  rowTitle: { flex: 1, fontSize: 15, fontWeight: '700', color: '#1c1c1e' },
-  rowTime: { fontSize: 13, fontWeight: '500', color: 'rgba(60,60,67,0.45)' },
-  rowSub: { marginTop: 6, fontSize: 14, lineHeight: 20, color: 'rgba(60,60,67,0.55)' },
+  rowTitle: { flex: 1, fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  rowTime: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)' },
+  rowSub: { marginTop: 6, fontSize: 14, lineHeight: 20, color: 'rgba(0, 0, 0, 0.55)' },
   rule: {
     marginLeft: 64,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(60,60,67,0.12)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
   },
   modalRoot: {
     flex: 1,
@@ -528,7 +536,7 @@ const styles = StyleSheet.create({
   },
   modalScrimFlex: { flex: 1 },
   sheet: {
-    backgroundColor: '#f4f1eb',
+    backgroundColor: 'rgba(0,0,0,0.04)',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     paddingHorizontal: 24,
@@ -540,22 +548,22 @@ const styles = StyleSheet.create({
     width: 40,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(60,60,67,0.25)',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
     marginBottom: 16,
   },
   sheetTitle: {
     fontSize: 20,
-    fontWeight: '700',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     marginBottom: 6,
   },
   sheetMeta: {
     fontSize: 14,
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     marginBottom: 16,
   },
   bubble: {
-    backgroundColor: '#ebe8e2',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     borderRadius: 14,
     padding: 16,
     marginBottom: 12,
@@ -563,34 +571,34 @@ const styles = StyleSheet.create({
   bubbleText: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#1c1c1e',
+    color: '#000000',
   },
   sheetTime: {
     fontSize: 13,
-    color: 'rgba(60,60,67,0.45)',
+    color: 'rgba(0, 0, 0, 0.45)',
     marginBottom: 20,
   },
   inspectionDetail: {
     fontSize: 15,
     lineHeight: 22,
-    color: '#1c1c1e',
+    color: '#000000',
     marginBottom: 24,
   },
   composeScroll: { paddingBottom: 24 },
   inputLabel: {
     fontSize: 13,
-    color: 'rgba(60,60,67,0.5)',
+    color: 'rgba(0, 0, 0, 0.5)',
     marginBottom: 8,
   },
   composeInput: {
     minHeight: 120,
     borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.2)',
+    borderColor: 'rgba(0, 0, 0, 0.2)',
     borderRadius: 12,
     padding: 14,
     fontSize: 15,
     lineHeight: 22,
-    color: '#1c1c1e',
+    color: '#000000',
     backgroundColor: '#fff',
     marginBottom: 16,
   },
@@ -608,32 +616,32 @@ const styles = StyleSheet.create({
   },
   composeAttach: {
     fontSize: 15,
-    fontWeight: '500',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
   },
   composeSend: {
     fontSize: 15,
-    fontWeight: '700',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
   },
   rescheduleScroll: { paddingBottom: 28 },
   rescheduleSub: {
     fontSize: 14,
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     marginBottom: 18,
   },
   calCard: {
     backgroundColor: '#fff',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.1)',
+    borderColor: 'rgba(0, 0, 0, 0.1)',
     padding: 14,
     marginBottom: 20,
   },
   calMonthTitle: {
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     marginBottom: 12,
   },
   calWeekRow: {
@@ -647,8 +655,8 @@ const styles = StyleSheet.create({
   },
   calWeekLetter: {
     fontSize: 11,
-    fontWeight: '600',
-    color: 'rgba(60,60,67,0.4)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.4)',
   },
   calGrid: {
     gap: 4,
@@ -665,38 +673,38 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   calCellSelected: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     borderRadius: 10,
   },
   calCellText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
   },
   calCellTextSelected: {
     color: '#fff',
   },
   slotsKicker: {
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
     letterSpacing: 0.6,
-    color: 'rgba(60,60,67,0.45)',
+    color: 'rgba(0, 0, 0, 0.45)',
     marginBottom: 10,
   },
   slotPill: {
     paddingVertical: 14,
     paddingHorizontal: 16,
     borderRadius: 12,
-    backgroundColor: '#ebe8e2',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     marginBottom: 8,
   },
   slotPillOn: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
   },
   slotPillText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
   },
   slotPillTextOn: {
     color: '#fff',
@@ -704,7 +712,7 @@ const styles = StyleSheet.create({
   slotFootnote: {
     fontSize: 12,
     lineHeight: 18,
-    color: 'rgba(60,60,67,0.45)',
+    color: 'rgba(0, 0, 0, 0.45)',
     marginTop: 4,
     marginBottom: 20,
   },
@@ -719,7 +727,7 @@ const styles = StyleSheet.create({
     zIndex: 50,
   },
   toastPill: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingHorizontal: 18,
     paddingVertical: 14,
     borderRadius: 14,
@@ -728,14 +736,14 @@ const styles = StyleSheet.create({
   toastPillText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     textAlign: 'center',
     lineHeight: 20,
   },
   toastHint: {
     marginTop: 10,
     fontSize: 13,
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     textAlign: 'center',
     paddingHorizontal: 32,
   },

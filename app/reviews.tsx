@@ -2,15 +2,12 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import {
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { DEMO_AGENT_AGENCY, DEMO_PRIMARY_STREET } from '@/lib/melbourne-demo-locations';
 
 /**
  * My reviews — summary, pending carousel, filters, list, CTA.
@@ -22,12 +19,12 @@ const H_PAD = 20;
 const SECTION_GAP = 24;
 /** Review list: gap between dashed cards (Figma gap-[16px]) */
 const LIST_CARD_GAP = 16;
-const STROKE = 'rgba(60,60,67,0.55)';
+const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
 const STAR_FILLED = '#6b5344';
-const STAR_EMPTY = 'rgba(60,60,67,0.22)';
-const MUTED = 'rgba(60,60,67,0.55)';
+const STAR_EMPTY = 'rgba(0, 0, 0, 0.22)';
+const MUTED = 'rgba(0, 0, 0, 0.55)';
 const CARD_R = 8;
 const SUMMARY_H = 108;
 const PENDING_CARD_W = 180;
@@ -40,8 +37,8 @@ const PENDING = [
   {
     id: '1',
     name: 'Sarah Chen',
-    agency: 'Ray White Hawthorn',
-    address: '42 High St, Boroondara',
+    agency: DEMO_AGENT_AGENCY,
+    address: DEMO_PRIMARY_STREET,
     badge: 'WRITING' as string | null,
     active: true,
   },
@@ -49,7 +46,7 @@ const PENDING = [
     id: '2',
     name: 'Tom Reid',
     agency: 'Marshall White',
-    address: '12 Park St, Brighton',
+    address: '19 Dickens St, Elwood VIC 3184',
     badge: null,
     active: false,
   },
@@ -66,9 +63,9 @@ const PENDING = [
 const REVIEW_ROWS = [
   {
     id: 'r1',
-    headline: 'Sarah Chen · Ray White',
+    headline: 'Sarah Chen · Biggin Scott',
     when: '2w ago',
-    meta: 'OMM-20418 · 42 High St',
+    meta: 'OMM-20418 · 218 Victoria St',
     rating: 5 as const,
     body: 'Smooth SOI handover and commission sign-off in under 2h hours. Would deal with again.',
     filter: 'seller' as FilterKey,
@@ -186,7 +183,7 @@ export default function ReviewsScreen() {
           hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <View style={styles.navCenter}>
           <Text style={styles.navTitle}>Reviews</Text>
@@ -376,8 +373,8 @@ const styles = StyleSheet.create({
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 27,
   },
   scroll: {
@@ -403,8 +400,8 @@ const styles = StyleSheet.create({
   },
   summaryScore: {
     fontSize: 48,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 48,
     marginTop: 2,
   },
@@ -437,7 +434,7 @@ const styles = StyleSheet.create({
   },
   pendingKickerLeft: {
     fontSize: 10,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: MUTED,
     letterSpacing: 0.25,
     textTransform: 'uppercase',
@@ -466,7 +463,7 @@ const styles = StyleSheet.create({
   },
   pendingCardActive: {
     borderRadius: CARD_R,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 14,
@@ -481,8 +478,8 @@ const styles = StyleSheet.create({
   pendingName: {
     flex: 1,
     fontSize: 13,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 19.5,
     minWidth: 0,
   },
@@ -503,8 +500,8 @@ const styles = StyleSheet.create({
   },
   writingChipText: {
     fontSize: 9,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: 0.225,
     textTransform: 'uppercase',
     lineHeight: 13.5,
@@ -527,7 +524,7 @@ const styles = StyleSheet.create({
   },
   pendingStatusDark: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(60,60,67,0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
     borderRadius: PENDING_CHIP_R,
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -536,7 +533,7 @@ const styles = StyleSheet.create({
   },
   pendingStatusDarkText: {
     fontSize: 9,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.225,
     textTransform: 'uppercase',
@@ -551,12 +548,12 @@ const styles = StyleSheet.create({
     minHeight: 22,
     justifyContent: 'center',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(60,60,67,0.2)',
+    borderColor: 'rgba(0, 0, 0, 0.2)',
   },
   pendingStatusLightText: {
     fontSize: 9,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: 0.225,
     textTransform: 'uppercase',
     lineHeight: 13.5,
@@ -586,15 +583,15 @@ const styles = StyleSheet.create({
     maxWidth: '100%',
   },
   filterSegActive: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
   },
   filterSegActiveWide: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
   },
   filterSegIdle: {
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.14)',
+    borderColor: 'rgba(0, 0, 0, 0.14)',
   },
   filterAllLabel: {
     fontSize: 12,
@@ -636,8 +633,8 @@ const styles = StyleSheet.create({
   },
   reviewHeadline: {
     fontSize: 13,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 19.5,
   },
   reviewMetaFigma: {
@@ -657,20 +654,20 @@ const styles = StyleSheet.create({
   reviewBody: {
     fontSize: 13,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#000000',
     lineHeight: 19.5,
   },
   cta: {
     height: 48,
     borderRadius: 4,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: SECTION_GAP,
   },
   ctaText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: -0.35,
     textTransform: 'uppercase',

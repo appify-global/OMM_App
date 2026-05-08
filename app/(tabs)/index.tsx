@@ -1,27 +1,21 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Fragment, useEffect, useState } from 'react';
-import {
-  Image,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Image, Pressable, ScrollView, StyleSheet, Switch, View, type ImageSourcePropType, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { type Href, useGlobalSearchParams, useRouter } from 'expo-router';
 
 import { AppButton } from '@/components/AppButton';
-
-const PLACEHOLDER_LISTING = require('@/assets/images/welcome-bg.jpg');
+import {
+  DEMO_PRIMARY_LISTING_TITLE,
+  DEMO_SEARCH_SUBURB,
+} from '@/lib/melbourne-demo-locations';
+import { PROPERTY_IMG_1, PROPERTY_IMG_2, propertyImageAtIndex } from '@/lib/propertyImages';
 
 const dashedPromoShell = {
   borderWidth: 1.5,
-  borderColor: 'rgba(60,60,67,0.55)',
+  borderColor: 'rgba(0, 0, 0, 0.55)',
   borderStyle: 'dashed' as const,
   backgroundColor: '#fff',
 };
@@ -52,9 +46,9 @@ function SectionHeader({
 function AlertRow({ icon, text }: { icon: React.ComponentProps<typeof FontAwesome>['name']; text: string }) {
   return (
     <Pressable style={styles.alertCard} accessibilityRole="button">
-      <FontAwesome name={icon} size={18} color="#1c1c1e" style={styles.alertIcon} />
+      <FontAwesome name={icon} size={18} color="#000000" style={styles.alertIcon} />
       <Text style={styles.alertText}>{text}</Text>
-      <FontAwesome name="chevron-right" size={12} color="rgba(60,60,67,0.4)" />
+      <FontAwesome name="chevron-right" size={12} color="rgba(0, 0, 0, 0.4)" />
     </Pressable>
   );
 }
@@ -78,7 +72,7 @@ function HeroCTA({
         <Text style={styles.heroSub}>{subtitle}</Text>
       </View>
       <View style={styles.heroFab}>
-        <FontAwesome name="plus" size={22} color="#1c1c1e" />
+        <FontAwesome name="plus" size={22} color="#000000" />
       </View>
     </Pressable>
   );
@@ -144,6 +138,7 @@ function LargeListingCard(
   props:
     | {
         variant?: 'selling';
+        imageSource?: ImageSourcePropType;
         title: string;
         price: string;
         beds: string;
@@ -153,6 +148,7 @@ function LargeListingCard(
       }
     | {
         variant: 'buying';
+        imageSource?: ImageSourcePropType;
         title: string;
         price: string;
         badgeLeft: string;
@@ -161,10 +157,11 @@ function LargeListingCard(
       },
 ) {
   const isBuying = props.variant === 'buying';
+  const heroSource = props.imageSource ?? (isBuying ? PROPERTY_IMG_2 : PROPERTY_IMG_1);
   return (
     <View style={[styles.largeCard, isBuying && styles.largeCardBuying]}>
       <View style={[styles.largeImgWrap, isBuying && styles.largeImgWrapBuying]}>
-        <Image source={PLACEHOLDER_LISTING} style={styles.largeImg} resizeMode="cover" />
+        <Image source={heroSource} style={styles.largeImg} resizeMode="cover" />
         <View style={[styles.badgeLeft, isBuying && styles.badgeLeftBuying]}>
           <Text style={styles.badgeLeftText}>{props.badgeLeft}</Text>
         </View>
@@ -253,17 +250,19 @@ function SearchMatchRow({
   price,
   specs,
   match,
+  imageSource,
 }: {
   name: string;
   address: string;
   price: string;
   specs: string;
   match: string;
+  imageSource: ImageSourcePropType;
 }) {
   return (
     <View style={styles.matchRow}>
       <View style={styles.matchThumbWrap}>
-        <Image source={PLACEHOLDER_LISTING} style={styles.matchThumb} resizeMode="cover" />
+        <Image source={imageSource} style={styles.matchThumb} resizeMode="cover" />
         <View style={styles.matchTagOff}>
           <Text style={styles.matchTagText}>OFF-MARKET</Text>
         </View>
@@ -288,7 +287,7 @@ export default function HomeScreen() {
   const search = useGlobalSearchParams<{ openBuyingSearch?: string; homeSegment?: string; _ts?: string }>();
   const [mode, setMode] = useState<'selling' | 'buying'>('selling');
   const [buyingSearchActive, setBuyingSearchActive] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('Hawthorn');
+  const [searchQuery, setSearchQuery] = useState(DEMO_SEARCH_SUBURB);
   const [saveAlerts, setSaveAlerts] = useState(false);
 
   /** Return to Home (e.g. listing published) on Selling. Query lives on `/(tabs)?homeSegment=…` — use global params. */
@@ -324,14 +323,14 @@ export default function HomeScreen() {
               accessibilityRole="button"
               accessibilityLabel="Notifications"
               onPress={() => router.push('/notifications' as Href)}>
-              <FontAwesome name="bell-o" size={22} color="#1c1c1e" />
+              <FontAwesome name="bell-o" size={22} color="#000000" />
             </Pressable>
             <Pressable
               hitSlop={12}
               accessibilityRole="button"
               accessibilityLabel="Messages"
               onPress={() => router.push('/messages' as Href)}>
-              <FontAwesome name="comment-o" size={22} color="#1c1c1e" />
+              <FontAwesome name="comment-o" size={22} color="#000000" />
             </Pressable>
           </View>
         </View>
@@ -370,7 +369,7 @@ export default function HomeScreen() {
                 <EnquiryCard
                   name="John Doe"
                   time="2H AGO"
-                  address="1 Clive Rd, Hawthorn East"
+                  address="8 Union St, Brunswick VIC 3056"
                   tag="RE: HAWTHORN CITY CENTER"
                 />
               </Pressable>
@@ -378,7 +377,7 @@ export default function HomeScreen() {
                 <EnquiryCard
                   name="Anita Wong"
                   time="5H AGO"
-                  address="12 Smith St, Richmond"
+                  address="44 Walter St, Moorabbin VIC 3189"
                   tag="RE: INNER EAST BRIEF"
                 />
               </Pressable>
@@ -389,21 +388,21 @@ export default function HomeScreen() {
             />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
               <AuthorityExpiringCarouselCard
-                address="12 Park St, Brighton"
+                address="45 Buckley St, Moonee Ponds VIC 3039"
                 daysLeft="6D LEFT"
-                subtitleLine="Brighton Terrace"
+                subtitleLine="Moonee Ponds Villa"
                 soiPill="SOI ATTACHED"
               />
               <AuthorityExpiringCarouselCard
-                address="5 Toorak Rd, South Yarra"
+                address="102 Glenhuntly Rd, Elsternwick VIC 3185"
                 daysLeft="11D LEFT"
-                subtitleLine="South Yarra Penthouse"
+                subtitleLine="Elsternwick Corner Shop"
                 soiPill="SOI MISSING — ACTION NEEDED"
               />
               <AuthorityExpiringCarouselCard
-                address="14 Studley Park Rd, Kew"
+                address="17 Ferguson St, Williamstown VIC 3016"
                 daysLeft="16D LEFT"
-                subtitleLine="Kew Heritage"
+                subtitleLine="Williamstown Period"
                 soiPill="SOI ATTACHED"
               />
             </ScrollView>
@@ -417,7 +416,7 @@ export default function HomeScreen() {
               accessibilityRole="button"
               accessibilityLabel="Open manage listings">
               <LargeListingCard
-                title="Hawthorn City Center"
+                title={DEMO_PRIMARY_LISTING_TITLE}
                 price="$2.0M — $2.2M"
                 beds="4 BED  3 BATH  650M²"
                 badgeLeft="ACTIVE"
@@ -430,13 +429,13 @@ export default function HomeScreen() {
           <>
             <View style={styles.searchRow}>
               <View style={[styles.searchField, styles.searchFieldResults]}>
-                <FontAwesome name="search" size={16} color="#1c1c1e" />
+                <FontAwesome name="search" size={16} color="#000000" />
                 <TextInput
                   style={styles.searchInput}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
                   placeholder="Suburb or area"
-                  placeholderTextColor="rgba(60,60,67,0.45)"
+                  placeholderTextColor="rgba(0, 0, 0, 0.45)"
                 />
               </View>
               <AppButton
@@ -463,27 +462,30 @@ export default function HomeScreen() {
               <Text style={styles.sortLink}>SORT • BEST MATCH</Text>
             </View>
             <SearchMatchRow
-              name="Camberwell Family Home"
-              address="8 Riverside Ave, Camberwell"
+              name="Preston California Bungalow"
+              address="15 Miller St, Preston VIC 3072"
               price="$2.1M — $2.3M"
               specs="4 BED · 3 BATH · 720M²"
               match="92% MATCH"
+              imageSource={propertyImageAtIndex(0)}
             />
             <View style={styles.resultDivider} />
             <SearchMatchRow
-              name="Hawthorn Terrace"
-              address="22 Glenferrie Rd, Hawthorn"
+              name="Sandringham Bay House"
+              address="72 Bay Rd, Sandringham VIC 3191"
               price="$1.9M — $2.2M"
               specs="3 BED · 2 BATH · 420M²"
               match="88% MATCH"
+              imageSource={propertyImageAtIndex(1)}
             />
             <View style={styles.resultDivider} />
             <SearchMatchRow
-              name="Richmond Warehouse Conversion"
-              address="45 Swan St, Richmond"
+              name="Collingwood Workshop"
+              address="201 Smith St, Collingwood VIC 3066"
               price="$1.6M — $1.85M"
               specs="3 BED · 2 BATH · 310M²"
               match="85% MATCH"
+              imageSource={propertyImageAtIndex(2)}
             />
           </>
         ) : (
@@ -494,13 +496,13 @@ export default function HomeScreen() {
             <View style={{ height: 20 }} />
             <View style={styles.searchRow}>
               <View style={styles.searchField}>
-                <FontAwesome name="search" size={16} color="#1c1c1e" />
+                <FontAwesome name="search" size={16} color="#000000" />
                 <TextInput
                   style={styles.searchInput}
                   value={searchQuery}
                   onChangeText={setSearchQuery}
-                  placeholder="Hawthorn"
-                  placeholderTextColor="rgba(60,60,67,0.45)"
+                  placeholder={DEMO_SEARCH_SUBURB}
+                  placeholderTextColor="rgba(0, 0, 0, 0.45)"
                 />
               </View>
               <AppButton
@@ -558,7 +560,7 @@ export default function HomeScreen() {
             />
             <View style={{ height: 12 }} />
             <SavedSearchCard
-              name="Brighton & Brighton East"
+              name="Footscray & Seddon"
               criteria="3+ beds • Townhouse • $2M—3M"
               badge="2 NEW"
               alertsOn={false}
@@ -573,10 +575,10 @@ export default function HomeScreen() {
             <Pressable
               onPress={() => router.push('/view-live-listing' as Href)}
               accessibilityRole="button"
-              accessibilityLabel="Open listing Hawthorn City Center">
+              accessibilityLabel={`Open listing ${DEMO_PRIMARY_LISTING_TITLE}`}>
               <LargeListingCard
                 variant="buying"
-                title="Hawthorn City Center"
+                title={DEMO_PRIMARY_LISTING_TITLE}
                 price="$2.0M — $2.2M"
                 badgeLeft="OFF-MARKET"
                 badgeRight="92% MATCH"
@@ -601,14 +603,14 @@ const styles = StyleSheet.create({
   },
   homeTitle: {
     fontSize: 32,
-    fontWeight: '700',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: -0.8,
   },
   headerIcons: { flexDirection: 'row', alignItems: 'center', gap: 18 },
   segment: {
     flexDirection: 'row',
-    backgroundColor: '#ebe8e2',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     borderRadius: 14,
     padding: 4,
     marginBottom: 20,
@@ -629,11 +631,11 @@ const styles = StyleSheet.create({
   },
   segmentText: {
     fontSize: 13,
-    fontWeight: '600',
-    color: 'rgba(60,60,67,0.50)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.50)',
     letterSpacing: 0.4,
   },
-  segmentTextActive: { color: '#1c1c1e' },
+  segmentTextActive: { color: '#000000' },
   alertCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -648,11 +650,11 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   alertIcon: { width: 28 },
-  alertText: { flex: 1, fontSize: 15, fontWeight: '600', color: '#1c1c1e', marginLeft: 4 },
+  alertText: { flex: 1, fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000', marginLeft: 4 },
   hero: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     borderRadius: 16,
     padding: 20,
     marginBottom: 28,
@@ -660,19 +662,19 @@ const styles = StyleSheet.create({
   heroTextCol: { flex: 1, paddingRight: 12 },
   heroKicker: {
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
     color: 'rgba(255,255,255,0.55)',
     letterSpacing: 1,
     marginBottom: 8,
   },
   heroTitle: {
     fontSize: 22,
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     marginBottom: 8,
     letterSpacing: -0.3,
   },
-  heroSub: { fontSize: 13, fontWeight: '500', color: 'rgba(255,255,255,0.55)', lineHeight: 18 },
+  heroSub: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: 'rgba(255,255,255,0.55)', lineHeight: 18 },
   heroFab: {
     width: 52,
     height: 52,
@@ -692,8 +694,8 @@ const styles = StyleSheet.create({
     marginTop: 28,
     marginBottom: 18,
   },
-  sectionTitle: { fontSize: 18, fontWeight: '700', color: '#1c1c1e' },
-  seeAll: { fontSize: 14, fontWeight: '500', color: 'rgba(60,60,67,0.45)' },
+  sectionTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  seeAll: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)' },
   hScroll: { gap: 12, paddingBottom: 24 },
   sellerNetworkCard: {
     borderRadius: 14,
@@ -703,24 +705,24 @@ const styles = StyleSheet.create({
   },
   sellerNetworkTitle: {
     fontSize: 17,
-    fontWeight: '700',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     marginBottom: 10,
   },
   sellerNetworkBody: {
     fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.55)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
     lineHeight: 21,
     marginBottom: 18,
   },
   sellerNetworkCta: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
   },
-  sellerNetworkCtaText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  sellerNetworkCtaText: { color: '#fff', fontSize: 14, fontFamily: 'Satoshi-Medium' },
   enquiryCard: {
     width: 220,
     backgroundColor: '#fff',
@@ -732,18 +734,18 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  enqName: { fontSize: 16, fontWeight: '700', color: '#1c1c1e' },
-  enqTime: { fontSize: 11, fontWeight: '600', color: 'rgba(60,60,67,0.45)', marginTop: 4 },
-  enqAddr: { fontSize: 13, fontWeight: '500', color: '#1c1c1e', marginTop: 8 },
+  enqName: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  enqTime: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', marginTop: 4 },
+  enqAddr: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: '#000000', marginTop: 8 },
   enqPill: {
     alignSelf: 'flex-start',
     marginTop: 12,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
   },
-  enqPillText: { fontSize: 10, fontWeight: '600', color: 'rgba(60,60,67,0.65)' },
+  enqPillText: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.65)' },
   authCarouselCard: {
     width: 220,
     backgroundColor: '#fff',
@@ -764,33 +766,33 @@ const styles = StyleSheet.create({
   authCarouselAddr: {
     flex: 1,
     fontSize: 16,
-    fontWeight: '700',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 20,
   },
   authCarouselDays: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
   },
   authCarouselDaysText: {
     fontSize: 9,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.45,
     textTransform: 'uppercase',
   },
   authCarouselSub: {
     fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.55)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
     marginTop: 8,
   },
   authCarouselPill: {
     alignSelf: 'center',
     marginTop: 12,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
@@ -798,8 +800,8 @@ const styles = StyleSheet.create({
   },
   authCarouselPillText: {
     fontSize: 10,
-    fontWeight: '600',
-    color: 'rgba(60,60,67,0.65)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.65)',
     textAlign: 'center',
   },
   largeCard: {
@@ -826,12 +828,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 12,
     left: 12,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,
   },
-  badgeLeftText: { fontSize: 10, fontWeight: '700', color: '#fff', letterSpacing: 0.5 },
+  badgeLeftText: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: '#fff', letterSpacing: 0.5 },
   badgeLeftBuying: { backgroundColor: '#212121' },
   badgeRight: {
     position: 'absolute',
@@ -842,15 +844,15 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 6,
   },
-  badgeRightText: { fontSize: 10, fontWeight: '700', color: '#1c1c1e' },
+  badgeRightText: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: '#000000' },
   badgeRightBuying: { backgroundColor: '#f2f2f2' },
   badgeRightTextBuying: { color: '#000' },
   largeBody: { padding: 16, paddingBottom: 18 },
-  propTitle: { fontSize: 18, fontWeight: '700', color: '#1c1c1e' },
-  propTitleBuying: { fontSize: 16, fontWeight: '500', color: '#000' },
-  propPrice: { fontSize: 16, fontWeight: '600', color: '#1c1c1e', marginTop: 6 },
-  propPriceBuying: { fontSize: 14, fontWeight: '500', color: '#666', marginTop: 6 },
-  propSpecs: { fontSize: 12, fontWeight: '600', color: 'rgba(60,60,67,0.45)', marginTop: 8 },
+  propTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  propTitleBuying: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000' },
+  propPrice: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000', marginTop: 6 },
+  propPriceBuying: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: 'rgba(0,0,0,0.55)', marginTop: 6 },
+  propSpecs: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', marginTop: 8 },
   specRowBuying: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -860,10 +862,10 @@ const styles = StyleSheet.create({
   specChipBuying: {
     fontSize: 11,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     textTransform: 'lowercase',
   },
-  specSepBuying: { fontSize: 11, fontWeight: '400', color: 'rgba(60,60,67,0.45)' },
+  specSepBuying: { fontSize: 11, fontWeight: '400', color: 'rgba(0, 0, 0, 0.45)' },
   propStatsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -871,11 +873,11 @@ const styles = StyleSheet.create({
     paddingTop: 18,
     paddingBottom: 4,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(60,60,67,0.15)',
+    borderTopColor: 'rgba(0, 0, 0, 0.15)',
     gap: 12,
     rowGap: 10,
   },
-  propStat: { fontSize: 10, fontWeight: '700', color: 'rgba(60,60,67,0.55)', letterSpacing: 0.3 },
+  propStat: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.55)', letterSpacing: 0.3 },
   /** Search + EXPLORE — [Figma: flat beige field, black icon + type, 12px radius to match EXPLORE] */
   searchRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 20, gap: 8 },
   searchField: {
@@ -891,7 +893,7 @@ const styles = StyleSheet.create({
   searchFieldResults: {
     backgroundColor: '#fff',
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(60,60,67,0.12)',
+    borderColor: 'rgba(0, 0, 0, 0.12)',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
@@ -903,11 +905,11 @@ const styles = StyleSheet.create({
     marginLeft: 12,
     fontSize: 16,
     fontWeight: '400',
-    color: '#1c1c1e',
+    color: '#000000',
     paddingVertical: 8,
   },
   exploreBtnWrap: {},
-  exploreBtnLabel: { fontSize: 12, fontWeight: '700', letterSpacing: 0.6 },
+  exploreBtnLabel: { fontSize: 12, fontFamily: 'Satoshi-Medium', letterSpacing: 0.6 },
   replyCard: {
     width: 240,
     backgroundColor: '#fff',
@@ -919,12 +921,12 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 2,
   },
-  replyName: { fontSize: 16, fontWeight: '700', color: '#1c1c1e' },
-  replyAgency: { fontSize: 13, fontWeight: '500', color: 'rgba(60,60,67,0.55)', marginTop: 4 },
+  replyName: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  replyAgency: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.55)', marginTop: 4 },
   replySnippet: {
     fontSize: 11,
-    fontWeight: '700',
-    color: 'rgba(60,60,67,0.7)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.7)',
     marginTop: 10,
     lineHeight: 16,
     letterSpacing: 0.2,
@@ -935,44 +937,44 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: 'rgba(60,60,67,0.35)',
+    borderColor: 'rgba(0, 0, 0, 0.35)',
   },
   savedTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' },
-  savedName: { fontSize: 17, fontWeight: '700', color: '#1c1c1e', flex: 1 },
-  newBadge: { backgroundColor: '#1c1c1e', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
-  newBadgeText: { fontSize: 10, fontWeight: '700', color: '#fff' },
-  savedCriteria: { fontSize: 14, fontWeight: '500', color: 'rgba(60,60,67,0.55)', marginTop: 8 },
+  savedName: { fontSize: 17, fontFamily: 'Satoshi-Medium', color: '#000000', flex: 1 },
+  newBadge: { backgroundColor: '#000000', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 6 },
+  newBadgeText: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: '#fff' },
+  savedCriteria: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.55)', marginTop: 8 },
   savedRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 14,
   },
-  savedDot: { fontSize: 12, fontWeight: '700', color: '#1c1c1e' },
-  savedDotOff: { color: 'rgba(60,60,67,0.35)' },
-  savedMeta: { fontSize: 12, fontWeight: '500', color: 'rgba(60,60,67,0.45)' },
+  savedDot: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  savedDotOff: { color: 'rgba(0, 0, 0, 0.35)' },
+  savedMeta: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)' },
   saveBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     borderRadius: 14,
     padding: 16,
     marginBottom: 20,
   },
   saveBannerLeft: { flex: 1, flexDirection: 'row', alignItems: 'center' },
-  saveBannerTitle: { fontSize: 15, fontWeight: '700', color: '#fff' },
-  saveBannerSub: { fontSize: 12, fontWeight: '500', color: 'rgba(255,255,255,0.55)', marginTop: 4 },
+  saveBannerTitle: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#fff' },
+  saveBannerSub: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(255,255,255,0.55)', marginTop: 4 },
   resultsHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 16,
   },
-  resultsCount: { fontSize: 16, fontWeight: '700', color: '#1c1c1e' },
-  sortLink: { fontSize: 11, fontWeight: '700', color: 'rgba(60,60,67,0.45)', letterSpacing: 0.4 },
+  resultsCount: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  sortLink: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', letterSpacing: 0.4 },
   resultDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(60,60,67,0.12)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginVertical: 14,
   },
   matchRow: {
@@ -981,7 +983,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.08)',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
   matchThumbWrap: {
     width: 100,
@@ -996,25 +998,25 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     left: 6,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 4,
   },
-  matchTagText: { fontSize: 8, fontWeight: '700', color: '#fff' },
+  matchTagText: { fontSize: 8, fontFamily: 'Satoshi-Medium', color: '#fff' },
   matchPct: {
     position: 'absolute',
     bottom: 6,
     left: 6,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 4,
   },
-  matchPctText: { fontSize: 9, fontWeight: '700', color: '#fff' },
+  matchPctText: { fontSize: 9, fontFamily: 'Satoshi-Medium', color: '#fff' },
   matchBody: { flex: 1, padding: 12, justifyContent: 'center' },
-  matchName: { fontSize: 15, fontWeight: '700', color: '#1c1c1e' },
-  matchAddr: { fontSize: 12, fontWeight: '500', color: 'rgba(60,60,67,0.55)', marginTop: 4 },
-  matchPrice: { fontSize: 16, fontWeight: '700', color: '#1c1c1e', marginTop: 8 },
-  matchSpecs: { fontSize: 11, fontWeight: '600', color: 'rgba(60,60,67,0.45)', marginTop: 6 },
+  matchName: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  matchAddr: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.55)', marginTop: 4 },
+  matchPrice: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000', marginTop: 8 },
+  matchSpecs: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', marginTop: 6 },
 });

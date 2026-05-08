@@ -1,18 +1,19 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTabScreenBottomPad } from '@/lib/useTabScreenBottomPad';
 
 /** [Figma Property Listing](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-4465) */
 export const PL_PAD = 32;
-export const PL_BORDER = 'rgba(60,60,67,0.55)';
-export const PL_LABEL = 'rgba(60,60,67,0.55)';
-export const PL_TITLE = '#444444';
-export const PL_BODY = '#1a1a1a';
-export const PL_MUTED = '#606060';
-export const PL_CARD = '#1a1a1a';
-export const PL_CTA = '#1c1c1e';
+export const PL_BORDER = 'rgba(0, 0, 0, 0.55)';
+export const PL_LABEL = 'rgba(0, 0, 0, 0.55)';
+export const PL_TITLE = 'rgba(0, 0, 0, 0.72)';
+export const PL_BODY = '#000000';
+export const PL_MUTED = 'rgba(0, 0, 0, 0.55)';
+export const PL_CARD = '#000000';
+export const PL_CTA = '#000000';
 
 /** Padding below fixed CTAs so content clears the floating tab pill. */
 export function useListingFlowBottomPad() {
@@ -110,12 +111,12 @@ const styles = StyleSheet.create({
   headerBack: { width: 32, height: 32, justifyContent: 'center' },
   headerStep: {
     fontSize: 18,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#141414',
     textAlign: 'center',
     width: '100%',
   },
-  saveDraft: { fontSize: 11, fontWeight: '500', color: '#000', textAlign: 'right' },
+  saveDraft: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: '#000', textAlign: 'right' },
   cta: {
     height: 48,
     borderRadius: 14,
@@ -127,5 +128,5 @@ const styles = StyleSheet.create({
     borderColor: PL_BORDER,
     borderStyle: 'dashed',
   },
-  ctaLabel: { color: '#fff', fontSize: 14, fontWeight: '500', letterSpacing: -0.35 },
+  ctaLabel: { color: '#fff', fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: -0.35 },
 });

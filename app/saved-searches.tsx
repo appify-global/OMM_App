@@ -1,6 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
@@ -15,27 +16,27 @@ type SavedItem = {
 
 const SAVED_SEARCHES: SavedItem[] = [
   {
-    name: 'South Yarra Penthouse',
+    name: 'Port Melbourne Townhouses',
     badge: '2 NEW',
     criteria: '3+ beds • Apartment • $4M+',
     alertsOn: true,
     meta: 'Yesterday',
   },
   {
-    name: 'Hawthorn Family',
+    name: 'Carlton North Family',
     criteria: '4+ beds • House • $2.5M—3.5M',
     alertsOn: false,
     meta: 'Paused 3d ago',
   },
   {
-    name: 'Brighton Beachside',
+    name: 'Altona Coastal',
     badge: '2 NEW',
     criteria: '3+ beds • Apartment • $4M+',
     alertsOn: true,
     meta: 'Yesterday',
   },
   {
-    name: 'Toorak Estates',
+    name: 'Essendon Heritage',
     criteria: '4+ beds • House • $2.5M—3.5M',
     alertsOn: false,
     meta: 'Paused 3d ago',
@@ -85,7 +86,7 @@ export default function SavedSearchesScreen() {
           accessibilityRole="button"
           accessibilityLabel="Back"
           style={styles.headerSide}>
-          <FontAwesome name="chevron-left" size={20} color="#1c1c1e" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <Text style={styles.headerTitle}>Saved Searches</Text>
         <View style={styles.headerSide} />
@@ -133,17 +134,17 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: 'center',
     fontSize: 17,
-    fontWeight: '700',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
   },
   scroll: { paddingHorizontal: 20 },
   newSearchBtn: { marginTop: 4 },
-  newSearchBtnText: { fontSize: 14, fontWeight: '700', letterSpacing: 0.6 },
+  newSearchBtnText: { fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.6 },
   helper: {
     marginTop: 12,
     fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.45)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.45)',
     lineHeight: 20,
   },
   listMetaRow: {
@@ -153,8 +154,8 @@ const styles = StyleSheet.create({
     marginTop: 28,
     marginBottom: 16,
   },
-  countLabel: { fontSize: 16, fontWeight: '600', color: 'rgba(60,60,67,0.55)' },
-  sortLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(60,60,67,0.45)', letterSpacing: 0.4 },
+  countLabel: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.55)' },
+  sortLabel: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', letterSpacing: 0.4 },
   cardGap: { marginBottom: 12 },
   card: {
     backgroundColor: '#fff',
@@ -162,26 +163,26 @@ const styles = StyleSheet.create({
     padding: 16,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: 'rgba(60,60,67,0.35)',
+    borderColor: 'rgba(0, 0, 0, 0.35)',
   },
   cardPressed: {
     opacity: 0.7,
     backgroundColor: '#f9f9f9',
   },
-  cardTitle: { fontSize: 17, fontWeight: '700', color: '#1c1c1e' },
+  cardTitle: { fontSize: 17, fontFamily: 'Satoshi-Medium', color: '#000000' },
   newBadge: {
     alignSelf: 'flex-start',
     marginTop: 8,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
   },
-  newBadgeText: { fontSize: 10, fontWeight: '700', color: '#fff' },
-  cardCriteria: { fontSize: 14, fontWeight: '500', color: 'rgba(60,60,67,0.55)', marginTop: 10 },
+  newBadgeText: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: '#fff' },
+  cardCriteria: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.55)', marginTop: 10 },
   cardDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(60,60,67,0.15)',
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
     marginTop: 14,
   },
   cardFooter: {
@@ -190,9 +191,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 14,
   },
-  footerAlerts: { fontSize: 12, fontWeight: '700', letterSpacing: 0.3 },
-  footerDotOn: { color: '#1c1c1e' },
-  footerDotOff: { color: 'rgba(60,60,67,0.35)' },
-  footerAlertsLabel: { color: 'rgba(60,60,67,0.55)' },
-  footerMeta: { fontSize: 12, fontWeight: '500', color: 'rgba(60,60,67,0.45)' },
+  footerAlerts: { fontSize: 12, fontFamily: 'Satoshi-Medium', letterSpacing: 0.3 },
+  footerDotOn: { color: '#000000' },
+  footerDotOff: { color: 'rgba(0, 0, 0, 0.35)' },
+  footerAlertsLabel: { color: 'rgba(0, 0, 0, 0.55)' },
+  footerMeta: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)' },
 });

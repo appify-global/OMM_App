@@ -1,20 +1,13 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import { useState } from 'react';
-import {
-  Image,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Image, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-const AVATAR = require('@/assets/images/welcome-bg.jpg');
+import { AGENT_IMG, PROPERTY_IMG_1 } from '@/lib/propertyImages';
+import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
 
 const MENU_ITEMS_BEFORE: { key: string; label: string }[] = [
   { key: 'profile', label: 'View agent profile' },
@@ -51,12 +44,12 @@ export default function ContactSellerChatScreen() {
           accessibilityRole="button"
           accessibilityLabel="Back"
           style={styles.headerIcon}>
-          <FontAwesome name="chevron-left" size={22} color="#1c1c1e" />
+          <FontAwesome name="chevron-left" size={22} color="#000000" />
         </Pressable>
-        <Image source={AVATAR} style={styles.headerAvatar} />
+        <Image source={AGENT_IMG} style={styles.headerAvatar} />
         <View style={styles.headerText}>
           <Text style={styles.headerTitle} numberOfLines={1}>
-            Anton Zhouk · Hawthorn City Center
+            Anton Zhouk · {DEMO_PRIMARY_LISTING_TITLE}
           </Text>
           <Text style={styles.headerStatus}>ACTIVE NOW</Text>
         </View>
@@ -66,7 +59,7 @@ export default function ContactSellerChatScreen() {
           accessibilityLabel="More options"
           style={styles.headerIcon}
           onPress={() => setMenuOpen(true)}>
-          <FontAwesome name="ellipsis-v" size={18} color="#1c1c1e" />
+          <FontAwesome name="ellipsis-v" size={18} color="#000000" />
         </Pressable>
       </View>
 
@@ -143,12 +136,12 @@ export default function ContactSellerChatScreen() {
 
         <View style={styles.msgInWrap}>
           <View style={styles.fileBubble}>
-            <Image source={AVATAR} style={styles.filePreview} resizeMode="cover" />
+            <Image source={PROPERTY_IMG_1} style={styles.filePreview} resizeMode="cover" />
             <View style={styles.fileRow}>
               <Text style={styles.fileName} numberOfLines={1}>
                 FLOOR_PLAN_V2.PDF
               </Text>
-              <FontAwesome name="download" size={16} color="#1c1c1e" />
+              <FontAwesome name="download" size={16} color="#000000" />
             </View>
           </View>
           <Text style={styles.timeIn}>10:46 AM</Text>
@@ -157,12 +150,12 @@ export default function ContactSellerChatScreen() {
 
       <View style={[styles.composer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
         <Pressable style={styles.plusBtn} accessibilityRole="button" accessibilityLabel="Attach">
-          <FontAwesome name="plus" size={18} color="#1c1c1e" />
+          <FontAwesome name="plus" size={18} color="#000000" />
         </Pressable>
         <TextInput
           style={styles.input}
           placeholder="Send updated referral PDF when ready."
-          placeholderTextColor="rgba(60,60,67,0.45)"
+          placeholderTextColor="rgba(0, 0, 0, 0.45)"
           multiline
         />
         <Pressable style={styles.sendBtn} accessibilityRole="button" accessibilityLabel="Send">
@@ -181,17 +174,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(60,60,67,0.12)',
+    borderBottomColor: 'rgba(0, 0, 0, 0.12)',
     gap: 10,
   },
   headerIcon: { width: 36, alignItems: 'center', justifyContent: 'center' },
   headerAvatar: { width: 44, height: 44, borderRadius: 22 },
   headerText: { flex: 1, minWidth: 0 },
-  headerTitle: { fontSize: 16, fontWeight: '700', color: '#1c1c1e' },
+  headerTitle: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000' },
   headerStatus: {
     marginTop: 4,
     fontSize: 11,
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
     color: '#2d8a54',
     letterSpacing: 0.6,
   },
@@ -200,9 +193,9 @@ const styles = StyleSheet.create({
   datePillWrap: { alignItems: 'center', marginBottom: 24 },
   datePill: {
     fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(60,60,67,0.55)',
-    backgroundColor: '#f2f2f7',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: '#ffffff',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 12,
@@ -214,33 +207,33 @@ const styles = StyleSheet.create({
     maxWidth: '88%',
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.12)',
+    borderColor: 'rgba(0, 0, 0, 0.12)',
     borderRadius: 4,
     paddingVertical: 14,
     paddingHorizontal: 16,
   },
-  msgInText: { fontSize: 15, lineHeight: 22, color: '#1c1c1e' },
-  timeIn: { marginTop: 6, fontSize: 12, color: 'rgba(60,60,67,0.45)' },
+  msgInText: { fontSize: 15, lineHeight: 22, color: '#000000' },
+  timeIn: { marginTop: 6, fontSize: 12, color: 'rgba(0, 0, 0, 0.45)' },
   msgOutWrap: { alignSelf: 'stretch', marginBottom: 20, alignItems: 'flex-end' },
   bubbleOut: {
     maxWidth: '88%',
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     borderRadius: 4,
     paddingVertical: 14,
     paddingHorizontal: 16,
   },
   msgOutText: { fontSize: 15, lineHeight: 22, color: '#fff' },
-  timeOut: { marginTop: 6, fontSize: 12, color: 'rgba(60,60,67,0.45)', textAlign: 'right' },
+  timeOut: { marginTop: 6, fontSize: 12, color: 'rgba(0, 0, 0, 0.45)', textAlign: 'right' },
   fileBubble: {
     alignSelf: 'flex-start',
     maxWidth: '92%',
-    backgroundColor: '#f2f2f7',
+    backgroundColor: '#ffffff',
     borderRadius: 4,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.08)',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
-  filePreview: { width: 240, height: 140, backgroundColor: '#e8e4df' },
+  filePreview: { width: 240, height: 140, backgroundColor: 'rgba(0,0,0,0.06)' },
   fileRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -249,14 +242,14 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     gap: 12,
   },
-  fileName: { flex: 1, fontSize: 13, fontWeight: '600', color: '#1c1c1e' },
+  fileName: { flex: 1, fontSize: 13, fontFamily: 'Satoshi-Medium', color: '#000000' },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
     paddingHorizontal: 12,
     paddingTop: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(60,60,67,0.12)',
+    borderTopColor: 'rgba(0, 0, 0, 0.12)',
     gap: 10,
     backgroundColor: '#fff',
   },
@@ -265,7 +258,7 @@ const styles = StyleSheet.create({
     height: 40,
     borderRadius: 20,
     borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.2)',
+    borderColor: 'rgba(0, 0, 0, 0.2)',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
@@ -276,17 +269,17 @@ const styles = StyleSheet.create({
     maxHeight: 120,
     fontSize: 15,
     lineHeight: 20,
-    color: '#1c1c1e',
+    color: '#000000',
     paddingHorizontal: 14,
     paddingVertical: 12,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#ffffff',
     borderRadius: 12,
   },
   sendBtn: {
     width: 44,
     height: 44,
     borderRadius: 8,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
@@ -315,7 +308,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 16,
   },
-  menuRowPressed: { backgroundColor: 'rgba(60,60,67,0.06)' },
+  menuRowPressed: { backgroundColor: 'rgba(0, 0, 0, 0.06)' },
   menuRowText: {
     fontSize: 15,
     fontWeight: '400',
@@ -323,7 +316,7 @@ const styles = StyleSheet.create({
   },
   menuDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(60,60,67,0.2)',
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
     marginVertical: 4,
     marginHorizontal: 12,
   },

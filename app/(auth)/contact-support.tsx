@@ -3,17 +3,9 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -26,7 +18,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 const H_PAD = 20;
 const FIELD_H = 54;
 const MESSAGE_BOX_H = 150;
-const STROKE = 'rgba(60,60,67,0.55)';
+const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
 const BLOCK_GAP = 24;
@@ -131,7 +123,7 @@ export default function ContactSupportScreen() {
             hitSlop={12}
             accessibilityRole="button"
             accessibilityLabel="Back">
-            <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
           </Pressable>
           <View style={styles.navCenter}>
             <Text style={styles.navTitle}>Contact support</Text>
@@ -157,7 +149,7 @@ export default function ContactSupportScreen() {
                 placeholder="Full name"
                 autoCapitalize="words"
                 autoCorrect={false}
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
               />
             </DashedFieldShell>
           </FieldBlock>
@@ -172,7 +164,7 @@ export default function ContactSupportScreen() {
                 keyboardType="email-address"
                 autoCapitalize="none"
                 autoCorrect={false}
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
               />
             </DashedFieldShell>
           </FieldBlock>
@@ -185,7 +177,7 @@ export default function ContactSupportScreen() {
                 style={styles.input}
                 placeholder="Phone"
                 keyboardType="phone-pad"
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
               />
             </DashedFieldShell>
           </FieldBlock>
@@ -199,7 +191,7 @@ export default function ContactSupportScreen() {
                 placeholder="Your message"
                 multiline
                 textAlignVertical="top"
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
               />
             </DashedFieldShell>
           </FieldBlock>
@@ -215,7 +207,7 @@ export default function ContactSupportScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Add image">
                 <DashedThumbWrap width={68} height={74} borderRadius={4}>
-                  <FontAwesome name="image" size={22} color="#1a1a1a" />
+                  <FontAwesome name="image" size={22} color="#000000" />
                 </DashedThumbWrap>
               </Pressable>
               <Pressable
@@ -235,7 +227,7 @@ export default function ContactSupportScreen() {
                 accessibilityRole="button"
                 accessibilityLabel="Add file">
                 <DashedThumbWrap width={72} height={72} borderRadius={14}>
-                  <FontAwesome name="plus" size={20} color="#1a1a1a" />
+                  <FontAwesome name="plus" size={20} color="#000000" />
                 </DashedThumbWrap>
               </Pressable>
             </View>
@@ -270,7 +262,7 @@ function AttachMainBox() {
         style={[styles.attachMainInner, { minHeight: H }]}
         accessibilityRole="button"
         accessibilityLabel="Attach screenshot or file">
-        <MaterialCommunityIcons name="paperclip" size={20} color="rgba(60,60,67,0.65)" />
+        <MaterialCommunityIcons name="paperclip" size={20} color="rgba(0, 0, 0, 0.65)" />
         <View style={styles.attachCopyCol}>
           <Text style={styles.attachTitle}>Attach screenshot or file</Text>
           <Text style={styles.attachSub}>PNG, JPG, PDF • up to 5 files • 25MB max</Text>
@@ -313,7 +305,7 @@ const styles = StyleSheet.create({
   },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 18, fontWeight: '500', color: '#1a1a1a' },
+  navTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000' },
   scroll: {
     paddingHorizontal: H_PAD,
     paddingTop: 8,
@@ -321,7 +313,7 @@ const styles = StyleSheet.create({
   intro: {
     fontSize: 12,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     lineHeight: 18,
     textAlign: 'center',
     marginBottom: 20,
@@ -332,7 +324,7 @@ const styles = StyleSheet.create({
   label10: {
     fontSize: 10,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     letterSpacing: 0.25,
     textTransform: 'uppercase',
     marginBottom: LABEL_FIELD_GAP,
@@ -377,13 +369,13 @@ const styles = StyleSheet.create({
   },
   attachTitle: {
     fontSize: 13,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
   },
   attachSub: {
     fontSize: 11,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     lineHeight: 16.5,
   },
   attachThumbsRow: {
@@ -398,14 +390,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 4,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
   sendBtn: {
     height: 48,
     borderRadius: 4,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -414,7 +406,7 @@ const styles = StyleSheet.create({
   },
   sendBtnText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: -0.35,
   },

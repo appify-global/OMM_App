@@ -1,17 +1,9 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
-import {
-  Image,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
@@ -68,7 +60,7 @@ export default function SignInScreen() {
               keyboardType="email-address"
               autoComplete="email"
               placeholder="you@example.com"
-              placeholderTextColor="rgba(60,60,67,0.45)"
+              placeholderTextColor="rgba(0, 0, 0, 0.45)"
               value={email}
               onChangeText={setEmail}
             />
@@ -81,7 +73,7 @@ export default function SignInScreen() {
               secureTextEntry={!showPassword}
               autoComplete="password"
               placeholder="Password"
-              placeholderTextColor="rgba(60,60,67,0.45)"
+              placeholderTextColor="rgba(0, 0, 0, 0.45)"
               value={password}
               onChangeText={setPassword}
             />
@@ -91,7 +83,7 @@ export default function SignInScreen() {
               hitSlop={8}
               accessibilityRole="button"
               accessibilityLabel={showPassword ? 'Hide password' : 'Show password'}>
-              <FontAwesome name={showPassword ? 'eye' : 'eye-slash'} size={16} color="#3c3c43" />
+              <FontAwesome name={showPassword ? 'eye' : 'eye-slash'} size={16} color="#000000" />
             </Pressable>
           </View>
 
@@ -102,7 +94,7 @@ export default function SignInScreen() {
               accessibilityRole="checkbox"
               accessibilityState={{ checked: rememberMe }}>
               <View style={[styles.checkbox, rememberMe && styles.checkboxOn]}>
-                {rememberMe ? <FontAwesome name="check" size={11} color="#1c1c1e" /> : null}
+                {rememberMe ? <FontAwesome name="check" size={11} color="#000000" /> : null}
               </View>
               <Text style={styles.rememberLabel}>Remember me</Text>
             </Pressable>
@@ -155,7 +147,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 24,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#0a0a0a',
     textAlign: 'center',
     width: '100%',
@@ -164,7 +156,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: 'rgba(26,26,26,0.72)',
     textAlign: 'center',
     width: '100%',
@@ -173,8 +165,8 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 10,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.72)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.72)',
     letterSpacing: 0.8,
     marginBottom: 8,
     marginLeft: 9,
@@ -188,7 +180,7 @@ const styles = StyleSheet.create({
     height: 54,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: 'rgba(60,60,67,0.55)',
+    borderColor: 'rgba(0, 0, 0, 0.55)',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 14,
@@ -212,23 +204,23 @@ const styles = StyleSheet.create({
     width: 13,
     height: 13,
     borderWidth: 1.5,
-    borderColor: 'rgba(60,60,67,0.55)',
+    borderColor: 'rgba(0, 0, 0, 0.55)',
     borderRadius: 2,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
   },
-  checkboxOn: { backgroundColor: '#f2f2f7' },
+  checkboxOn: { backgroundColor: '#ffffff' },
   rememberLabel: {
     fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.65)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.65)',
     lineHeight: 20,
   },
   forgotLink: {
     fontSize: 12,
-    fontWeight: '500',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 20,
   },
   bottomBlock: {
@@ -243,6 +235,6 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 6,
   },
-  footerMuted: { fontSize: 14, fontWeight: '500', color: 'rgba(26,26,26,0.96)', lineHeight: 23 },
-  footerBold: { fontSize: 14, fontWeight: '500', color: '#1c1c1e', lineHeight: 23 },
+  footerMuted: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: 'rgba(26,26,26,0.96)', lineHeight: 23 },
+  footerBold: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: '#000000', lineHeight: 23 },
 });

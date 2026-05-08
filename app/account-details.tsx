@@ -2,18 +2,9 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -28,11 +19,11 @@ const LABEL_FIELD_GAP = 8;
 const AFTER_INTRO = 20;
 const FIELD_MIN_H = 54;
 const BOX_R = 8;
-const STROKE = 'rgba(60,60,67,0.45)';
+const STROKE = 'rgba(0, 0, 0, 0.45)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
-const MUTED = 'rgba(60,60,67,0.55)';
-const SEP = 'rgba(60,60,67,0.12)';
+const MUTED = 'rgba(0, 0, 0, 0.55)';
+const SEP = 'rgba(0, 0, 0, 0.12)';
 type GstChoice = '' | 'Yes' | 'No';
 
 function DashedFrame({
@@ -111,7 +102,7 @@ export default function AccountDetailsScreen() {
         keyboardVerticalOffset={insets.top}>
         <View style={styles.navBar}>
           <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-            <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
           </Pressable>
           <View style={styles.navCenter}>
             <Text style={styles.navTitle}>Account details</Text>
@@ -137,7 +128,7 @@ export default function AccountDetailsScreen() {
                 onChangeText={setAccountHolder}
                 style={styles.input}
                 placeholder="Full legal name"
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
                 autoCapitalize="words"
                 autoCorrect={false}
               />
@@ -152,7 +143,7 @@ export default function AccountDetailsScreen() {
                 onChangeText={setBsb}
                 style={styles.input}
                 placeholder="000-000"
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
                 keyboardType="number-pad"
                 maxLength={10}
               />
@@ -167,7 +158,7 @@ export default function AccountDetailsScreen() {
                 onChangeText={setAccountNumber}
                 style={styles.input}
                 placeholder="Account number"
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
                 keyboardType="number-pad"
                 secureTextEntry
               />
@@ -191,7 +182,7 @@ export default function AccountDetailsScreen() {
                 onChangeText={setAbn}
                 style={styles.input}
                 placeholder="XX XXX XXX XXX"
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
                 keyboardType="numbers-and-punctuation"
               />
             </DashedInputBox>
@@ -209,7 +200,7 @@ export default function AccountDetailsScreen() {
                 <Text style={[styles.selectValue, !gstRegistered && styles.selectPlaceholder]}>
                   {gstRegistered || 'Yes or No'}
                 </Text>
-                <FontAwesome name="chevron-down" size={14} color="rgba(60,60,67,0.45)" />
+                <FontAwesome name="chevron-down" size={14} color="rgba(0, 0, 0, 0.45)" />
               </Pressable>
             </DashedInputBox>
           </View>
@@ -274,8 +265,8 @@ const styles = StyleSheet.create({
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 27,
   },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
@@ -330,14 +321,14 @@ const styles = StyleSheet.create({
   cta: {
     height: 48,
     borderRadius: BOX_R,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 8,
   },
   ctaText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.35,
     textTransform: 'uppercase',
@@ -362,7 +353,7 @@ const styles = StyleSheet.create({
     paddingVertical: Platform.select({ ios: 12, default: 10 }),
   },
   selectPlaceholder: {
-    color: 'rgba(60,60,67,0.45)',
+    color: 'rgba(0, 0, 0, 0.45)',
   },
   modalRoot: {
     flex: 1,
@@ -386,7 +377,7 @@ const styles = StyleSheet.create({
   },
   modalSheetTitle: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: MUTED,
     textTransform: 'uppercase',
     letterSpacing: 0.25,
@@ -413,7 +404,7 @@ const styles = StyleSheet.create({
   },
   modalCancelText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: MUTED,
   },
 });

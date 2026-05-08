@@ -1,14 +1,8 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import {
-  Image,
-  ImageBackground,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Image, ImageBackground, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
@@ -123,8 +117,8 @@ const styles = StyleSheet.create({
   headlineMuted: {
     fontSize: 30,
     lineHeight: 36,
-    fontWeight: '500',
-    color: 'rgba(60, 60, 67, 0.55)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
     textAlign: 'center',
     width: 340,
   },
@@ -140,7 +134,7 @@ const styles = StyleSheet.create({
   tagline: {
     fontSize: 14,
     lineHeight: 20,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: 'rgba(107, 107, 115, 0.85)',
     textAlign: 'center',
     width: 352,
@@ -161,12 +155,12 @@ const styles = StyleSheet.create({
   },
   footerDark: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
   },
   footerMuted: {
     fontSize: 14,
-    fontWeight: '500',
-    color: 'rgba(60, 60, 67, 0.55)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
   },
 });

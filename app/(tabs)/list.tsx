@@ -1,19 +1,21 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { type Href, useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useTabScreenBottomPad } from '@/lib/useTabScreenBottomPad';
 
 import { ManageListingSheet } from '@/components/ManageListingSheet';
 
-const HERO = require('@/assets/images/welcome-bg.jpg');
+import { DEMO_MANAGE_LISTING_HEADER, DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
+import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
 
 /** Dashed card shell (same as listing flow) — kept local so this tab never imports `add/_shared`. */
 const dashedShell = {
   borderWidth: 1.5,
-  borderColor: 'rgba(60,60,67,0.55)',
+  borderColor: 'rgba(0, 0, 0, 0.55)',
   borderStyle: 'dashed' as const,
   backgroundColor: '#fff',
 };
@@ -25,8 +27,8 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: 20 },
   pageTitle: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: -0.6,
     marginBottom: 20,
   },
@@ -36,18 +38,18 @@ const styles = StyleSheet.create({
     marginBottom: 22,
     backgroundColor: '#fff',
   },
-  buyerTitle: { fontSize: 17, fontWeight: '700', color: '#1c1c1e', marginBottom: 10 },
-  buyerBody: { fontSize: 14, fontWeight: '500', color: 'rgba(60,60,67,0.55)', lineHeight: 21, marginBottom: 18 },
+  buyerTitle: { fontSize: 17, fontFamily: 'Satoshi-Medium', color: '#000000', marginBottom: 10 },
+  buyerBody: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.55)', lineHeight: 21, marginBottom: 18 },
   buyerCta: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: 'center',
   },
-  buyerCtaText: { color: '#fff', fontSize: 14, fontWeight: '600' },
+  buyerCtaText: { color: '#fff', fontSize: 14, fontFamily: 'Satoshi-Medium' },
   segment: {
     flexDirection: 'row',
-    backgroundColor: '#ebe8e2',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     borderRadius: 14,
     padding: 4,
     marginBottom: 20,
@@ -68,8 +70,8 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
-  segLabel: { fontSize: 12, fontWeight: '600', color: 'rgba(60,60,67,0.45)', textAlign: 'center' },
-  segLabelOn: { color: '#1c1c1e' },
+  segLabel: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', textAlign: 'center' },
+  segLabelOn: { color: '#000000' },
   listingCard: {
     borderRadius: 16,
     overflow: 'hidden',
@@ -81,29 +83,29 @@ const styles = StyleSheet.create({
     elevation: 4,
     marginBottom: 16,
   },
-  imgWrap: { height: 200, position: 'relative', backgroundColor: '#e8e4df' },
+  imgWrap: { height: 200, position: 'relative', backgroundColor: 'rgba(0,0,0,0.06)' },
   img: { width: '100%', height: '100%' },
   badgeLive: {
     position: 'absolute',
     top: 12,
     left: 12,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,
   },
-  badgeLiveText: { fontSize: 10, fontWeight: '700', color: '#fff', letterSpacing: 0.4 },
+  badgeLiveText: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: '#fff', letterSpacing: 0.4 },
   badgeAuth: {
     position: 'absolute',
     top: 12,
     right: 12,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
     maxWidth: '58%',
   },
-  badgeAuthText: { fontSize: 9, fontWeight: '600', color: '#fff', letterSpacing: 0.2, lineHeight: 13 },
+  badgeAuthText: { fontSize: 9, fontFamily: 'Satoshi-Medium', color: '#fff', letterSpacing: 0.2, lineHeight: 13 },
   specRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -112,23 +114,23 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   specItem: { flex: 1, alignItems: 'center', gap: 6 },
-  specText: { fontSize: 11, fontWeight: '600', color: '#1c1c1e', textAlign: 'center' },
-  propTitle: { fontSize: 18, fontWeight: '700', color: '#1c1c1e', paddingHorizontal: 16, marginTop: 18 },
-  propPrice: { fontSize: 16, fontWeight: '500', color: '#1c1c1e', paddingHorizontal: 16, marginTop: 6 },
+  specText: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: '#000000', textAlign: 'center' },
+  propTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000', paddingHorizontal: 16, marginTop: 18 },
+  propPrice: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000', paddingHorizontal: 16, marginTop: 6 },
   manageBtn: {
     marginHorizontal: 16,
     marginTop: 18,
     marginBottom: 16,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     height: 48,
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  manageBtnText: { color: '#fff', fontSize: 14, fontWeight: '600', letterSpacing: 0.35 },
+  manageBtnText: { color: '#fff', fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.35 },
   emptyTab: { paddingVertical: 40, alignItems: 'center' },
-  emptyTitle: { fontSize: 17, fontWeight: '700', color: '#1c1c1e', marginBottom: 8 },
-  emptySub: { fontSize: 14, color: 'rgba(60,60,67,0.45)' },
+  emptyTitle: { fontSize: 17, fontFamily: 'Satoshi-Medium', color: '#000000', marginBottom: 8 },
+  emptySub: { fontSize: 14, color: 'rgba(0, 0, 0, 0.45)' },
 });
 
 /**
@@ -146,7 +148,7 @@ export default function ManageListingsScreen() {
       <ManageListingSheet
         visible={manageSheetOpen}
         onClose={() => setManageSheetOpen(false)}
-        title="12 Denham St, Hawthorn"
+        title={DEMO_MANAGE_LISTING_HEADER}
         subtitle="$2,450,000 • Live • Authority expires in 14 days • SOI 20 Apr"
         onMenuItemPress={(item) => {
           setManageSheetOpen(false);
@@ -197,7 +199,7 @@ export default function ManageListingsScreen() {
         {activeSegment === 'live' ? (
           <View style={styles.listingCard}>
             <View style={styles.imgWrap}>
-              <Image source={HERO} style={styles.img} resizeMode="cover" />
+              <Image source={PROPERTY_IMG_1} style={styles.img} resizeMode="cover" />
               <View style={styles.badgeLive}>
                 <Text style={styles.badgeLiveText}>LIVE</Text>
               </View>
@@ -207,19 +209,19 @@ export default function ManageListingsScreen() {
             </View>
             <View style={styles.specRow}>
               <View style={styles.specItem}>
-                <MaterialCommunityIcons name="bed" size={20} color="#1c1c1e" />
+                <MaterialCommunityIcons name="bed" size={20} color="#000000" />
                 <Text style={styles.specText}>3 Bedrooms</Text>
               </View>
               <View style={styles.specItem}>
-                <MaterialCommunityIcons name="bathtub" size={20} color="#1c1c1e" />
+                <MaterialCommunityIcons name="bathtub" size={20} color="#000000" />
                 <Text style={styles.specText}>3 Bathrooms</Text>
               </View>
               <View style={styles.specItem}>
-                <MaterialCommunityIcons name="car" size={20} color="#1c1c1e" />
+                <MaterialCommunityIcons name="car" size={20} color="#000000" />
                 <Text style={styles.specText}>2 Car Spaces</Text>
               </View>
             </View>
-            <Text style={styles.propTitle}>Hawthorn City Center</Text>
+            <Text style={styles.propTitle}>{DEMO_PRIMARY_LISTING_TITLE}</Text>
             <Text style={styles.propPrice}>$21,000,000</Text>
             <Pressable
               style={styles.manageBtn}

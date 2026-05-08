@@ -1,7 +1,10 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
 
 /**
  * Archive listing confirmation.
@@ -14,7 +17,7 @@ const ACCENT = '#C07A50';
 
 const DASH = {
   borderWidth: 1.5,
-  borderColor: 'rgba(60,60,67,0.45)',
+  borderColor: 'rgba(0, 0, 0, 0.45)',
   borderStyle: 'dashed' as const,
   backgroundColor: '#fff',
 };
@@ -37,7 +40,7 @@ export default function ArchiveListingScreen() {
         <Text style={styles.title}>Archive listing</Text>
 
         <Text style={styles.lead}>
-          Archiving hides <Text style={styles.leadBold}>Hawthorn City Center</Text> from active search.
+          Archiving hides <Text style={styles.leadBold}>{DEMO_PRIMARY_LISTING_TITLE}</Text> from active search.
           Buyers will no longer see it. You can restore it later from archived listings.
         </Text>
 
@@ -54,7 +57,7 @@ export default function ArchiveListingScreen() {
 
         <View style={[styles.infoCard, DASH]}>
           <View style={styles.infoHeader}>
-            <MaterialCommunityIcons name="archive-outline" size={22} color="rgba(60,60,67,0.45)" />
+            <MaterialCommunityIcons name="archive-outline" size={22} color="rgba(0, 0, 0, 0.45)" />
             <Text style={styles.infoTitle}>What happens when you archive</Text>
           </View>
           {BULLETS.map((line, i) => (
@@ -90,19 +93,19 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: H_PAD, paddingTop: 4 },
   title: {
     fontSize: 28,
-    fontWeight: '600',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: -0.6,
     marginBottom: 14,
   },
   lead: {
     fontSize: 15,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     lineHeight: 22,
     marginBottom: 20,
   },
-  leadBold: { fontWeight: '700', color: '#1c1c1e' },
+  leadBold: { fontFamily: 'Satoshi-Medium', color: '#000000' },
   infoCard: {
     borderRadius: FIELD_RADIUS,
     padding: 16,
@@ -114,11 +117,11 @@ const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 10,
   },
-  infoTitle: { fontSize: 16, fontWeight: '600', color: '#1c1c1e', flex: 1 },
+  infoTitle: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000', flex: 1 },
   infoBody: {
     fontSize: 14,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     lineHeight: 21,
     paddingLeft: 32,
   },
@@ -133,7 +136,7 @@ const styles = StyleSheet.create({
   bulletDot: {
     fontSize: 14,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.45)',
+    color: 'rgba(0, 0, 0, 0.45)',
     lineHeight: 21,
     marginTop: 0,
   },
@@ -141,11 +144,11 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     lineHeight: 21,
   },
   archiveBtn: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     height: 52,
     borderRadius: 12,
     alignItems: 'center',
@@ -155,9 +158,9 @@ const styles = StyleSheet.create({
   archiveBtnText: {
     color: '#fff',
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     letterSpacing: 0.45,
   },
   cancelWrap: { alignItems: 'center', marginTop: 16, paddingVertical: 8 },
-  cancel: { fontSize: 15, fontWeight: '500', color: 'rgba(60,60,67,0.55)' },
+  cancel: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.55)' },
 });

@@ -1,12 +1,14 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { useRouter } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-/** [Figma 1053:1981](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-1981) */
+import { borderHairline, borderSubtle, Fonts, ink, inkMuted, palette } from '@/constants/theme';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
-const PAD = 32;
+/** [Figma 1053:1981](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-1981) */
 
 type FilterKey = 'all' | 'week' | 'month' | 'expired';
 
@@ -22,32 +24,32 @@ type Listing = {
 const LISTINGS: Listing[] = [
   {
     id: '1',
-    title: 'Brighton Terrace',
-    address: '12 Park St, Brighton',
+    title: 'Moonee Ponds Villa',
+    address: '45 Buckley St, Moonee Ponds',
     daysLeft: '6D LEFT',
     soiLine: 'SOI ATTACHED',
     filter: 'week',
   },
   {
     id: '2',
-    title: 'South Yarra Penthouse',
-    address: '5 Toorak Rd, South Yarra',
+    title: 'Elsternwick Corner',
+    address: '102 Glenhuntly Rd, Elsternwick',
     daysLeft: '11D LEFT',
     soiLine: 'SOI MISSING — ACTION NEEDED',
     filter: 'week',
   },
   {
     id: '3',
-    title: 'Kew Heritage',
-    address: '14 Studley Park Rd, Kew',
+    title: 'Williamstown Period',
+    address: '17 Ferguson St, Williamstown',
     daysLeft: '16D LEFT',
     soiLine: 'SOI ATTACHED',
     filter: 'month',
   },
   {
     id: '4',
-    title: 'St Kilda Quarter',
-    address: '88 Fitzroy St, St Kilda',
+    title: 'Northcote Corner Block',
+    address: '72 Arthurton Rd, Northcote',
     daysLeft: '24D LEFT',
     soiLine: 'SOI ATTACHED',
     filter: 'month',
@@ -120,6 +122,7 @@ function AuthorityListCard({
 export default function AuthorityExpiringScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const hPad = useScreenHorizontalPadding();
   const [filter, setFilter] = useState<FilterKey>('all');
 
   const filtered = useMemo(() => {
@@ -131,75 +134,68 @@ export default function AuthorityExpiringScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-          style={styles.headerSide}>
-          <FontAwesome name="chevron-left" size={20} color="#1c1c1e" />
-        </Pressable>
-        <Text style={styles.headerTitle}>Authority expiring</Text>
-        <View style={styles.headerSide} />
+      <View style={[styles.headerChrome, hPad]}>
+        <ScreenHeader title="Authority expiring" onBack={() => router.back()} />
       </View>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 28 }]}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterStrip}>
-          <FilterChip label="All" active={filter === 'all'} onPress={() => setFilter('all')} />
-          <FilterChip label="Week" active={filter === 'week'} onPress={() => setFilter('week')} />
-          <FilterChip label="Month" active={filter === 'month'} onPress={() => setFilter('month')} />
-          <FilterChip label="Expired" active={filter === 'expired'} onPress={() => setFilter('expired')} />
-        </ScrollView>
-
-        <View style={styles.metaRow}>
-          <Text style={styles.metaCount}>
-            {count} listing{count === 1 ? '' : 's'} expiring
-          </Text>
-          <Text style={styles.metaSort}>SORT • SOONEST</Text>
+        stickyHeaderIndices={[0]}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 28 }}>
+        <View style={[styles.stickyFilters, hPad]}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterStrip}>
+            <FilterChip label="All" active={filter === 'all'} onPress={() => setFilter('all')} />
+            <FilterChip label="Week" active={filter === 'week'} onPress={() => setFilter('week')} />
+            <FilterChip label="Month" active={filter === 'month'} onPress={() => setFilter('month')} />
+            <FilterChip label="Expired" active={filter === 'expired'} onPress={() => setFilter('expired')} />
+          </ScrollView>
         </View>
 
-        {filtered.map((item) => (
-          <AuthorityListCard
-            key={item.id}
-            title={item.title}
-            address={item.address}
-            daysLeft={item.daysLeft}
-            soiLine={item.soiLine}
-          />
-        ))}
+        <View style={[styles.body, hPad]}>
+          <View style={styles.metaRow}>
+            <Text style={styles.metaCount}>
+              {count} listing{count === 1 ? '' : 's'} expiring
+            </Text>
+            <Text style={styles.metaSort}>SORT • SOONEST</Text>
+          </View>
+
+          {filtered.map((item) => (
+            <AuthorityListCard
+              key={item.id}
+              title={item.title}
+              address={item.address}
+              daysLeft={item.daysLeft}
+              soiLine={item.soiLine}
+            />
+          ))}
+        </View>
       </ScrollView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#fff' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 10,
+  screen: { flex: 1, backgroundColor: palette.white },
+  headerChrome: {
+    paddingBottom: 4,
   },
-  headerSide: { width: 40, alignItems: 'flex-start', justifyContent: 'center' },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 19,
-    fontWeight: '600',
-    color: '#0a0a0a',
+  stickyFilters: {
+    backgroundColor: palette.white,
+    paddingTop: 8,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: borderHairline,
   },
-  scroll: { paddingHorizontal: PAD },
+  body: {
+    paddingTop: 16,
+  },
   filterStrip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingBottom: 16,
   },
   chip: {
     height: 30,
@@ -208,25 +204,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chipOn: { backgroundColor: '#1c1c1e' },
-  chipOff: { backgroundColor: '#ededed' },
-  chipLabel: { fontSize: 13, fontWeight: '500', color: '#2e2e2e' },
-  chipLabelOn: { color: '#fff' },
+  chipOn: { backgroundColor: ink },
+  chipOff: {
+    backgroundColor: palette.white,
+    borderWidth: 1,
+    borderColor: borderHairline,
+  },
+  chipLabel: { fontSize: 13, fontFamily: Fonts.medium, color: inkMuted },
+  chipLabelOn: { color: palette.white },
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 18,
   },
-  metaCount: { fontSize: 15, fontWeight: '700', color: '#666', letterSpacing: 0.5 },
-  metaSort: { fontSize: 12, fontWeight: '700', color: '#737373', letterSpacing: 0.6 },
+  metaCount: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: 'rgba(0,0,0,0.55)', letterSpacing: 0.5 },
+  metaSort: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0,0,0,0.55)', letterSpacing: 0.6 },
   card: {
     minHeight: 144,
     backgroundColor: '#fff',
     borderRadius: 14,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: 'rgba(60,60,67,0.55)',
+    borderColor: borderSubtle,
     paddingHorizontal: 16,
     paddingTop: 15,
     paddingBottom: 14,
@@ -241,8 +241,8 @@ const styles = StyleSheet.create({
   cardTitle: {
     flex: 1,
     fontSize: 17,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 24,
   },
   daysPill: {
@@ -250,13 +250,13 @@ const styles = StyleSheet.create({
     height: 24,
     paddingHorizontal: 8,
     borderRadius: 4,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
   daysPillText: {
     fontSize: 10,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.45,
     textTransform: 'uppercase',
@@ -264,15 +264,14 @@ const styles = StyleSheet.create({
   cardAddr: {
     marginTop: 8,
     fontSize: 13,
-    fontWeight: '400',
-    color: '#808080',
+    color: inkMuted,
     lineHeight: 19,
   },
   cardSoi: {
     marginTop: 10,
     fontSize: 11,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.55)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
     letterSpacing: 0.25,
     textTransform: 'uppercase',
   },
@@ -291,8 +290,8 @@ const styles = StyleSheet.create({
   },
   actionStrong: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     lineHeight: 16,
@@ -305,8 +304,8 @@ const styles = StyleSheet.create({
   },
   actionMuted: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#666',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0,0,0,0.55)',
     letterSpacing: 0.5,
     textTransform: 'uppercase',
     lineHeight: 16,

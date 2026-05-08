@@ -1,15 +1,8 @@
 import type { ReactNode } from 'react';
-import {
-  Platform,
-  Pressable,
-  type PressableProps,
-  StyleSheet,
-  Text,
-  type TextStyle,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Platform, Pressable, type PressableProps, StyleSheet, type TextStyle, View, type StyleProp, type ViewStyle } from 'react-native';
+
+import { Fonts, ink, palette } from '@/constants/theme';
 
 /**
  * Primary CTAs — height 48, **12px corners** everywhere (rectangular, not stadium pill).
@@ -36,8 +29,8 @@ export type AppButtonProps = Omit<PressableProps, 'children' | 'style'> & {
 };
 
 /**
- * - **filled**: solid #1c1c1e, white label (Login, Continue, CONTACT SELLER, …)
- * - **outlined**: white, solid 1px #1c1c1e border (Back to Login, DOWNLOAD, …)
+ * - **filled**: solid #000000, white label (Login, Continue, CONTACT SELLER, …)
+ * - **outlined**: white, solid 1px #000000 border (Back to Login, DOWNLOAD, …)
  * - **dashed**: Welcome **Sign Up** only — white, **dashed** border, soft shadow; same 12px radius as outlined.
  */
 export function AppButton({
@@ -104,7 +97,7 @@ const styles = StyleSheet.create({
   },
   dashedShadowHost: {
     borderRadius: APP_BUTTON_RADIUS,
-    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    backgroundColor: palette.white,
     ...Platform.select({
       ios: {
         shadowColor: '#000',
@@ -126,16 +119,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   filled: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: ink,
   },
   outlined: {
-    backgroundColor: '#fff',
+    backgroundColor: palette.white,
     borderWidth: 1,
     borderStyle: 'solid',
-    borderColor: '#1c1c1e',
+    borderColor: ink,
   },
   dashedFace: {
-    backgroundColor: '#fff',
+    backgroundColor: palette.white,
     borderWidth: 1.5,
     borderStyle: 'dashed',
     borderColor: 'rgba(0, 0, 0, 0.45)',
@@ -143,18 +136,16 @@ const styles = StyleSheet.create({
   textBase: {
     fontSize: 14,
     letterSpacing: -0.14,
+    fontFamily: Fonts.medium,
   },
   textFilled: {
-    fontWeight: '500',
-    color: '#fff',
+    color: palette.white,
   },
   textOutlined: {
-    fontWeight: '500',
-    color: '#1c1c1e',
+    color: ink,
   },
   textDashed: {
-    fontWeight: '500',
-    color: '#454545',
+    color: ink,
   },
   pressed: {
     opacity: 0.9,

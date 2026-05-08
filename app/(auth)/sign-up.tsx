@@ -1,17 +1,9 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Link, useRouter } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import {
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
@@ -73,7 +65,7 @@ function FormField({
           autoCorrect={false}
           autoComplete={autoComplete}
           placeholder={placeholder}
-          placeholderTextColor="rgba(60,60,67,0.45)"
+          placeholderTextColor="rgba(0, 0, 0, 0.45)"
         />
         {right}
       </View>
@@ -110,7 +102,7 @@ function SelectField<T extends string>({
         <Text style={[styles.selectValue, !value && styles.selectPlaceholder]} numberOfLines={1}>
           {display || placeholder}
         </Text>
-        <FontAwesome name="chevron-down" size={14} color="#3c3c43" />
+        <FontAwesome name="chevron-down" size={14} color="#000000" />
       </Pressable>
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <View style={styles.selectModalRoot}>
@@ -269,7 +261,7 @@ export default function SignUpScreen() {
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel="Go back">
-            <FontAwesome name="chevron-left" size={16} color="#1c1c1e" />
+            <FontAwesome name="chevron-left" size={16} color="#000000" />
             <Text style={styles.backText}>Back</Text>
           </Pressable>
         ) : null}
@@ -315,7 +307,7 @@ export default function SignUpScreen() {
               autoComplete="password-new"
               right={
                 <Pressable style={styles.eyeBtn} onPress={() => setShowPassword((s) => !s)} hitSlop={8}>
-                  <FontAwesome name={showPassword ? 'eye' : 'eye-slash'} size={18} color="#3c3c43" />
+                  <FontAwesome name={showPassword ? 'eye' : 'eye-slash'} size={18} color="#000000" />
                 </Pressable>
               }
             />
@@ -326,7 +318,7 @@ export default function SignUpScreen() {
                 style={[styles.checkbox, agreeLegal && styles.checkboxOn]}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: agreeLegal }}>
-                {agreeLegal ? <FontAwesome name="check" size={11} color="#1c1c1e" /> : null}
+                {agreeLegal ? <FontAwesome name="check" size={11} color="#000000" /> : null}
               </Pressable>
               <Text style={styles.checkboxText}>
                 I agree to the{' '}
@@ -346,7 +338,7 @@ export default function SignUpScreen() {
                 style={[styles.checkbox, agreeReferral && styles.checkboxOn]}
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: agreeReferral }}>
-                {agreeReferral ? <FontAwesome name="check" size={11} color="#1c1c1e" /> : null}
+                {agreeReferral ? <FontAwesome name="check" size={11} color="#000000" /> : null}
               </Pressable>
               <Text style={styles.checkboxText}>
                 I have read and accepted the{' '}
@@ -444,7 +436,7 @@ export default function SignUpScreen() {
 
         {step === 4 ? (
           <>
-            <FontAwesome name="hourglass-o" size={36} color="#1c1c1e" style={styles.verifyIcon} />
+            <FontAwesome name="hourglass-o" size={36} color="#000000" style={styles.verifyIcon} />
             <Text style={styles.verifyLead}>
               OMM is exclusive to verified agents. We will notify you when your application has been approved and
               access is enabled.
@@ -455,7 +447,7 @@ export default function SignUpScreen() {
               <TrackerRow label="Account approved" status="pending" />
             </View>
             <View style={styles.timelineRow}>
-              <FontAwesome name="clock-o" size={16} color="rgba(60,60,67,0.75)" />
+              <FontAwesome name="clock-o" size={16} color="rgba(0, 0, 0, 0.75)" />
               <Text style={styles.timelineText}>Typically 24–48 business hours.</Text>
             </View>
             <AppButton
@@ -538,12 +530,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     alignSelf: 'flex-start',
   },
-  backText: { fontSize: 15, fontWeight: '600', color: '#1c1c1e' },
-  step: { fontSize: 14, fontWeight: '500', color: 'rgba(26,26,26,0.96)', marginBottom: 6 },
-  screenTitle: { fontSize: 24, fontWeight: '600', color: 'rgba(26,26,26,0.96)', marginBottom: 20, lineHeight: 30 },
+  backText: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  step: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: 'rgba(26,26,26,0.96)', marginBottom: 6 },
+  screenTitle: { fontSize: 24, fontFamily: 'Satoshi-Medium', color: 'rgba(26,26,26,0.96)', marginBottom: 20, lineHeight: 30 },
   sectionLabel: {
     fontSize: 10,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#636366',
     letterSpacing: 1.2,
     marginTop: 4,
@@ -552,8 +544,8 @@ const styles = StyleSheet.create({
   },
   helper: {
     fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.75)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.75)',
     marginTop: -10,
     marginBottom: 18,
     marginLeft: 2,
@@ -563,7 +555,7 @@ const styles = StyleSheet.create({
   fieldBlock: { marginBottom: 18 },
   fieldLabel: {
     fontSize: 10,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#636366',
     letterSpacing: 0.1,
     marginBottom: 8,
@@ -575,12 +567,12 @@ const styles = StyleSheet.create({
     minHeight: 54,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: 'rgba(60,60,67,0.55)',
+    borderColor: 'rgba(0, 0, 0, 0.55)',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: 'rgba(26,26,26,0.96)',
     backgroundColor: 'rgba(255,255,255,0.96)',
   },
@@ -589,7 +581,7 @@ const styles = StyleSheet.create({
     minHeight: 54,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: 'rgba(60,60,67,0.55)',
+    borderColor: 'rgba(0, 0, 0, 0.55)',
     borderRadius: 14,
     paddingHorizontal: 14,
     paddingVertical: 14,
@@ -599,8 +591,8 @@ const styles = StyleSheet.create({
     gap: 8,
     backgroundColor: 'rgba(255,255,255,0.96)',
   },
-  selectValue: { flex: 1, fontSize: 14, fontWeight: '500', color: 'rgba(26,26,26,0.96)' },
-  selectPlaceholder: { color: 'rgba(60,60,67,0.45)' },
+  selectValue: { flex: 1, fontSize: 14, fontFamily: 'Satoshi-Medium', color: 'rgba(26,26,26,0.96)' },
+  selectPlaceholder: { color: 'rgba(0, 0, 0, 0.45)' },
   selectModalRoot: {
     flex: 1,
     justifyContent: 'flex-end',
@@ -622,9 +614,9 @@ const styles = StyleSheet.create({
     paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(60,60,67,0.2)',
+    borderBottomColor: 'rgba(0, 0, 0, 0.2)',
   },
-  selectOptionText: { fontSize: 16, fontWeight: '500', color: '#1c1c1e' },
+  selectOptionText: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000' },
   eyeBtn: { position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' },
   checkboxRow: {
     flexDirection: 'row',
@@ -639,20 +631,20 @@ const styles = StyleSheet.create({
     height: 13,
     marginTop: 4,
     borderWidth: 1.5,
-    borderColor: 'rgba(60,60,67,0.55)',
+    borderColor: 'rgba(0, 0, 0, 0.55)',
     borderRadius: 3,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
   },
-  checkboxOn: { backgroundColor: '#f2f2f7' },
-  checkboxText: { flex: 1, fontSize: 12, fontWeight: '500', color: 'rgba(26,26,26,0.96)', lineHeight: 20 },
-  link: { textDecorationLine: 'underline', fontWeight: '500' },
+  checkboxOn: { backgroundColor: '#ffffff' },
+  checkboxText: { flex: 1, fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(26,26,26,0.96)', lineHeight: 20 },
+  link: { textDecorationLine: 'underline', fontFamily: 'Satoshi-Medium' },
   uploadZone: {
     minHeight: 120,
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: 'rgba(60,60,67,0.55)',
+    borderColor: 'rgba(0, 0, 0, 0.55)',
     borderRadius: 14,
     padding: 16,
     alignItems: 'center',
@@ -664,16 +656,16 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  uploadFileName: { fontSize: 13, fontWeight: '600', color: '#3a3a3c', textAlign: 'center' },
-  uploadMeta: { fontSize: 10, fontWeight: '600', color: 'rgba(60,60,67,0.65)', letterSpacing: 0.4 },
+  uploadFileName: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: '#3a3a3c', textAlign: 'center' },
+  uploadMeta: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.65)', letterSpacing: 0.4 },
   processNote: {
     fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.85)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.85)',
     textAlign: 'center',
     marginTop: -6,
     marginBottom: 8,
@@ -688,13 +680,13 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   footerMuted: { fontSize: 14, color: 'rgba(26,26,26,0.88)' },
-  footerBold: { fontSize: 14, fontWeight: '700', color: '#1c1c1e' },
+  footerBold: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: '#000000' },
   supportRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 14, flexWrap: 'wrap' },
   supportMuted: { fontSize: 13, color: 'rgba(26,26,26,0.96)' },
   verifyIcon: { alignSelf: 'center', marginTop: 8, marginBottom: 20 },
   verifyLead: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: 'rgba(26,26,26,0.88)',
     lineHeight: 22,
     textAlign: 'center',
@@ -703,7 +695,7 @@ const styles = StyleSheet.create({
   trackerBox: {
     borderWidth: 1.5,
     borderStyle: 'dashed',
-    borderColor: 'rgba(60,60,67,0.55)',
+    borderColor: 'rgba(0, 0, 0, 0.55)',
     borderRadius: 14,
     paddingVertical: 18,
     paddingHorizontal: 16,
@@ -715,14 +707,14 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
   },
   trackerDotRing: {
     width: 12,
     height: 12,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: '#1c1c1e',
+    borderColor: '#000000',
     backgroundColor: '#fff',
   },
   trackerDotMuted: {
@@ -734,11 +726,11 @@ const styles = StyleSheet.create({
   trackerLabel: {
     flex: 1,
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 20,
   },
-  trackerLabelMuted: { color: 'rgba(60,60,67,0.55)', fontWeight: '500' },
+  trackerLabelMuted: { color: 'rgba(0, 0, 0, 0.55)', fontFamily: 'Satoshi-Medium' },
   timelineRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -748,8 +740,8 @@ const styles = StyleSheet.create({
   },
   timelineText: {
     fontSize: 13,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.85)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.85)',
   },
   signOutBtn: {
     alignSelf: 'center',
@@ -758,8 +750,8 @@ const styles = StyleSheet.create({
   },
   signOutText: {
     fontSize: 14,
-    fontWeight: '600',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     textDecorationLine: 'underline',
   },
 });

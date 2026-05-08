@@ -1,6 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
@@ -8,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  * [Figma 1053:6927](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-6927&t=gEfFuYKIwBHVUzXh-4)
  */
 
-const THUMB = require('@/assets/images/welcome-bg.jpg');
+import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
 
 const PAD = 20;
 
@@ -24,7 +25,7 @@ const BRIEFS: Row[] = [
     id: '1',
     title: 'Inner east family relocation',
     priceRange: '$1.80m – $2.60m',
-    meta: 'Hawthorn, Camberwell, Kew · Period home · 4 bed · schools',
+    meta: 'Richmond, Abbotsford, Clifton Hill · Period home · 4 bed · schools',
   },
   {
     id: '2',
@@ -48,7 +49,7 @@ const BRIEFS: Row[] = [
     id: '5',
     title: 'Single-level prestige',
     priceRange: '$5.0m – $7.0m',
-    meta: 'Toorak · off-market only · north-facing garden',
+    meta: 'Brighton East · off-market only · north-facing garden',
   },
   {
     id: '6',
@@ -71,7 +72,7 @@ export default function PotentialBuyersScreen() {
           accessibilityRole="button"
           accessibilityLabel="Back"
           style={styles.backBtn}>
-          <FontAwesome name="chevron-left" size={20} color="#1c1c1e" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <View style={styles.headerCenter}>
           <Text style={styles.title}>Potential buyers</Text>
@@ -104,7 +105,7 @@ export default function PotentialBuyersScreen() {
                 router.push({ pathname: '/buyer-lead-detail', params: { id: m.id } } as Href)
               }
               accessibilityRole="button">
-              <Image source={THUMB} style={styles.thumb} resizeMode="cover" />
+              <Image source={PROPERTY_IMG_1} style={styles.thumb} resizeMode="cover" />
               <View style={styles.rowBody}>
                 <Text style={styles.rowTitle}>{m.title}</Text>
                 <Text style={styles.rowPrice}>{m.priceRange}</Text>
@@ -130,13 +131,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: PAD,
     paddingVertical: 12,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(60,60,67,0.12)',
+    borderBottomColor: 'rgba(0, 0, 0, 0.12)',
   },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
   headerCenter: { flex: 1, alignItems: 'center' },
   headerEnd: { width: 40 },
-  title: { fontSize: 18, fontWeight: '700', color: '#1c1c1e' },
-  subtitle: { fontSize: 13, fontWeight: '500', color: 'rgba(60,60,67,0.45)', marginTop: 4 },
+  title: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  subtitle: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', marginTop: 4 },
   scroll: { paddingHorizontal: PAD, paddingTop: 16 },
   banner: {
     backgroundColor: '#f3efe8',
@@ -144,22 +145,22 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 20,
   },
-  bannerTitle: { fontSize: 15, fontWeight: '700', color: '#1c1c1e', marginBottom: 8 },
-  bannerBody: { fontSize: 13, fontWeight: '400', color: 'rgba(60,60,67,0.55)', lineHeight: 19 },
+  bannerTitle: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000', marginBottom: 8 },
+  bannerBody: { fontSize: 13, fontWeight: '400', color: 'rgba(0, 0, 0, 0.55)', lineHeight: 19 },
   sortRow: { alignItems: 'flex-end', marginBottom: 12 },
-  sortText: { fontSize: 12, fontWeight: '600', color: 'rgba(60,60,67,0.45)', letterSpacing: 0.2 },
+  sortText: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', letterSpacing: 0.2 },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: 14, paddingVertical: 14 },
-  thumb: { width: 72, height: 72, borderRadius: 10, backgroundColor: '#e8e4df' },
+  thumb: { width: 72, height: 72, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.06)' },
   rowBody: { flex: 1, minWidth: 0 },
-  rowTitle: { fontSize: 16, fontWeight: '700', color: '#1c1c1e', marginBottom: 4 },
-  rowPrice: { fontSize: 15, fontWeight: '700', color: '#1c1c1e', marginBottom: 6 },
-  rowMeta: { fontSize: 12, fontWeight: '500', color: 'rgba(60,60,67,0.5)', lineHeight: 17 },
-  divider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(60,60,67,0.12)' },
+  rowTitle: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000', marginBottom: 4 },
+  rowPrice: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000', marginBottom: 6 },
+  rowMeta: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.5)', lineHeight: 17 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(0, 0, 0, 0.12)' },
   endLabel: {
     textAlign: 'center',
     fontSize: 12,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.35)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.35)',
     marginTop: 28,
     marginBottom: 8,
   },

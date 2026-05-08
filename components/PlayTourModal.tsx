@@ -1,8 +1,11 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { BlurView } from 'expo-blur';
-import { Modal, Platform, Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Modal, Platform, Pressable, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
 
 type Props = {
   visible: boolean;
@@ -14,7 +17,7 @@ type Props = {
  * Agent walk-through — **centered card** on blurred listing (not full-screen).
  * [Figma flow 1053:8028](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-8028)
  */
-export function PlayTourModal({ visible, onClose, title = 'Hawthorn City Center' }: Props) {
+export function PlayTourModal({ visible, onClose, title = DEMO_PRIMARY_LISTING_TITLE }: Props) {
   const insets = useSafeAreaInsets();
   const { width: winW, height: winH } = useWindowDimensions();
   const cardW = Math.min(winW - 40, 400);
@@ -72,7 +75,7 @@ export function PlayTourModal({ visible, onClose, title = 'Hawthorn City Center'
               </View>
               <Text style={styles.timer}>0:00 / 0:42</Text>
               <Pressable style={styles.bigPlay} accessibilityRole="button" accessibilityLabel="Play">
-                <FontAwesome name="play" size={28} color="#1c1c1e" style={{ marginLeft: 4 }} />
+                <FontAwesome name="play" size={28} color="#000000" style={{ marginLeft: 4 }} />
               </Pressable>
               <View style={styles.progressTrack}>
                 <View style={styles.progressKnob} />
@@ -101,7 +104,7 @@ export function PlayTourModal({ visible, onClose, title = 'Hawthorn City Center'
             <View style={styles.footer}>
               <Text style={styles.footerMeta}>● RECORDED 14 APR · AGENT</Text>
               <Pressable style={styles.savePill} accessibilityRole="button">
-                <FontAwesome name="download" size={12} color="#1c1c1e" />
+                <FontAwesome name="download" size={12} color="#000000" />
                 <Text style={styles.saveText}>SAVE</Text>
               </Pressable>
             </View>
@@ -139,8 +142,8 @@ const styles = StyleSheet.create({
     paddingBottom: 8,
   },
   titleBlock: { flex: 1, paddingRight: 12 },
-  headTitle: { fontSize: 17, fontWeight: '600', color: '#fff', marginBottom: 6 },
-  headSub: { fontSize: 12, fontWeight: '600', color: 'rgba(255,255,255,0.62)', letterSpacing: 0.5 },
+  headTitle: { fontSize: 17, fontFamily: 'Satoshi-Medium', color: '#fff', marginBottom: 6 },
+  headSub: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(255,255,255,0.62)', letterSpacing: 0.5 },
   closeBtn: {
     width: 40,
     height: 40,
@@ -168,13 +171,13 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     borderRadius: 6,
   },
-  walkBadgeText: { fontSize: 9, fontWeight: '700', color: '#fff', letterSpacing: 0.55 },
+  walkBadgeText: { fontSize: 9, fontFamily: 'Satoshi-Medium', color: '#fff', letterSpacing: 0.55 },
   timer: {
     position: 'absolute',
     top: 12,
     right: 12,
     fontSize: 12,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
   },
   bigPlay: {
@@ -237,7 +240,7 @@ const styles = StyleSheet.create({
   footerMeta: {
     flex: 1,
     fontSize: 10,
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
     color: 'rgba(255,255,255,0.55)',
     letterSpacing: 0.35,
   },
@@ -250,5 +253,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     borderRadius: 20,
   },
-  saveText: { fontSize: 12, fontWeight: '800', color: '#1c1c1e', letterSpacing: 0.4 },
+  saveText: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: '#000000', letterSpacing: 0.4 },
 });

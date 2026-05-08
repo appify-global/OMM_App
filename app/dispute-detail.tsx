@@ -2,7 +2,8 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Line, Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -17,10 +18,10 @@ import { getDisputeDetail } from '@/lib/disputes-mock';
 const H_PAD = 20;
 const BLOCK_GAP = 24;
 const LABEL_FIELD_GAP = 8;
-const STROKE = 'rgba(60,60,67,0.55)';
+const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
-const MUTED = 'rgba(60,60,67,0.55)';
+const MUTED = 'rgba(0, 0, 0, 0.55)';
 const CARD_R = 8;
 const THUMB = 60;
 const INFO_PAD = 20;
@@ -114,13 +115,13 @@ const badge = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: 'rgba(60,60,67,0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
   open: {
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
   },
   resolved: {
     borderRadius: 10,
@@ -128,11 +129,11 @@ const badge = StyleSheet.create({
     paddingVertical: 6,
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#e8e4df',
+    borderColor: 'rgba(0,0,0,0.06)',
   },
   textLight: {
     fontSize: 10,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.225,
     textTransform: 'uppercase',
@@ -140,7 +141,7 @@ const badge = StyleSheet.create({
   },
   textResolved: {
     fontSize: 10,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: MUTED,
     letterSpacing: 0.225,
     textTransform: 'uppercase',
@@ -226,7 +227,7 @@ export default function DisputeDetailScreen() {
       <View style={[styles.screen, { paddingTop: insets.top }]}>
         <View style={styles.navBar}>
           <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button">
-            <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
           </Pressable>
           <View style={styles.navCenter}>
             <Text style={styles.navTitle}>Dispute</Text>
@@ -255,7 +256,7 @@ export default function DisputeDetailScreen() {
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.navBar}>
         <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <View style={styles.navCenter}>
           <Text style={styles.navTitle}>Dispute {d.id}</Text>
@@ -360,8 +361,8 @@ const styles = StyleSheet.create({
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 27,
   },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
@@ -381,15 +382,15 @@ const styles = StyleSheet.create({
   },
   heroId: {
     fontSize: 10,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: MUTED,
     letterSpacing: 0.25,
     textTransform: 'uppercase',
   },
   heroHeadline: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 21,
   },
   heroMeta: {
@@ -431,7 +432,7 @@ const styles = StyleSheet.create({
   value: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#000000',
     lineHeight: 21,
   },
   copyBox: {
@@ -449,7 +450,7 @@ const styles = StyleSheet.create({
   copyText: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#000000',
     lineHeight: 21,
   },
   evidenceRow: {
@@ -466,7 +467,7 @@ const styles = StyleSheet.create({
     width: THUMB,
     height: THUMB,
     borderRadius: 4,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -502,7 +503,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(60,60,67,0.35)',
+    backgroundColor: 'rgba(0, 0, 0, 0.35)',
     marginTop: 6,
     marginRight: 10,
   },
@@ -510,7 +511,7 @@ const styles = StyleSheet.create({
   activityTitle: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#000000',
     lineHeight: 21,
   },
   activitySub: {
@@ -523,13 +524,13 @@ const styles = StyleSheet.create({
   cta: {
     height: 48,
     borderRadius: 4,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
   ctaText: {
     fontSize: 14,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: -0.35,
     textTransform: 'uppercase',
@@ -541,7 +542,7 @@ const styles = StyleSheet.create({
   },
   withdrawText: {
     fontSize: 13,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: MUTED,
     letterSpacing: 0.3,
     textTransform: 'uppercase',

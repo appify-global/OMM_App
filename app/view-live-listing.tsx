@@ -3,7 +3,8 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { type Href, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
@@ -16,7 +17,8 @@ import { SoiBottomSheet } from '@/components/SoiBottomSheet';
  * Flow: [Figma 1053:8028](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-8028)
  */
 
-const HERO = require('@/assets/images/welcome-bg.jpg');
+import { AGENT_IMG, PROPERTY_IMG_1 } from '@/lib/propertyImages';
+import { DEMO_AGENT_AGENCY, DEMO_PRIMARY_ADDRESS_MULTILINE } from '@/lib/melbourne-demo-locations';
 
 /** 8 / 12 / 16 / 20 / 24 / 32 rhythm */
 const PAD = 24;
@@ -56,14 +58,14 @@ export default function ViewLiveListingScreen() {
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.heroWrap}>
-        <Image source={HERO} style={styles.heroImg} resizeMode="cover" />
+        <Image source={PROPERTY_IMG_1} style={styles.heroImg} resizeMode="cover" />
         <Pressable
           onPress={() => router.back()}
           hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel="Back"
           style={[styles.backBtn, { top: 8 }]}>
-          <FontAwesome name="chevron-left" size={22} color="#1c1c1e" />
+          <FontAwesome name="chevron-left" size={22} color="#000000" />
         </Pressable>
         <Pressable
           style={styles.playTourPill}
@@ -83,9 +85,7 @@ export default function ViewLiveListingScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 112 }]}>
         <Kicker>PROPERTY ADDRESS</Kicker>
-        <Text style={styles.addressTitle}>
-          Hawthorn City Center,{'\n'}Victoria
-        </Text>
+        <Text style={styles.addressTitle}>{DEMO_PRIMARY_ADDRESS_MULTILINE}</Text>
 
         <View style={styles.priceBlock}>
           <Text style={[styles.kicker, styles.kickerNoTop]}>LISTING PRICE</Text>
@@ -97,13 +97,13 @@ export default function ViewLiveListingScreen() {
           style={styles.soiCard}
           accessibilityRole="button"
           onPress={() => setSoiOpen(true)}>
-          <FontAwesome name="file-text-o" size={22} color="rgba(60,60,67,0.55)" style={styles.soiIcon} />
+          <FontAwesome name="file-text-o" size={22} color="rgba(0, 0, 0, 0.55)" style={styles.soiIcon} />
           <View style={styles.soiBody}>
             <Text style={styles.soiKicker}>STATEMENT OF INFORMATION</Text>
             <Text style={styles.soiGuide}>Price guide $2.35M — $2.55M</Text>
             <Text style={styles.soiMeta}>Issued 12 Apr 2026 · Expires 12 Jul</Text>
           </View>
-          <FontAwesome name="chevron-right" size={14} color="rgba(60,60,67,0.45)" />
+          <FontAwesome name="chevron-right" size={14} color="rgba(0, 0, 0, 0.45)" />
         </Pressable>
 
         <View style={styles.featuresGrid}>
@@ -140,7 +140,7 @@ export default function ViewLiveListingScreen() {
         </View>
 
         <Text style={[styles.locKicker, styles.sectionPadTop]}>LOCATION</Text>
-        <Image source={HERO} style={styles.locImage} resizeMode="cover" />
+        <Image source={PROPERTY_IMG_1} style={styles.locImage} resizeMode="cover" />
 
         <View style={styles.amenities}>
           <View style={styles.featureRow}>
@@ -169,13 +169,17 @@ export default function ViewLiveListingScreen() {
 
         <Text style={styles.agentSectionKicker}>LISTING AGENT</Text>
         <View style={styles.agentCard}>
-          <Image source={HERO} style={styles.agentAvatar} resizeMode="cover" />
+          <Image source={AGENT_IMG} style={styles.agentAvatar} resizeMode="cover" />
           <View style={styles.agentText}>
             <Text style={styles.agentName}>Anton Zhouk</Text>
-            <Text style={styles.agentAgency}>Ray White Hawthorn</Text>
+            <Text style={styles.agentAgency}>{DEMO_AGENT_AGENCY}</Text>
             <Text style={styles.agentMeta}>★ 4.9 · 42 reviews · 12 listings</Text>
           </View>
-          <Pressable style={styles.viewAgentBtn} accessibilityRole="button">
+          <Pressable
+            style={styles.viewAgentBtn}
+            accessibilityRole="button"
+            accessibilityLabel="View agent profile"
+            onPress={() => router.push('/agent-profile' as Href)}>
             <Text style={styles.viewAgentBtnText}>VIEW →</Text>
           </Pressable>
         </View>
@@ -197,12 +201,12 @@ export default function ViewLiveListingScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#fefdfb' },
+  screen: { flex: 1, backgroundColor: '#ffffff' },
   heroWrap: {
     height: 268,
     width: '100%',
     position: 'relative',
-    backgroundColor: '#e8e4df',
+    backgroundColor: 'rgba(0,0,0,0.06)',
   },
   heroImg: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
   backBtn: {
@@ -223,17 +227,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     paddingVertical: 10,
     paddingLeft: 14,
     paddingRight: 16,
     borderRadius: 20,
   },
-  playTourPlay: { color: '#fff', fontSize: 11, fontWeight: '700' },
+  playTourPlay: { color: '#fff', fontSize: 11, fontFamily: 'Satoshi-Medium' },
   playTourText: {
     color: '#fff',
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
     letterSpacing: 1,
   },
   dotsRow: {
@@ -242,14 +246,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     paddingVertical: 14,
-    backgroundColor: '#fefdfb',
+    backgroundColor: '#ffffff',
   },
-  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: 'rgba(60,60,67,0.2)' },
-  dotActive: { backgroundColor: 'rgba(60,60,67,0.55)' },
+  dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: 'rgba(0, 0, 0, 0.2)' },
+  dotActive: { backgroundColor: 'rgba(0, 0, 0, 0.55)' },
   scroll: { paddingHorizontal: PAD },
   kicker: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
     color: '#777',
     letterSpacing: 1.6,
     textTransform: 'uppercase',
@@ -259,7 +263,7 @@ const styles = StyleSheet.create({
   addressTitle: {
     marginTop: 12,
     fontSize: 26,
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
     color: '#1a1c1c',
     letterSpacing: -0.6,
     lineHeight: 32,
@@ -268,7 +272,7 @@ const styles = StyleSheet.create({
   priceValue: {
     marginTop: 10,
     fontSize: 22,
-    fontWeight: '800',
+    fontFamily: 'Satoshi-Medium',
     color: '#000',
     lineHeight: 30,
   },
@@ -282,10 +286,10 @@ const styles = StyleSheet.create({
   soiCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f5f1ed',
+    backgroundColor: '#ffffff',
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.14)',
+    borderColor: 'rgba(0, 0, 0, 0.14)',
     paddingVertical: 18,
     paddingHorizontal: GAP_MD,
     marginTop: 12,
@@ -295,13 +299,13 @@ const styles = StyleSheet.create({
   soiBody: { flex: 1, minWidth: 0 },
   soiKicker: {
     fontSize: 12,
-    fontWeight: '600',
-    color: 'rgba(60,60,67,0.55)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
     letterSpacing: 0.4,
     textTransform: 'uppercase',
   },
-  soiGuide: { marginTop: 6, fontSize: 16, fontWeight: '700', color: '#000', lineHeight: 22 },
-  soiMeta: { marginTop: 6, fontSize: 13, color: 'rgba(60,60,67,0.55)', lineHeight: 18 },
+  soiGuide: { marginTop: 6, fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000', lineHeight: 22 },
+  soiMeta: { marginTop: 6, fontSize: 13, color: 'rgba(0, 0, 0, 0.55)', lineHeight: 18 },
   featuresGrid: { marginTop: SECTION },
   featureRow: { flexDirection: 'row', gap: 14 },
   featureCell: { flex: 1, flexDirection: 'row', alignItems: 'flex-start', gap: 12, minHeight: 68 },
@@ -309,7 +313,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 18,
-    backgroundColor: 'rgba(60,60,67,0.55)',
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 2,
@@ -317,25 +321,25 @@ const styles = StyleSheet.create({
   featureTextCol: { flex: 1, justifyContent: 'flex-start', paddingTop: 0 },
   featureLabel: {
     fontSize: 11,
-    fontWeight: '600',
-    color: 'rgba(60,60,67,0.55)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
     textTransform: 'uppercase',
     lineHeight: 16,
     letterSpacing: 0.3,
   },
-  featureValue: { marginTop: 6, fontSize: 22, fontWeight: '600', color: '#000', lineHeight: 28 },
+  featureValue: { marginTop: 6, fontSize: 22, fontFamily: 'Satoshi-Medium', color: '#000', lineHeight: 28 },
   featureRule: {
     marginVertical: GAP_MD,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#f5f1ed',
+    borderTopColor: '#ffffff',
   },
   carRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 12, minHeight: 60 },
   sectionPad: { marginTop: SECTION },
   sectionPadTop: { marginTop: SECTION, marginBottom: 10 },
   descKicker: {
     fontSize: 12,
-    fontWeight: '700',
-    color: 'rgba(60,60,67,0.55)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
     textTransform: 'uppercase',
     letterSpacing: 1.2,
   },
@@ -343,12 +347,12 @@ const styles = StyleSheet.create({
     marginTop: 14,
     fontSize: 15,
     lineHeight: 24,
-    color: 'rgba(60,60,67,0.65)',
+    color: 'rgba(0, 0, 0, 0.65)',
     fontWeight: '400',
   },
   locKicker: {
     fontSize: 12,
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
     color: '#777',
     letterSpacing: 1.6,
     textTransform: 'uppercase',
@@ -358,15 +362,15 @@ const styles = StyleSheet.create({
     height: 220,
     borderRadius: 10,
     marginTop: 10,
-    backgroundColor: '#e8e4df',
+    backgroundColor: 'rgba(0,0,0,0.06)',
   },
   amenities: { marginTop: SECTION },
   agentSectionKicker: {
     marginTop: SECTION,
     marginBottom: 12,
     fontSize: 12,
-    fontWeight: '700',
-    color: 'rgba(60,60,67,0.55)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
     letterSpacing: 1,
     textTransform: 'uppercase',
   },
@@ -386,18 +390,18 @@ const styles = StyleSheet.create({
   },
   agentAvatar: { width: 52, height: 52, borderRadius: 22 },
   agentText: { flex: 1, minWidth: 0 },
-  agentName: { fontSize: 16, fontWeight: '700', color: '#1a1a1a' },
-  agentAgency: { marginTop: 6, fontSize: 14, color: 'rgba(60,60,67,0.55)' },
-  agentMeta: { marginTop: 8, fontSize: 12, color: 'rgba(60,60,67,0.55)', lineHeight: 17 },
+  agentName: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  agentAgency: { marginTop: 6, fontSize: 14, color: 'rgba(0, 0, 0, 0.55)' },
+  agentMeta: { marginTop: 8, fontSize: 12, color: 'rgba(0, 0, 0, 0.55)', lineHeight: 17 },
   viewAgentBtn: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     height: 34,
     paddingHorizontal: 14,
     borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  viewAgentBtnText: { color: '#fff', fontSize: 12, fontWeight: '600', letterSpacing: 0.5 },
+  viewAgentBtnText: { color: '#fff', fontSize: 12, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5 },
   footer: {
     position: 'absolute',
     left: 0,
@@ -405,9 +409,9 @@ const styles = StyleSheet.create({
     bottom: 0,
     paddingHorizontal: PAD,
     paddingTop: GAP_MD,
-    backgroundColor: '#fefdfb',
+    backgroundColor: '#ffffff',
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(60,60,67,0.08)',
+    borderTopColor: 'rgba(0, 0, 0, 0.08)',
   },
-  contactBtnText: { fontSize: 15, fontWeight: '600', letterSpacing: 0.2 },
+  contactBtnText: { fontSize: 15, fontFamily: 'Satoshi-Medium', letterSpacing: 0.2 },
 });

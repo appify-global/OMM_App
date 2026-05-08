@@ -2,18 +2,9 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Switch,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -24,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const H_PAD = 20;
 const FIELD_H = 54;
-const STROKE = 'rgba(60,60,67,0.55)';
+const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
 const DASH = '5 4';
 
@@ -106,7 +97,7 @@ export default function AccountSettingsScreen() {
             accessibilityRole="button"
             accessibilityLabel="Back"
             style={styles.navSide}>
-            <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
           </Pressable>
           <View style={styles.navCenter}>
             <Text style={styles.navTitle}>Account settings</Text>
@@ -131,7 +122,7 @@ export default function AccountSettingsScreen() {
                 placeholder="Display name"
                 autoCapitalize="characters"
                 autoCorrect={false}
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
               />
             </DashedFieldShell>
           </View>
@@ -147,7 +138,7 @@ export default function AccountSettingsScreen() {
                 autoCapitalize="none"
                 keyboardType="email-address"
                 autoCorrect={false}
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
               />
             </DashedFieldShell>
           </View>
@@ -161,7 +152,7 @@ export default function AccountSettingsScreen() {
                 style={styles.input}
                 placeholder="Phone"
                 keyboardType="phone-pad"
-                placeholderTextColor="rgba(60,60,67,0.45)"
+                placeholderTextColor="rgba(0, 0, 0, 0.45)"
               />
             </DashedFieldShell>
           </View>
@@ -177,7 +168,7 @@ export default function AccountSettingsScreen() {
                   <Switch
                     value={pushMessages}
                     onValueChange={setPushMessages}
-                    trackColor={{ false: '#e8e8e8', true: '#1a1a1a' }}
+                    trackColor={{ false: '#e8e8e8', true: '#000000' }}
                     thumbColor="#fff"
                     ios_backgroundColor="#e8e8e8"
                     accessibilityLabel="Push notifications for messages"
@@ -214,8 +205,8 @@ const styles = StyleSheet.create({
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
-    fontWeight: '500',
-    color: '#1a1a1a',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
   },
   scroll: {
     paddingHorizontal: H_PAD,
@@ -227,15 +218,15 @@ const styles = StyleSheet.create({
   label10: {
     fontSize: 10,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.55)',
+    color: 'rgba(0, 0, 0, 0.55)',
     letterSpacing: 0.25,
     textTransform: 'uppercase',
     marginBottom: 8,
   },
   label11: {
     fontSize: 11,
-    fontWeight: '500',
-    color: 'rgba(60,60,67,0.55)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
     letterSpacing: 0.275,
     textTransform: 'uppercase',
     marginBottom: 12,
@@ -273,7 +264,7 @@ const styles = StyleSheet.create({
     paddingRight: 12,
     fontSize: 13,
     fontWeight: '400',
-    color: '#1a1a1a',
+    color: '#000000',
     lineHeight: 19.5,
   },
   switchWrap: {
@@ -284,7 +275,7 @@ const styles = StyleSheet.create({
   saveBtn: {
     height: 48,
     borderRadius: 14,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     borderWidth: STROKE_W,
     borderColor: STROKE,
     borderStyle: 'dashed',
@@ -293,7 +284,7 @@ const styles = StyleSheet.create({
   },
   saveBtnText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: -0.35,
     textTransform: 'uppercase',

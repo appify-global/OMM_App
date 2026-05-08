@@ -2,17 +2,9 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -127,7 +119,7 @@ export default function RaiseDisputeScreen() {
         keyboardVerticalOffset={insets.top}>
         <View style={styles.navBar}>
           <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-            <FontAwesome name="chevron-left" size={20} color="#1a1a1a" />
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
           </Pressable>
           <View style={styles.navCenter}>
             <Text style={styles.navTitle}>Raise a dispute</Text>
@@ -150,7 +142,7 @@ export default function RaiseDisputeScreen() {
                 value={deal}
                 onChangeText={setDeal}
                 style={styles.input}
-                placeholder="OMM-20418 · 42 High St, Boroondara"
+                placeholder="OMM-20418 · 218 Victoria St, West Melbourne"
                 placeholderTextColor={MUTED}
               />
             </DashedInputBox>
@@ -176,7 +168,7 @@ export default function RaiseDisputeScreen() {
                 value={otherParty}
                 onChangeText={setOtherParty}
                 style={styles.input}
-                placeholder="Sarah Chen · Ray White Hawthorn"
+                placeholder="Sarah Chen · Biggin Scott West Melbourne"
                 placeholderTextColor={MUTED}
               />
             </DashedInputBox>
@@ -263,7 +255,7 @@ const styles = StyleSheet.create({
   },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 18, fontWeight: '500', color: '#1a1a1a', lineHeight: 27 },
+  navTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000', lineHeight: 27 },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
   intro: {
     fontSize: 14,
@@ -341,7 +333,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 4,
     borderWidth: 1.5,
-    borderColor: '#1a1a1a',
+    borderColor: '#000000',
     marginRight: 12,
     marginTop: 1,
     alignItems: 'center',
@@ -349,8 +341,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   checkboxChecked: {
-    backgroundColor: '#1a1a1a',
-    borderColor: '#1a1a1a',
+    backgroundColor: '#000000',
+    borderColor: '#000000',
   },
   checkLabel: {
     flex: 1,
@@ -362,13 +354,13 @@ const styles = StyleSheet.create({
   cta: {
     height: 48,
     borderRadius: BOX_R,
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
   },
   ctaText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: '#fff',
     letterSpacing: 0.2,
     textTransform: 'uppercase',

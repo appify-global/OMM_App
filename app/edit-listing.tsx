@@ -1,23 +1,16 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { TextInput } from '@/components/OMMTextInput';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
 
 const H_PAD = 24;
-const BORDER = 'rgba(60,60,67,0.5)';
-const LABEL = 'rgba(60,60,67,0.42)';
-const INPUT = '#1c1c1e';
+const BORDER = 'rgba(0, 0, 0, 0.5)';
+const LABEL = 'rgba(0, 0, 0, 0.42)';
+const INPUT = '#000000';
 const SINGLE_LINE_H = 54;
 /** Standard rounded rectangle — corner radius only (not capsule / pill). */
 const FIELD_RADIUS = 12;
@@ -48,7 +41,7 @@ function FieldRow({
           value={value}
           onChangeText={onChangeText}
           style={styles.inputSingle}
-          placeholderTextColor="rgba(60,60,67,0.35)"
+          placeholderTextColor="rgba(0, 0, 0, 0.35)"
           keyboardType={keyboardType}
           returnKeyType="done"
           {...(Platform.OS === 'android' ? { includeFontPadding: false } : {})}
@@ -100,7 +93,7 @@ export default function EditListingScreen() {
                 value={description}
                 onChangeText={setDescription}
                 style={styles.inputMultiline}
-                placeholderTextColor="rgba(60,60,67,0.35)"
+                placeholderTextColor="rgba(0, 0, 0, 0.35)"
                 multiline
                 textAlignVertical="top"
               />
@@ -131,15 +124,15 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: H_PAD, paddingTop: 4 },
   pageTitle: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: -0.6,
     marginBottom: 28,
   },
   fieldBlock: { marginBottom: 22 },
   label: {
     fontSize: 11,
-    fontWeight: '600',
+    fontFamily: 'Satoshi-Medium',
     color: LABEL,
     letterSpacing: 0.65,
     marginBottom: 10,
@@ -159,7 +152,7 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: INPUT,
     margin: 0,
     paddingHorizontal: 0,
@@ -184,7 +177,7 @@ const styles = StyleSheet.create({
   },
   inputMultiline: {
     fontSize: 16,
-    fontWeight: '500',
+    fontFamily: 'Satoshi-Medium',
     color: INPUT,
     lineHeight: 24,
     minHeight: 136,
@@ -195,8 +188,8 @@ const styles = StyleSheet.create({
       default: {},
     }),
   },
-  saveLabel: { fontSize: 14, fontWeight: '700', letterSpacing: 0.65 },
+  saveLabel: { fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.65 },
   ctaBlock: { marginTop: 8 },
   cancelWrap: { alignItems: 'center', marginTop: 18, paddingVertical: 8 },
-  cancel: { fontSize: 15, fontWeight: '500', color: 'rgba(60,60,67,0.55)' },
+  cancel: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.55)' },
 });

@@ -1,15 +1,8 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { type Href, useRouter } from 'expo-router';
-import {
-  Image,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
@@ -17,7 +10,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  * [Figma 1053:6508](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-6508&t=2eZigRM0BwNtC5wd-4)
  */
 
-const AVATAR = require('@/assets/images/welcome-bg.jpg');
+import { DEMO_AGENT_AGENCY } from '@/lib/melbourne-demo-locations';
+import { AGENT_IMG, PROPERTY_IMG_1, propertyImageAtIndex } from '@/lib/propertyImages';
 const H_PAD = 20;
 const CARD_R = 14;
 
@@ -40,13 +34,13 @@ const REVIEWS = [
 
 const LISTINGS = [
   {
-    address: '22 Lilac Ave, Hawthorn',
+    address: '15 Rowe St, Fitzroy North VIC 3068',
     specs: 'HOUSE · 4 BED · 2 BATH',
     price: '$2.1m — $2.3m',
     listed: 'Listed 3 days ago',
   },
   {
-    address: '6/40 Park Rd, Camberwell',
+    address: '102/8 Joseph Rd, Footscray VIC 3011',
     specs: 'APARTMENT · 2 BED · 1 BATH',
     price: '$850k — $920k',
     listed: 'Listed 12 days ago',
@@ -94,7 +88,7 @@ export default function AgentProfileScreen() {
           accessibilityRole="button"
           accessibilityLabel="Back"
           style={styles.navSide}>
-          <FontAwesome name="chevron-left" size={20} color="#1c1c1e" />
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
         </Pressable>
         <View style={styles.navCenter}>
           <Text style={styles.navTitle}>Agent</Text>
@@ -108,7 +102,7 @@ export default function AgentProfileScreen() {
         <View style={styles.heroCard}>
           <View style={styles.heroTopRow}>
             <View style={styles.avatarWrap}>
-              <Image source={AVATAR} style={styles.avatar} resizeMode="cover" />
+              <Image source={AGENT_IMG} style={styles.avatar} resizeMode="cover" />
               <View style={styles.verifiedBadge}>
                 <FontAwesome name="check" size={10} color="#fff" />
               </View>
@@ -116,14 +110,14 @@ export default function AgentProfileScreen() {
             <View style={styles.heroTextCol}>
               <Text style={styles.name}>Anton Zhouk</Text>
               <Text style={styles.roleLine}>Listing Agent</Text>
-              <Text style={styles.agencyLine}>Ray White Hawthorn</Text>
+              <Text style={styles.agencyLine}>{DEMO_AGENT_AGENCY}</Text>
               <View style={styles.starsRow}>
                 {[1, 2, 3, 4, 5].map((i) => (
                   <FontAwesome
                     key={i}
                     name="star"
                     size={12}
-                    color="#1c1c1e"
+                    color="#000000"
                     style={i > 1 ? styles.starGap : undefined}
                   />
                 ))}
@@ -173,7 +167,7 @@ export default function AgentProfileScreen() {
         {REVIEWS.map((r) => (
           <View key={r.name} style={styles.reviewCard}>
             <View style={styles.reviewTop}>
-              <Image source={AVATAR} style={styles.reviewAvatar} resizeMode="cover" />
+              <Image source={PROPERTY_IMG_1} style={styles.reviewAvatar} resizeMode="cover" />
               <View style={styles.reviewMeta}>
                 <Text style={styles.reviewName}>{r.name}</Text>
                 <Text style={styles.reviewRole}>{r.role}</Text>
@@ -192,7 +186,7 @@ export default function AgentProfileScreen() {
           titleEmphasis
           onActionPress={() => router.push('/agent-active-listings' as Href)}
         />
-        {LISTINGS.map((L) => (
+        {LISTINGS.map((L, index) => (
           <Pressable
             key={L.address}
             onPress={() => router.push('/view-live-listing' as Href)}
@@ -201,7 +195,7 @@ export default function AgentProfileScreen() {
             style={({ pressed }) => [pressed && { opacity: 0.96 }]}>
             <View style={styles.listingCard}>
               <View style={styles.listingThumbClip}>
-                <Image source={AVATAR} style={styles.listingThumb} resizeMode="cover" />
+                <Image source={propertyImageAtIndex(index)} style={styles.listingThumb} resizeMode="cover" />
                 <View style={styles.liveBadge}>
                   <Text style={styles.liveBadgeText}>LIVE</Text>
                 </View>
@@ -219,7 +213,7 @@ export default function AgentProfileScreen() {
         <Text style={styles.aboutKicker}>ABOUT</Text>
         <View style={styles.aboutCard}>
           <Text style={styles.aboutBody}>
-            Principal agent with 6 years in Boroondara. Specialises in family homes and boutique apartments. Known for
+            Principal agent with 6 years across inner Melbourne. Specialises in family homes and boutique apartments. Known for
             fast-turn SOI and clean authority docs.
           </Text>
         </View>
@@ -230,23 +224,23 @@ export default function AgentProfileScreen() {
             <Text style={styles.actionTitle}>Raise a dispute</Text>
             <Text style={styles.actionSub}>Open formal ticket with OMM moderators.</Text>
           </View>
-          <FontAwesome name="chevron-right" size={14} color="rgba(60,60,67,0.35)" />
+          <FontAwesome name="chevron-right" size={14} color="rgba(0, 0, 0, 0.35)" />
         </Pressable>
         <Pressable style={styles.actionRow} accessibilityRole="button">
-          <MaterialCommunityIcons name="block-helper" size={22} color="rgba(60,60,67,0.45)" />
+          <MaterialCommunityIcons name="block-helper" size={22} color="rgba(0, 0, 0, 0.45)" />
           <View style={styles.actionTextCol}>
             <Text style={styles.actionTitle}>Block agent</Text>
             <Text style={styles.actionSub}>You will no longer receive messages</Text>
           </View>
-          <FontAwesome name="chevron-right" size={14} color="rgba(60,60,67,0.35)" />
+          <FontAwesome name="chevron-right" size={14} color="rgba(0, 0, 0, 0.35)" />
         </Pressable>
         <Pressable style={styles.actionRow} accessibilityRole="button">
-          <MaterialCommunityIcons name="flag-outline" size={22} color="rgba(60,60,67,0.45)" />
+          <MaterialCommunityIcons name="flag-outline" size={22} color="rgba(0, 0, 0, 0.45)" />
           <View style={styles.actionTextCol}>
             <Text style={styles.actionTitle}>Report profile</Text>
             <Text style={styles.actionSub}>For spam, misleading info, or conduct issues</Text>
           </View>
-          <FontAwesome name="chevron-right" size={14} color="rgba(60,60,67,0.35)" />
+          <FontAwesome name="chevron-right" size={14} color="rgba(0, 0, 0, 0.35)" />
         </Pressable>
       </ScrollView>
     </View>
@@ -254,7 +248,7 @@ export default function AgentProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#f5f5f5' },
+  screen: { flex: 1, backgroundColor: '#ffffff' },
   navBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -264,7 +258,7 @@ const styles = StyleSheet.create({
   },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  navTitle: { fontSize: 17, fontWeight: '700', color: '#1c1c1e' },
+  navTitle: { fontSize: 17, fontFamily: 'Satoshi-Medium', color: '#000000' },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 16 },
   heroCard: {
     backgroundColor: '#fff',
@@ -287,12 +281,12 @@ const styles = StyleSheet.create({
   heroTextCol: { flex: 1, minWidth: 0, paddingLeft: 14, justifyContent: 'flex-start' },
   heroDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(60,60,67,0.12)',
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
     marginTop: 18,
     marginBottom: 18,
   },
   avatarWrap: { position: 'relative' },
-  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: '#e8e4df' },
+  avatar: { width: 80, height: 80, borderRadius: 40, backgroundColor: 'rgba(0,0,0,0.06)' },
   verifiedBadge: {
     position: 'absolute',
     right: 0,
@@ -300,15 +294,15 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
     borderColor: '#fff',
   },
-  name: { fontSize: 20, fontWeight: '700', color: '#1c1c1e' },
-  roleLine: { fontSize: 14, fontWeight: '400', color: 'rgba(60,60,67,0.55)', marginTop: 6 },
-  agencyLine: { fontSize: 14, fontWeight: '400', color: 'rgba(60,60,67,0.5)', marginTop: 2 },
+  name: { fontSize: 20, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  roleLine: { fontSize: 14, fontWeight: '400', color: 'rgba(0, 0, 0, 0.55)', marginTop: 6 },
+  agencyLine: { fontSize: 14, fontWeight: '400', color: 'rgba(0, 0, 0, 0.5)', marginTop: 2 },
   starsRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -316,28 +310,28 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   starGap: { marginLeft: 2 },
-  ratingScore: { fontSize: 13, fontWeight: '600', color: '#1c1c1e', marginLeft: 8 },
-  ratingMuted: { fontSize: 13, fontWeight: '400', color: 'rgba(60,60,67,0.5)' },
+  ratingScore: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: '#000000', marginLeft: 8 },
+  ratingMuted: { fontSize: 13, fontWeight: '400', color: 'rgba(0, 0, 0, 0.5)' },
   ctaRow: { flexDirection: 'row', gap: 12, width: '100%' },
   ctaFlex: { flex: 1 },
   msgBtn: {
-    backgroundColor: '#1c1c1e',
+    backgroundColor: '#000000',
     height: 46,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  msgBtnText: { color: '#fff', fontSize: 13, fontWeight: '600', letterSpacing: 0.4 },
+  msgBtnText: { color: '#fff', fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.4 },
   callBtn: {
     height: 46,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: 'rgba(60,60,67,0.35)',
+    borderColor: 'rgba(0, 0, 0, 0.35)',
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',
   },
-  callBtnText: { color: '#1c1c1e', fontSize: 13, fontWeight: '600', letterSpacing: 0.4 },
+  callBtnText: { color: '#000000', fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.4 },
   statsRow: {
     flexDirection: 'row',
     backgroundColor: '#fff',
@@ -356,12 +350,12 @@ const styles = StyleSheet.create({
     }),
   },
   statCell: { flex: 1, alignItems: 'center' },
-  statNum: { fontSize: 20, fontWeight: '600', color: '#1c1c1e' },
+  statNum: { fontSize: 20, fontFamily: 'Satoshi-Medium', color: '#000000' },
   statLabel: {
     marginTop: 6,
     fontSize: 9,
-    fontWeight: '600',
-    color: 'rgba(60,60,67,0.45)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.45)',
     letterSpacing: 0.6,
   },
   sectionHeader: {
@@ -373,22 +367,22 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 11,
-    fontWeight: '600',
-    color: 'rgba(60,60,67,0.5)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.5)',
     letterSpacing: 0.65,
   },
   sectionTitleEmphasis: {
-    color: '#1c1c1e',
-    fontWeight: '700',
+    color: '#000000',
+    fontFamily: 'Satoshi-Medium',
   },
   sectionAction: {
     fontSize: 11,
-    fontWeight: '600',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     letterSpacing: 0.4,
   },
   sectionActionEmphasis: {
-    fontWeight: '700',
+    fontFamily: 'Satoshi-Medium',
   },
   reviewCard: {
     backgroundColor: '#fff',
@@ -409,17 +403,17 @@ const styles = StyleSheet.create({
   reviewTop: { flexDirection: 'row', alignItems: 'center' },
   reviewBodyDivider: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(60,60,67,0.1)',
+    backgroundColor: 'rgba(0, 0, 0, 0.1)',
     marginTop: 12,
     marginBottom: 12,
   },
-  reviewAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: '#e8e4df' },
+  reviewAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(0,0,0,0.06)' },
   reviewMeta: { flex: 1, marginLeft: 12, minWidth: 0 },
-  reviewName: { fontSize: 15, fontWeight: '600', color: '#1c1c1e' },
-  reviewRole: { fontSize: 12, fontWeight: '400', color: 'rgba(60,60,67,0.5)', marginTop: 2 },
-  reviewStars: { fontSize: 13, fontWeight: '600', color: '#1c1c1e' },
-  reviewQuote: { fontSize: 14, fontWeight: '400', color: '#1c1c1e', lineHeight: 21 },
-  reviewDate: { marginTop: 12, fontSize: 12, fontWeight: '500', color: 'rgba(60,60,67,0.45)' },
+  reviewName: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  reviewRole: { fontSize: 12, fontWeight: '400', color: 'rgba(0, 0, 0, 0.5)', marginTop: 2 },
+  reviewStars: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  reviewQuote: { fontSize: 14, fontWeight: '400', color: '#000000', lineHeight: 21 },
+  reviewDate: { marginTop: 12, fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)' },
   listingCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -444,7 +438,7 @@ const styles = StyleSheet.create({
     height: 104,
     borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#e8e4df',
+    backgroundColor: 'rgba(0,0,0,0.06)',
     position: 'relative',
   },
   listingThumb: { width: '100%', height: '100%' },
@@ -457,28 +451,28 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     borderRadius: 5,
   },
-  liveBadgeText: { fontSize: 9, fontWeight: '700', color: '#fff', letterSpacing: 0.4 },
+  liveBadgeText: { fontSize: 9, fontFamily: 'Satoshi-Medium', color: '#fff', letterSpacing: 0.4 },
   listingBody: { flex: 1, minWidth: 0, justifyContent: 'center', paddingRight: 4 },
-  listingAddr: { fontSize: 16, fontWeight: '700', color: '#1c1c1e', lineHeight: 21 },
+  listingAddr: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000', lineHeight: 21 },
   listingSpecs: {
     fontSize: 11,
-    fontWeight: '600',
-    color: 'rgba(60,60,67,0.5)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.5)',
     marginTop: 8,
     letterSpacing: 0.45,
     textTransform: 'uppercase',
   },
-  listingPrice: { fontSize: 16, fontWeight: '600', color: '#1c1c1e', marginTop: 10 },
+  listingPrice: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000', marginTop: 10 },
   listingListed: {
     fontSize: 11,
     fontWeight: '400',
-    color: 'rgba(60,60,67,0.45)',
+    color: 'rgba(0, 0, 0, 0.45)',
     marginTop: 8,
   },
   aboutKicker: {
     fontSize: 11,
-    fontWeight: '600',
-    color: 'rgba(60,60,67,0.5)',
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.5)',
     letterSpacing: 0.65,
     marginTop: 8,
     marginBottom: 10,
@@ -502,7 +496,7 @@ const styles = StyleSheet.create({
   aboutBody: {
     fontSize: 14,
     fontWeight: '400',
-    color: '#1c1c1e',
+    color: '#000000',
     lineHeight: 21,
   },
   actionRow: {
@@ -525,6 +519,6 @@ const styles = StyleSheet.create({
     }),
   },
   actionTextCol: { flex: 1, minWidth: 0 },
-  actionTitle: { fontSize: 15, fontWeight: '600', color: '#1c1c1e' },
-  actionSub: { fontSize: 12, fontWeight: '400', color: 'rgba(60,60,67,0.5)', marginTop: 4, lineHeight: 17 },
+  actionTitle: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  actionSub: { fontSize: 12, fontWeight: '400', color: 'rgba(0, 0, 0, 0.5)', marginTop: 4, lineHeight: 17 },
 });

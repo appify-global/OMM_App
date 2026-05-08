@@ -1,15 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { BlurView } from 'expo-blur';
-import {
-  Modal,
-  Platform,
-  Pressable,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-  useWindowDimensions,
-} from 'react-native';
+import { Text } from '@/components/OMMText';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
@@ -64,7 +56,7 @@ export function LegalDocModal({ visible, title, body, onClose }: Props) {
                 hitSlop={12}
                 accessibilityRole="button"
                 accessibilityLabel="Close">
-                <FontAwesome name="times" size={22} color="#1c1c1e" />
+                <FontAwesome name="times" size={22} color="#000000" />
               </Pressable>
             </View>
             <ScrollView
@@ -78,7 +70,7 @@ export function LegalDocModal({ visible, title, body, onClose }: Props) {
               variant="filled"
               onPress={onClose}
               accessibilityLabel="Close"
-              textStyle={{ letterSpacing: 0.5, fontWeight: '600' }}>
+              textStyle={{ letterSpacing: 0.5, fontFamily: 'Satoshi-Medium' }}>
               CLOSE
             </AppButton>
           </View>
@@ -109,8 +101,8 @@ const styles = StyleSheet.create({
   title: {
     flex: 1,
     fontSize: 18,
-    fontWeight: '700',
-    color: '#1c1c1e',
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
     lineHeight: 24,
   },
   scroll: {
