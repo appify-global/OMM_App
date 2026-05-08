@@ -1,5 +1,7 @@
 import { AppButton } from '@/components/AppButton';
+import { HeaderToggle } from '@/components/HeaderToggle';
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScrollEdgeReveal } from '@/lib/scrollEdge';
 import { useCallback, useEffect, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
@@ -11,10 +13,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  * [Figma 1053:5705](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-5705)
  */
 
-import { borderHairline, fillWash, inkSubtle, palette } from '@/constants/theme';
+import { borderHairline, inkSubtle, palette } from '@/constants/theme';
 import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { AGENT_IMG, PROPERTY_IMG_1 } from '@/lib/propertyImages';
 import { DEMO_PRIMARY_LISTING_TITLE, DEMO_PRIMARY_STREET } from '@/lib/melbourne-demo-locations';
+import { useTabScreenBottomPad } from '@/lib/useTabScreenBottomPad';
 
 const COMPOSE_DRAFT_DEFAULT =
   'Thanks M. — happy to lift to $2.05m subject to finance 10 days. Can we counter today?';
@@ -187,9 +190,11 @@ function CalendarMonthApril2026({
 
 export default function ActivitiesScreen() {
   const insets = useSafeAreaInsets();
+  const bottomPad = useTabScreenBottomPad();
   const hPad = useScreenHorizontalPadding();
   const [role, setRole] = useState<Role>('buyer');
   const [filter, setFilter] = useState<FilterKey>('all');
+  const scrollEdge = useScrollEdgeReveal({ threshold: 120 });
   const [sheet, setSheet] = useState<ActiveSheet | null>(null);
   const [draft, setDraft] = useState(COMPOSE_DRAFT_DEFAULT);
   const [selectedDay, setSelectedDay] = useState(26);
@@ -232,32 +237,29 @@ export default function ActivitiesScreen() {
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Activities" variant="large" />
+        <ScreenHeader title="Activities" />
+      </View>
+      <View style={[styles.roleToggleRow, hPad]}>
+        <HeaderToggle
+          items={[
+            { key: 'buyer', label: 'Buyer' },
+            { key: 'seller', label: 'Seller' },
+          ]}
+          value={role}
+          onChange={setRole}
+          align="center"
+          accessibilityLabel="Buyer or seller view"
+        />
       </View>
 
       <ScrollView
         style={styles.scroll}
         stickyHeaderIndices={[0]}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}>
+        onScroll={scrollEdge.onScroll}
+        scrollEventThrottle={scrollEdge.scrollEventThrottle}
+        contentContainerStyle={{ paddingBottom: bottomPad + 24 }}>
         <View style={[styles.stickyHeader, hPad]}>
-          <View style={[styles.segment, { marginTop: 0 }]}>
-            <Pressable
-              onPress={() => setRole('buyer')}
-              style={[styles.segmentBtn, role === 'buyer' && styles.segmentBtnOn]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: role === 'buyer' }}>
-              <Text style={[styles.segmentLabel, role === 'buyer' && styles.segmentLabelOn]}>BUYER</Text>
-            </Pressable>
-            <Pressable
-              onPress={() => setRole('seller')}
-              style={[styles.segmentBtn, role === 'seller' && styles.segmentBtnOn]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: role === 'seller' }}>
-              <Text style={[styles.segmentLabel, role === 'seller' && styles.segmentLabelOn]}>SELLER</Text>
-            </Pressable>
-          </View>
-
           <View style={styles.chipRowHost}>
             <ScrollView
               horizontal
@@ -438,6 +440,10 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 4,
   },
+  roleToggleRow: {
+    paddingTop: 8,
+    paddingBottom: 6,
+  },
   stickyHeader: {
     backgroundColor: palette.white,
     paddingTop: 12,
@@ -449,41 +455,9 @@ const styles = StyleSheet.create({
     paddingTop: 16,
   },
   scroll: { flex: 1, minHeight: 0 },
-  segment: {
-    flexDirection: 'row',
-    height: 52,
-    borderRadius: 12,
-    backgroundColor: fillWash,
-    padding: 4,
-    gap: 4,
-  },
-  segmentBtn: {
-    flex: 1,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  segmentBtnOn: {
-    backgroundColor: palette.white,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  segmentLabel: {
-    fontSize: 14,
-    fontFamily: 'Satoshi-Medium',
-    color: 'rgba(0, 0, 0, 0.55)',
-  },
-  segmentLabelOn: {
-    fontFamily: 'Satoshi-Medium',
-    color: '#000000',
-  },
   chipRowHost: {
     flexGrow: 0,
     flexShrink: 0,
-    marginTop: 16,
     marginBottom: 8,
   },
   chipScroller: { flexGrow: 0, flexShrink: 0 },
@@ -532,16 +506,23 @@ const styles = StyleSheet.create({
   modalRoot: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0,0,0,0.35)',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
   },
   modalScrimFlex: { flex: 1 },
   sheet: {
-    backgroundColor: 'rgba(0,0,0,0.04)',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: palette.white,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
     paddingHorizontal: 24,
     paddingTop: 10,
     maxHeight: '92%',
+    shadowColor: '#000',
+    shadowOpacity: 0.18,
+    shadowOffset: { width: 0, height: -6 },
+    shadowRadius: 24,
+    elevation: 18,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(60, 60, 67, 0.10)',
   },
   grabber: {
     alignSelf: 'center',

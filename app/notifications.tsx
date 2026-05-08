@@ -1,6 +1,6 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { LegalDocModal } from '@/components/LegalDocModal';
-import { ScreenHeader } from '@/components/ScreenHeader';
+import { SheetHeader } from '@/components/SheetHeader';
 import { useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useState } from 'react';
@@ -72,7 +72,7 @@ const RECENT_ITEMS: NotifRow[] = [
   {
     id: 'r1',
     title: 'New match for Brutal House 01',
-    body: 'Buyer brief “Richmond / Cremorne” matches 218 Victoria St, West Melbourne, score 92.',
+    body: 'Buyer brief “Hawthorn / Camberwell” matches 142 Orrong Rd, Hawthorn East, score 92.',
     time: '2m',
     unread: true,
     image: PROPERTY_IMG_1,
@@ -93,7 +93,7 @@ const EARLIER_ITEMS: NotifRow[] = [
   {
     id: 'e1',
     title: 'New match for Brutal House 01',
-    body: 'Buyer brief “Richmond / Cremorne” matches 218 Victoria St, West Melbourne, score 92.',
+    body: 'Buyer brief “Hawthorn / Camberwell” matches 142 Orrong Rd, Hawthorn East, score 92.',
     time: '2m',
     unread: true,
     image: PROPERTY_IMG_2,
@@ -147,19 +147,10 @@ export default function NotificationsScreen() {
   const [showFeatured, setShowFeatured] = useState(true);
   const [detailNotif, setDetailNotif] = useState<NotifRow | null>(null);
 
-  const headerRight = (
-    <View style={styles.bellWrap}>
-      <View style={styles.bellBtn} accessibilityLabel="Notifications">
-        <FontAwesome name="bell-o" size={20} color={ink} />
-      </View>
-      <View style={styles.bellBadge} />
-    </View>
-  );
-
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
+    <View style={styles.screen}>
       <View style={[styles.headerChrome, hPad]}>
-        <ScreenHeader title="Notifications" onBack={() => router.back()} right={headerRight} />
+        <SheetHeader title="Notifications" onClose={() => router.back()} />
       </View>
 
       <ScrollView
@@ -203,7 +194,7 @@ export default function NotificationsScreen() {
               <View style={styles.featuredText}>
                 <Text style={styles.featuredTitle}>New match for Brutal House 01</Text>
                 <Text style={styles.featuredSub}>
-                  Buyer brief &quot;Richmond / Cremorne&quot; matches 218 Victoria St, West Melbourne, score 92.
+                  Buyer brief &quot;Hawthorn / Camberwell&quot; matches 142 Orrong Rd, Hawthorn East, score 92.
                 </Text>
               </View>
             </View>
@@ -252,28 +243,6 @@ const styles = StyleSheet.create({
     borderBottomColor: borderHairline,
   },
   listBody: { paddingTop: 12 },
-  bellWrap: { width: 44, alignItems: 'flex-end', justifyContent: 'center' },
-  bellBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.18)',
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bellBadge: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#000000',
-    borderWidth: 1.5,
-    borderColor: '#ffffff',
-  },
   chipScroller: {
     flexGrow: 0,
     flexShrink: 0,

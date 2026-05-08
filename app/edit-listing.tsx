@@ -6,6 +6,8 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 const H_PAD = 24;
 const BORDER = 'rgba(0, 0, 0, 0.5)';
@@ -56,6 +58,7 @@ function FieldRow({
  */
 export default function EditListingScreen() {
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
@@ -71,12 +74,14 @@ export default function EditListingScreen() {
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={insets.top}>
-      <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
+      <View style={[styles.root, { paddingTop: insets.top }]}>
+        <View style={[styles.headBlock, hPad]}>
+          <ScreenHeader title="Edit listing" onBack={() => router.back()} />
+        </View>
         <ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}>
-          <Text style={styles.pageTitle}>Edit listing</Text>
 
           <FieldRow label="LISTING TITLE" value={title} onChangeText={setTitle} />
           <FieldRow label="LIST PRICE" value={price} onChangeText={setPrice} />
@@ -122,13 +127,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1 },
   root: { flex: 1, backgroundColor: '#fff' },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 4 },
-  pageTitle: {
-    fontSize: 28,
-    fontFamily: 'Satoshi-Medium',
-    color: '#000000',
-    letterSpacing: -0.6,
-    marginBottom: 28,
-  },
+  headBlock: { paddingTop: 8, paddingBottom: 12 },
   fieldBlock: { marginBottom: 22 },
   label: {
     fontSize: 11,

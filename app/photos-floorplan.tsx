@@ -9,6 +9,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  * [Figma 1053:9141](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-9141&t=2eZigRM0BwNtC5wd-4)
  */
 
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
 
 const H_PAD = 20;
@@ -23,17 +25,20 @@ const DASH = {
 
 export default function PhotosFloorplanScreen() {
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
   const winW = Dimensions.get('window').width;
   const cell = (winW - H_PAD * 2 - GRID_GAP * 2) / 3;
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Photos & floorplan" onBack={() => router.back()} />
+      </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 28 }]}>
-        <Text style={styles.title}>Photos & floorplan</Text>
         <Text style={styles.subtitle}>Drag to reorder — image 1 is cover on cards & PDF.</Text>
 
         <View style={styles.grid}>
@@ -112,13 +117,7 @@ export default function PhotosFloorplanScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 4 },
-  title: {
-    fontSize: 28,
-    fontFamily: 'Satoshi-Medium',
-    color: '#000000',
-    letterSpacing: -0.6,
-    marginBottom: 10,
-  },
+  headBlock: { paddingTop: 8, paddingBottom: 8 },
   subtitle: {
     fontSize: 14,
     fontWeight: '400',

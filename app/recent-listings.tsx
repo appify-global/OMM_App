@@ -7,6 +7,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /** [Figma 1053:1232](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-1232) — See All · Listings */
 
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { propertyImageAtIndex } from '@/lib/propertyImages';
 
 const PAD = 24;
@@ -107,21 +109,13 @@ function ListingRow({ row, index }: { row: Row; index: number }) {
 
 export default function RecentListingsScreen() {
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-          style={styles.headerSide}>
-          <FontAwesome name="chevron-left" size={22} color="#000000" />
-        </Pressable>
-        <Text style={styles.headerTitle}>Recently published</Text>
-        <View style={styles.headerSide} />
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Recently published" onBack={() => router.back()} />
       </View>
 
       <View style={styles.metaRow}>
@@ -142,20 +136,7 @@ export default function RecentListingsScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingBottom: 12,
-  },
-  headerSide: { width: 44, alignItems: 'flex-start' },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 19,
-    fontFamily: 'Satoshi-Medium',
-    color: '#000',
-  },
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

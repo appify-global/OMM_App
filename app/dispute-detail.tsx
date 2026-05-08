@@ -7,6 +7,9 @@ import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Line, Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+
 import type { DisputeEvidenceFile, DisputeStatus } from '@/lib/disputes-mock';
 import { getDisputeDetail } from '@/lib/disputes-mock';
 
@@ -219,21 +222,16 @@ function DisputeInfoCard({
 export default function DisputeDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const d = useMemo(() => getDisputeDetail(typeof id === 'string' ? id : id?.[0]), [id]);
 
   if (!d) {
     return (
       <View style={[styles.screen, { paddingTop: insets.top }]}>
-        <View style={styles.navBar}>
-          <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button">
-            <FontAwesome name="chevron-left" size={20} color="#000000" />
-          </Pressable>
-          <View style={styles.navCenter}>
-            <Text style={styles.navTitle}>Dispute</Text>
-          </View>
-          <View style={styles.navSide} />
-        </View>
+        <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Dispute" onBack={() => router.back()} />
+      </View>
         <View style={{ paddingHorizontal: H_PAD, paddingTop: 24 }}>
           <Text style={styles.value}>This dispute could not be found.</Text>
         </View>
@@ -254,14 +252,8 @@ export default function DisputeDetailScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={styles.navBar}>
-        <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#000000" />
-        </Pressable>
-        <View style={styles.navCenter}>
-          <Text style={styles.navTitle}>Dispute {d.id}</Text>
-        </View>
-        <View style={styles.navSide} />
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title={`Dispute ${d.id}`} onBack={() => router.back()} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}>
@@ -351,14 +343,8 @@ export default function DisputeDetailScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-  },
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',

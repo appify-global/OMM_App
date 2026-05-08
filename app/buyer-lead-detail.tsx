@@ -1,10 +1,11 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import { Text } from '@/components/OMMText';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 /**
  * Buyer lead detail (buyer agent brief).
@@ -38,19 +39,13 @@ const DEMO_BUYER_AGENT = {
 
 export default function BuyerLeadDetailScreen() {
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={styles.topBar}>
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-          style={styles.backBtn}>
-          <FontAwesome name="chevron-left" size={20} color="#000000" />
-        </Pressable>
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Buyer brief" onBack={() => router.back()} />
       </View>
 
       <ScrollView
@@ -89,8 +84,7 @@ export default function BuyerLeadDetailScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  topBar: { paddingHorizontal: PAD, paddingVertical: 8 },
-  backBtn: { width: 40, height: 40, justifyContent: 'center' },
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   scroll: { paddingHorizontal: PAD, paddingTop: 8 },
   profileBlock: { alignItems: 'center', marginBottom: 28 },
   avatar: {

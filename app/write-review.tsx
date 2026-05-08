@@ -9,6 +9,9 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+
 import { DEMO_AGENT_AGENCY, DEMO_PRIMARY_STREET } from '@/lib/melbourne-demo-locations';
 
 /**
@@ -156,7 +159,7 @@ function TapStars({
     <View style={[styles.starRow, { gap }]}>
       {[1, 2, 3, 4, 5].map((i) => (
         <Pressable key={i} onPress={() => onChange(i)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`${i} stars`}>
-          <FontAwesome name={i <= value ? 'star' : 'star-o'} size={size} color={i <= value ? '#6b5344' : LIGHT_STAR} />
+          <FontAwesome name={i <= value ? 'star' : 'star-o'} size={size} color={i <= value ? '#FFCC00' : LIGHT_STAR} />
         </Pressable>
       ))}
     </View>
@@ -238,6 +241,7 @@ function PendingCard({
 export default function WriteReviewScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
 
   const [agent, setAgent] = useState('');
   const [deal, setDeal] = useState('');
@@ -269,15 +273,9 @@ export default function WriteReviewScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}>
-        <View style={styles.navBar}>
-          <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-            <FontAwesome name="chevron-left" size={20} color="#000000" />
-          </Pressable>
-          <View style={styles.navCenter}>
-            <Text style={styles.navTitle}>Write a review</Text>
-          </View>
-          <View style={styles.navSide} />
-        </View>
+        <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Write a review" onBack={() => router.back()} />
+      </View>
 
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -403,16 +401,10 @@ function AttachRow() {
 }
 
 const styles = StyleSheet.create({
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',

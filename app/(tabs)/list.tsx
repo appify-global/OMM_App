@@ -5,6 +5,10 @@ import { Text } from '@/components/OMMText';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { HeaderToggle } from '@/components/HeaderToggle';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScrollEdgeReveal } from '@/lib/scrollEdge';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { useTabScreenBottomPad } from '@/lib/useTabScreenBottomPad';
 
 import { ManageListingSheet } from '@/components/ManageListingSheet';
@@ -24,14 +28,11 @@ type TabKey = 'live' | 'contract' | 'draft';
 
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#fff' },
-  scroll: { paddingHorizontal: 20 },
-  pageTitle: {
-    fontSize: 28,
-    fontFamily: 'Satoshi-Medium',
-    color: '#000000',
-    letterSpacing: -0.6,
-    marginBottom: 20,
+  headBlock: {
+    paddingTop: 8,
+    paddingBottom: 12,
   },
+  scroll: { paddingHorizontal: 20 },
   buyerCard: {
     borderRadius: 14,
     padding: 20,
@@ -47,31 +48,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   buyerCtaText: { color: '#fff', fontSize: 14, fontFamily: 'Satoshi-Medium' },
-  segment: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(0,0,0,0.06)',
-    borderRadius: 14,
-    padding: 4,
-    marginBottom: 20,
-    gap: 4,
-  },
-  segItem: {
-    flex: 1,
-    paddingVertical: 11,
+  toggleRow: {
+    paddingVertical: 6,
+    marginBottom: 14,
     alignItems: 'center',
-    borderRadius: 11,
-    minWidth: 0,
   },
-  segItemOn: {
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  segLabel: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', textAlign: 'center' },
-  segLabelOn: { color: '#000000' },
   listingCard: {
     borderRadius: 16,
     overflow: 'hidden',
@@ -140,11 +121,13 @@ export default function ManageListingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const bottomPad = useTabScreenBottomPad();
+  const hPad = useScreenHorizontalPadding();
   const [activeSegment, setActiveSegment] = useState<TabKey>('live');
   const [manageSheetOpen, setManageSheetOpen] = useState(false);
+  const scrollEdge = useScrollEdgeReveal({ threshold: 120 });
 
   return (
-    <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
+    <View style={[styles.root, { paddingTop: insets.top }]}>
       <ManageListingSheet
         visible={manageSheetOpen}
         onClose={() => setManageSheetOpen(false)}
@@ -159,11 +142,14 @@ export default function ManageListingsScreen() {
           if (item === 'Archive listing') router.push('/archive-listing' as Href);
         }}
       />
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Manage listings" />
+      </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scroll, { paddingBottom: bottomPad + 24 }]}>
-        <Text style={styles.pageTitle}>Manage listings</Text>
-
+        contentContainerStyle={[styles.scroll, { paddingBottom: bottomPad + 24 }]}
+        onScroll={scrollEdge.onScroll}
+        scrollEventThrottle={scrollEdge.scrollEventThrottle}>
         <View style={[styles.buyerCard, dashedShell]}>
           <Text style={styles.buyerTitle}>6 Active Buyer Matches</Text>
           <Text style={styles.buyerBody}>
@@ -177,23 +163,18 @@ export default function ManageListingsScreen() {
           </Pressable>
         </View>
 
-        <View style={styles.segment}>
-          {(
-            [
-              { key: 'live' as const, label: 'Live' },
-              { key: 'contract' as const, label: 'Under contract' },
-              { key: 'draft' as const, label: 'Draft' },
-            ] as const
-          ).map(({ key, label }) => (
-            <Pressable
-              key={key}
-              onPress={() => setActiveSegment(key)}
-              style={[styles.segItem, activeSegment === key && styles.segItemOn]}
-              accessibilityRole="button"
-              accessibilityState={{ selected: activeSegment === key }}>
-              <Text style={[styles.segLabel, activeSegment === key && styles.segLabelOn]}>{label}</Text>
-            </Pressable>
-          ))}
+        <View style={styles.toggleRow}>
+          <HeaderToggle
+            items={[
+              { key: 'live', label: 'Live' },
+              { key: 'contract', label: 'Under contract' },
+              { key: 'draft', label: 'Draft' },
+            ]}
+            value={activeSegment}
+            onChange={setActiveSegment}
+            align="center"
+            accessibilityLabel="Listing status"
+          />
         </View>
 
         {activeSegment === 'live' ? (

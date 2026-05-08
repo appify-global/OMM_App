@@ -1,11 +1,13 @@
 import { Stack } from 'expo-router';
 
+import { nativeStackDramatic } from '@/lib/motion';
+
 export default function AddStackLayout() {
   return (
     <Stack
       screenOptions={{
         headerShown: false,
-        animation: 'slide_from_right',
+        ...nativeStackDramatic,
         contentStyle: { backgroundColor: '#fff' },
       }}
     />

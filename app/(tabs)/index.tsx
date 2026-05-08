@@ -1,17 +1,26 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { LinearGradient } from 'expo-linear-gradient';
 import { Fragment, useEffect, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
 import { Image, Pressable, ScrollView, StyleSheet, Switch, View, type ImageSourcePropType, type StyleProp, type ViewStyle } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { type Href, useGlobalSearchParams, useRouter } from 'expo-router';
 
 import { AppButton } from '@/components/AppButton';
+import { HeaderToggle } from '@/components/HeaderToggle';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScrollEdgeReveal } from '@/lib/scrollEdge';
 import {
   DEMO_PRIMARY_LISTING_TITLE,
+  DEMO_PRIMARY_LOCALITY_LINE,
   DEMO_SEARCH_SUBURB,
 } from '@/lib/melbourne-demo-locations';
-import { PROPERTY_IMG_1, PROPERTY_IMG_2, propertyImageAtIndex } from '@/lib/propertyImages';
+import { HERO_PROPERTY_IMG, PROPERTY_IMG_1, PROPERTY_IMG_2, propertyImageAtIndex } from '@/lib/propertyImages';
+import { useTabScreenBottomPad } from '@/lib/useTabScreenBottomPad';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+import { enteringCrossfade } from '@/lib/motion';
 
 const dashedPromoShell = {
   borderWidth: 1.5,
@@ -43,13 +52,97 @@ function SectionHeader({
   );
 }
 
-function AlertRow({ icon, text }: { icon: React.ComponentProps<typeof FontAwesome>['name']; text: string }) {
+function AlertRow({
+  icon,
+  text,
+  onPress,
+  onDismiss,
+}: {
+  icon: React.ComponentProps<typeof FontAwesome>['name'];
+  text: string;
+  onPress?: () => void;
+  onDismiss?: () => void;
+}) {
   return (
-    <Pressable style={styles.alertCard} accessibilityRole="button">
+    <Pressable style={styles.alertCard} accessibilityRole="button" onPress={onPress}>
       <FontAwesome name={icon} size={18} color="#000000" style={styles.alertIcon} />
       <Text style={styles.alertText}>{text}</Text>
-      <FontAwesome name="chevron-right" size={12} color="rgba(0, 0, 0, 0.4)" />
+      {onDismiss ? (
+        <Pressable
+          onPress={onDismiss}
+          hitSlop={10}
+          accessibilityRole="button"
+          accessibilityLabel="Dismiss alert"
+          style={({ pressed }) => [styles.alertDismiss, pressed && { opacity: 0.5 }]}>
+          <FontAwesome name="times" size={13} color="rgba(0, 0, 0, 0.45)" />
+        </Pressable>
+      ) : null}
+      <FontAwesome name="chevron-right" size={12} color="rgba(0, 0, 0, 0.4)" style={styles.alertChevron} />
     </Pressable>
+  );
+}
+
+type Alert = {
+  id: string;
+  icon: React.ComponentProps<typeof FontAwesome>['name'];
+  text: string;
+};
+
+function AlertsBanner({
+  alerts,
+  collapsed,
+  onToggleCollapsed,
+  onClearAll,
+  onDismiss,
+}: {
+  alerts: Alert[];
+  collapsed: boolean;
+  onToggleCollapsed: () => void;
+  onClearAll: () => void;
+  onDismiss: (id: string) => void;
+}) {
+  if (alerts.length === 0) return null;
+  return (
+    <View style={styles.alertsBanner}>
+      <View style={styles.alertsBannerHead}>
+        <Pressable
+          onPress={onToggleCollapsed}
+          accessibilityRole="button"
+          accessibilityLabel={collapsed ? 'Expand alerts' : 'Collapse alerts'}
+          style={({ pressed }) => [styles.alertsHeadHit, pressed && { opacity: 0.5 }]}>
+          <Text style={styles.alertsKicker}>
+            {alerts.length} ALERT{alerts.length === 1 ? '' : 'S'}
+          </Text>
+          <FontAwesome
+            name={collapsed ? 'chevron-down' : 'chevron-up'}
+            size={11}
+            color="rgba(0, 0, 0, 0.55)"
+            style={styles.alertsHeadChev}
+          />
+        </Pressable>
+        <Pressable
+          onPress={onClearAll}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="Clear all alerts"
+          style={({ pressed }) => [styles.alertsClear, pressed && { opacity: 0.5 }]}>
+          <Text style={styles.alertsClearText}>Clear all</Text>
+        </Pressable>
+      </View>
+      {!collapsed ? (
+        <View style={styles.alertsBannerBody}>
+          {alerts.map((alert, i) => (
+            <View key={alert.id} style={i > 0 ? { marginTop: 10 } : undefined}>
+              <AlertRow
+                icon={alert.icon}
+                text={alert.text}
+                onDismiss={() => onDismiss(alert.id)}
+              />
+            </View>
+          ))}
+        </View>
+      ) : null}
+    </View>
   );
 }
 
@@ -58,21 +151,43 @@ function HeroCTA({
   title,
   subtitle,
   onPress,
+  imageSource = HERO_PROPERTY_IMG,
 }: {
   kicker: string;
   title: string;
   subtitle: string;
   onPress?: () => void;
+  imageSource?: ImageSourcePropType;
 }) {
   return (
     <Pressable style={styles.hero} accessibilityRole="button" onPress={onPress}>
-      <View style={styles.heroTextCol}>
-        <Text style={styles.heroKicker}>{kicker}</Text>
-        <Text style={styles.heroTitle}>{title}</Text>
-        <Text style={styles.heroSub}>{subtitle}</Text>
-      </View>
-      <View style={styles.heroFab}>
-        <FontAwesome name="plus" size={22} color="#000000" />
+      <Image source={imageSource} style={styles.heroImage} resizeMode="cover" />
+      {/* Bottom contrast bed — keeps copy legible regardless of image content. */}
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(0,0,0,0.75)', 'rgba(0,0,0,0.45)', 'rgba(0,0,0,0.05)']}
+        locations={[0, 0.55, 1]}
+        start={{ x: 0, y: 1 }}
+        end={{ x: 0, y: 0 }}
+        style={StyleSheet.absoluteFill}
+      />
+      {/* Soft right-edge fade so the FAB sits on a brighter patch of the property. */}
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(0,0,0,0.55)', 'rgba(0,0,0,0)']}
+        start={{ x: 0, y: 0.5 }}
+        end={{ x: 1, y: 0.5 }}
+        style={StyleSheet.absoluteFill}
+      />
+      <View style={styles.heroBody}>
+        <View style={styles.heroTextCol}>
+          <Text style={styles.heroKicker}>{kicker}</Text>
+          <Text style={styles.heroTitle}>{title}</Text>
+          <Text style={styles.heroSub}>{subtitle}</Text>
+        </View>
+        <View style={styles.heroFab}>
+          <FontAwesome name="plus" size={22} color="#000000" />
+        </View>
       </View>
     </Pressable>
   );
@@ -140,6 +255,7 @@ function LargeListingCard(
         variant?: 'selling';
         imageSource?: ImageSourcePropType;
         title: string;
+        localityLine?: string;
         price: string;
         beds: string;
         badgeLeft: string;
@@ -150,6 +266,7 @@ function LargeListingCard(
         variant: 'buying';
         imageSource?: ImageSourcePropType;
         title: string;
+        localityLine?: string;
         price: string;
         badgeLeft: string;
         badgeRight: string;
@@ -162,6 +279,12 @@ function LargeListingCard(
     <View style={[styles.largeCard, isBuying && styles.largeCardBuying]}>
       <View style={[styles.largeImgWrap, isBuying && styles.largeImgWrapBuying]}>
         <Image source={heroSource} style={styles.largeImg} resizeMode="cover" />
+        <LinearGradient
+          pointerEvents="none"
+          colors={['rgba(0,0,0,0)', 'rgba(0,0,0,0.02)', 'rgba(0,0,0,0.38)']}
+          locations={[0, 0.55, 1]}
+          style={styles.largeImgLuxScrim}
+        />
         <View style={[styles.badgeLeft, isBuying && styles.badgeLeftBuying]}>
           <Text style={styles.badgeLeftText}>{props.badgeLeft}</Text>
         </View>
@@ -171,6 +294,7 @@ function LargeListingCard(
       </View>
       <View style={styles.largeBody}>
         <Text style={[styles.propTitle, isBuying && styles.propTitleBuying]}>{props.title}</Text>
+        {props.localityLine ? <Text style={styles.propLocality}>{props.localityLine}</Text> : null}
         <Text style={[styles.propPrice, isBuying && styles.propPriceBuying]}>{props.price}</Text>
         {isBuying ? (
           <View style={styles.specRowBuying}>
@@ -283,12 +407,43 @@ function SearchMatchRow({
 /** Home — OMM [Figma area](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-1046&t=gEfFuYKIwBHVUzXh-4) */
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
+  const bottomPad = useTabScreenBottomPad();
+  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
   const search = useGlobalSearchParams<{ openBuyingSearch?: string; homeSegment?: string; _ts?: string }>();
   const [mode, setMode] = useState<'selling' | 'buying'>('selling');
   const [buyingSearchActive, setBuyingSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState(DEMO_SEARCH_SUBURB);
   const [saveAlerts, setSaveAlerts] = useState(false);
+
+  const sellingAlertsAll: Alert[] = [
+    { id: 'sell-enquiries', icon: 'bullhorn', text: '3 new enquiries' },
+    { id: 'sell-reviews', icon: 'star', text: '2 transactions awaiting review' },
+  ];
+  const buyingAlertsAll: Alert[] = [
+    { id: 'buy-replies', icon: 'bolt', text: '2 new agent replies' },
+    { id: 'buy-reviews', icon: 'star', text: '1 transaction awaiting review' },
+  ];
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set());
+  const [alertsCollapsed, setAlertsCollapsed] = useState<{ selling: boolean; buying: boolean }>({
+    selling: false,
+    buying: false,
+  });
+  const dismissAlert = (id: string) =>
+    setDismissedAlerts((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
+  const clearAllAlerts = (ids: string[]) =>
+    setDismissedAlerts((prev) => {
+      const next = new Set(prev);
+      ids.forEach((id) => next.add(id));
+      return next;
+    });
+  const sellingAlerts = sellingAlertsAll.filter((a) => !dismissedAlerts.has(a.id));
+  const buyingAlerts = buyingAlertsAll.filter((a) => !dismissedAlerts.has(a.id));
+  const scrollEdge = useScrollEdgeReveal({ threshold: 120 });
 
   /** Return to Home (e.g. listing published) on Selling. Query lives on `/(tabs)?homeSegment=…` — use global params. */
   useEffect(() => {
@@ -307,60 +462,61 @@ export default function HomeScreen() {
   return (
     <View style={styles.screen}>
       <ScrollView
+        style={styles.scrollFill}
+        stickyHeaderIndices={[0]}
         showsVerticalScrollIndicator={false}
+        onScroll={scrollEdge.onScroll}
+        scrollEventThrottle={scrollEdge.scrollEventThrottle}
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: insets.top + 8,
-            paddingBottom: insets.bottom + 100,
+            paddingBottom: bottomPad + 12,
           },
         ]}>
-        <View style={styles.topRow}>
-          <Text style={styles.homeTitle}>Home</Text>
-          <View style={styles.headerIcons}>
-            <Pressable
-              hitSlop={12}
-              accessibilityRole="button"
-              accessibilityLabel="Notifications"
-              onPress={() => router.push('/notifications' as Href)}>
-              <FontAwesome name="bell-o" size={22} color="#000000" />
-            </Pressable>
-            <Pressable
-              hitSlop={12}
-              accessibilityRole="button"
-              accessibilityLabel="Messages"
-              onPress={() => router.push('/messages' as Href)}>
-              <FontAwesome name="comment-o" size={22} color="#000000" />
-            </Pressable>
+        <View style={styles.stickyHeaderWrap}>
+          <View style={[styles.stickyHeaderInner, { paddingTop: insets.top }]}>
+            <View style={[styles.homeHeadBlock, hPad]}>
+              <ScreenHeader title="Home" />
+            </View>
           </View>
         </View>
 
-        <View style={styles.segment}>
-          <Pressable
-            onPress={() => {
-              setMode('selling');
-              setBuyingSearchActive(false);
+        <View style={[styles.modeToggleRow, hPad]}>
+          <HeaderToggle
+            items={[
+              { key: 'selling', label: 'Selling' },
+              { key: 'buying', label: 'Buying' },
+            ]}
+            value={mode}
+            onChange={(next) => {
+              setMode(next);
+              if (next === 'selling') setBuyingSearchActive(false);
             }}
-            style={[styles.segmentItem, mode === 'selling' && styles.segmentActive]}>
-            <Text style={[styles.segmentText, mode === 'selling' && styles.segmentTextActive]}>SELLING</Text>
-          </Pressable>
-          <Pressable
-            onPress={() => setMode('buying')}
-            style={[styles.segmentItem, mode === 'buying' && styles.segmentActive]}>
-            <Text style={[styles.segmentText, mode === 'buying' && styles.segmentTextActive]}>BUYING</Text>
-          </Pressable>
+            align="center"
+            accessibilityLabel="Selling or buying mode"
+          />
         </View>
 
+        <Animated.View
+          key={`${mode}-${buyingSearchActive}`}
+          entering={enteringCrossfade()}
+          style={hPad}>
         {mode === 'selling' ? (
           <>
-            <AlertRow icon="bullhorn" text="3 new enquiries" />
-            <View style={{ height: 10 }} />
-            <AlertRow icon="star" text="2 transactions awaiting review" />
-            <View style={{ height: 20 }} />
+            <AlertsBanner
+              alerts={sellingAlerts}
+              collapsed={alertsCollapsed.selling}
+              onToggleCollapsed={() =>
+                setAlertsCollapsed((prev) => ({ ...prev, selling: !prev.selling }))
+              }
+              onClearAll={() => clearAllAlerts(sellingAlertsAll.map((a) => a.id))}
+              onDismiss={dismissAlert}
+            />
+            {sellingAlerts.length > 0 ? <View style={{ height: 20 }} /> : null}
             <HeroCTA
               kicker="NEW LISTING"
               title="Publish a property"
-              subtitle="Auto-fill from PriceFinder • SOI in 5 steps"
+              subtitle="Statement of Information · PriceFinder sync · five guided steps"
               onPress={() => router.push('/add' as Href)}
             />
             <SectionHeader title="Latest enquiries" onSeeAll={() => router.push('/messages' as Href)} />
@@ -369,16 +525,16 @@ export default function HomeScreen() {
                 <EnquiryCard
                   name="John Doe"
                   time="2H AGO"
-                  address="8 Union St, Brunswick VIC 3056"
-                  tag="RE: HAWTHORN CITY CENTER"
+                  address="12 Lynch Cres, Hawthorn VIC 3122"
+                  tag="RE: CAMBERWELL CORRIDOR"
                 />
               </Pressable>
               <Pressable onPress={() => router.push('/messages' as Href)} accessibilityRole="button">
                 <EnquiryCard
                   name="Anita Wong"
                   time="5H AGO"
-                  address="44 Walter St, Moorabbin VIC 3189"
-                  tag="RE: INNER EAST BRIEF"
+                  address="48 Prospect Hill Rd, Camberwell VIC 3124"
+                  tag="RE: INNER EAST · BOROONDARA"
                 />
               </Pressable>
             </ScrollView>
@@ -388,21 +544,21 @@ export default function HomeScreen() {
             />
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.hScroll}>
               <AuthorityExpiringCarouselCard
-                address="45 Buckley St, Moonee Ponds VIC 3039"
+                address="24 Riversdale Rd, Hawthorn VIC 3122"
                 daysLeft="6D LEFT"
-                subtitleLine="Moonee Ponds Villa"
+                subtitleLine="Riversdale Victorian"
                 soiPill="SOI ATTACHED"
               />
               <AuthorityExpiringCarouselCard
-                address="102 Glenhuntly Rd, Elsternwick VIC 3185"
+                address="61 Burke Rd, Camberwell VIC 3124"
                 daysLeft="11D LEFT"
-                subtitleLine="Elsternwick Corner Shop"
+                subtitleLine="Burke Rd Heritage"
                 soiPill="SOI MISSING — ACTION NEEDED"
               />
               <AuthorityExpiringCarouselCard
-                address="17 Ferguson St, Williamstown VIC 3016"
+                address="15 Monomeath Ave, Canterbury VIC 3126"
                 daysLeft="16D LEFT"
-                subtitleLine="Williamstown Period"
+                subtitleLine="Canterbury Hill"
                 soiPill="SOI ATTACHED"
               />
             </ScrollView>
@@ -417,11 +573,12 @@ export default function HomeScreen() {
               accessibilityLabel="Open manage listings">
               <LargeListingCard
                 title={DEMO_PRIMARY_LISTING_TITLE}
-                price="$2.0M — $2.2M"
-                beds="4 BED  3 BATH  650M²"
+                localityLine={DEMO_PRIMARY_LOCALITY_LINE}
+                price="$2.85M — $3.1M guide"
+                beds="5 BED  4 BATH  890M²"
                 badgeLeft="ACTIVE"
                 badgeRight="AUTH 14D LEFT"
-                footerLabels={['312 VIEWS (7D)', '6 LEADS', 'Attached SOI']}
+                footerLabels={['428 VIEWS (7D)', '9 LEADS', 'Attached SOI']}
               />
             </Pressable>
           </>
@@ -462,38 +619,44 @@ export default function HomeScreen() {
               <Text style={styles.sortLink}>SORT • BEST MATCH</Text>
             </View>
             <SearchMatchRow
-              name="Preston California Bungalow"
-              address="15 Miller St, Preston VIC 3072"
-              price="$2.1M — $2.3M"
-              specs="4 BED · 3 BATH · 720M²"
-              match="92% MATCH"
+              name="Auburn Rd Victorian"
+              address="88 Auburn Rd, Hawthorn VIC 3122"
+              price="$2.75M — $3.0M"
+              specs="4 BED · 3 BATH · 580M²"
+              match="94% MATCH"
               imageSource={propertyImageAtIndex(0)}
             />
             <View style={styles.resultDivider} />
             <SearchMatchRow
-              name="Sandringham Bay House"
-              address="72 Bay Rd, Sandringham VIC 3191"
-              price="$1.9M — $2.2M"
-              specs="3 BED · 2 BATH · 420M²"
-              match="88% MATCH"
+              name="The Ridge · Camberwell"
+              address="3 Victoria Rd, Camberwell VIC 3124"
+              price="$3.2M — $3.6M"
+              specs="5 BED · 3 BATH · 720M²"
+              match="91% MATCH"
               imageSource={propertyImageAtIndex(1)}
             />
             <View style={styles.resultDivider} />
             <SearchMatchRow
-              name="Collingwood Workshop"
-              address="201 Smith St, Collingwood VIC 3066"
-              price="$1.6M — $1.85M"
-              specs="3 BED · 2 BATH · 310M²"
-              match="85% MATCH"
+              name="Canterbury Estate"
+              address="42 Mont Albert Rd, Canterbury VIC 3126"
+              price="$2.95M — $3.25M"
+              specs="4 BED · 4 BATH · 810M²"
+              match="89% MATCH"
               imageSource={propertyImageAtIndex(2)}
             />
           </>
         ) : (
           <>
-            <AlertRow icon="bolt" text="2 new agent replies" />
-            <View style={{ height: 10 }} />
-            <AlertRow icon="star" text="1 transaction awaiting review" />
-            <View style={{ height: 20 }} />
+            <AlertsBanner
+              alerts={buyingAlerts}
+              collapsed={alertsCollapsed.buying}
+              onToggleCollapsed={() =>
+                setAlertsCollapsed((prev) => ({ ...prev, buying: !prev.buying }))
+              }
+              onClearAll={() => clearAllAlerts(buyingAlertsAll.map((a) => a.id))}
+              onDismiss={dismissAlert}
+            />
+            {buyingAlerts.length > 0 ? <View style={{ height: 20 }} /> : null}
             <View style={styles.searchRow}>
               <View style={styles.searchField}>
                 <FontAwesome name="search" size={16} color="#000000" />
@@ -523,8 +686,8 @@ export default function HomeScreen() {
             <View style={[styles.sellerNetworkCard, dashedPromoShell]}>
               <Text style={styles.sellerNetworkTitle}>6 Active Seller Matches</Text>
               <Text style={styles.sellerNetworkBody}>
-                Verified sellers in your corridors are listing overlapping stock. Swap intel, co-marketing leads, and
-                referral handoffs with peers who sell where you sell.
+                Verified sellers across Hawthorn, Camberwell, and Canterbury are listing overlapping corridors. Swap
+                intel, co-marketing leads, and referral handoffs with peers who transact where you do.
               </Text>
               <Pressable
                 style={styles.sellerNetworkCta}
@@ -552,16 +715,16 @@ export default function HomeScreen() {
             </ScrollView>
             <SectionHeader title="Saved searches" onSeeAll={() => router.push('/saved-searches')} />
             <SavedSearchCard
-              name="John Doe"
-              criteria="4+ beds • House • $1.8M—2.4M"
+              name="Inner East · Boroondara"
+              criteria="4+ beds • House • $2.4M—3.8M • Hawthorn · Camberwell"
               badge="8 NEW"
               alertsOn
               meta="Yesterday"
             />
             <View style={{ height: 12 }} />
             <SavedSearchCard
-              name="Footscray & Seddon"
-              criteria="3+ beds • Townhouse • $2M—3M"
+              name="Canterbury & Glen Iris"
+              criteria="4+ beds • Victorian • north rear • schools"
               badge="2 NEW"
               alertsOn={false}
               meta="Paused 2d ago"
@@ -579,14 +742,16 @@ export default function HomeScreen() {
               <LargeListingCard
                 variant="buying"
                 title={DEMO_PRIMARY_LISTING_TITLE}
-                price="$2.0M — $2.2M"
+                localityLine={DEMO_PRIMARY_LOCALITY_LINE}
+                price="$2.85M — $3.1M guide"
                 badgeLeft="OFF-MARKET"
                 badgeRight="92% MATCH"
-                specParts={['4 bed', '3 bath', '650m²']}
+                specParts={['5 bed', '4 bath', '890m²']}
               />
             </Pressable>
           </>
         )}
+        </Animated.View>
       </ScrollView>
     </View>
   );
@@ -594,94 +759,155 @@ export default function HomeScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  scrollContent: { paddingHorizontal: 20 },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 18,
-  },
-  homeTitle: {
-    fontSize: 32,
-    fontFamily: 'Satoshi-Medium',
-    color: '#000000',
-    letterSpacing: -0.8,
-  },
-  headerIcons: { flexDirection: 'row', alignItems: 'center', gap: 18 },
-  segment: {
-    flexDirection: 'row',
-    backgroundColor: 'rgba(0,0,0,0.06)',
-    borderRadius: 14,
-    padding: 4,
-    marginBottom: 20,
-  },
-  segmentItem: {
-    flex: 1,
-    paddingVertical: 12,
-    alignItems: 'center',
-    borderRadius: 11,
-  },
-  segmentActive: {
+  scrollFill: { flex: 1, minHeight: 0 },
+  scrollContent: { paddingHorizontal: 0 },
+  stickyHeaderWrap: {
     backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 2,
   },
-  segmentText: {
-    fontSize: 13,
-    fontFamily: 'Satoshi-Medium',
-    color: 'rgba(0, 0, 0, 0.50)',
-    letterSpacing: 0.4,
+  stickyHeaderInner: {},
+  homeHeadBlock: {
+    paddingTop: 8,
+    paddingBottom: 12,
   },
-  segmentTextActive: { color: '#000000' },
+  modeToggleRow: {
+    paddingTop: 4,
+    paddingBottom: 14,
+  },
   alertCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 14,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
     paddingVertical: 16,
-    paddingHorizontal: 14,
+    paddingHorizontal: 16,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(60, 60, 67, 0.08)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.08,
+    shadowRadius: 18,
+    elevation: 5,
   },
   alertIcon: { width: 28 },
   alertText: { flex: 1, fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000', marginLeft: 4 },
-  hero: {
+  alertDismiss: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 4,
+    backgroundColor: 'rgba(120, 120, 128, 0.10)',
+  },
+  alertChevron: {
+    marginLeft: 2,
+  },
+  alertsBanner: {
+    marginBottom: 0,
+  },
+  alertsBannerHead: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#000000',
-    borderRadius: 16,
-    padding: 20,
+    justifyContent: 'space-between',
+    paddingHorizontal: 4,
+    marginBottom: 10,
+  },
+  alertsHeadHit: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 4,
+    paddingRight: 6,
+  },
+  alertsKicker: {
+    fontSize: 11,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
+    letterSpacing: 0.8,
+    textTransform: 'uppercase',
+  },
+  alertsHeadChev: {
+    marginLeft: 8,
+  },
+  alertsClear: {
+    paddingVertical: 4,
+    paddingHorizontal: 6,
+    borderRadius: 8,
+  },
+  alertsClearText: {
+    fontSize: 13,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.55)',
+  },
+  alertsBannerBody: {},
+  hero: {
+    position: 'relative',
+    overflow: 'hidden',
+    backgroundColor: '#0b0b0b',
+    borderRadius: 18,
+    minHeight: 168,
     marginBottom: 28,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(255, 255, 255, 0.06)',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 14 },
+    shadowOpacity: 0.18,
+    shadowRadius: 28,
+    elevation: 8,
+  },
+  heroImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+  },
+  heroBody: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    padding: 20,
+    paddingTop: 64,
   },
   heroTextCol: { flex: 1, paddingRight: 12 },
   heroKicker: {
     fontSize: 10,
     fontFamily: 'Satoshi-Medium',
-    color: 'rgba(255,255,255,0.55)',
-    letterSpacing: 1,
+    color: 'rgba(255,255,255,0.78)',
+    letterSpacing: 1.4,
+    textTransform: 'uppercase',
     marginBottom: 8,
+    textShadowColor: 'rgba(0,0,0,0.45)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
   heroTitle: {
-    fontSize: 22,
+    fontSize: 24,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
+    color: '#ffffff',
     marginBottom: 8,
-    letterSpacing: -0.3,
+    letterSpacing: -0.4,
+    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 6,
   },
-  heroSub: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: 'rgba(255,255,255,0.55)', lineHeight: 18 },
+  heroSub: {
+    fontSize: 13,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(255,255,255,0.82)',
+    lineHeight: 18,
+    textShadowColor: 'rgba(0,0,0,0.4)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
   heroFab: {
     width: 52,
     height: 52,
     borderRadius: 26,
-    backgroundColor: '#fff',
+    backgroundColor: '#ffffff',
     alignItems: 'center',
     justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 10,
+    elevation: 4,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -724,15 +950,17 @@ const styles = StyleSheet.create({
   },
   sellerNetworkCtaText: { color: '#fff', fontSize: 14, fontFamily: 'Satoshi-Medium' },
   enquiryCard: {
-    width: 220,
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
+    width: 224,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(60, 60, 67, 0.08)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.10,
+    shadowRadius: 22,
+    elevation: 6,
   },
   enqName: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000' },
   enqTime: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', marginTop: 4 },
@@ -740,22 +968,24 @@ const styles = StyleSheet.create({
   enqPill: {
     alignSelf: 'flex-start',
     marginTop: 12,
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(120, 120, 128, 0.10)',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
   },
   enqPillText: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.65)' },
   authCarouselCard: {
-    width: 220,
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
+    width: 224,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(60, 60, 67, 0.08)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.10,
+    shadowRadius: 22,
+    elevation: 6,
   },
   authCarouselTop: {
     flexDirection: 'row',
@@ -792,7 +1022,7 @@ const styles = StyleSheet.create({
   authCarouselPill: {
     alignSelf: 'center',
     marginTop: 12,
-    backgroundColor: '#ffffff',
+    backgroundColor: 'rgba(120, 120, 128, 0.10)',
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
@@ -821,9 +1051,12 @@ const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 3,
   },
-  largeImgWrap: { height: 200, position: 'relative' },
-  largeImgWrapBuying: { height: 168 },
+  largeImgWrap: { height: 220, position: 'relative', backgroundColor: 'rgba(0,0,0,0.04)' },
+  largeImgWrapBuying: { height: 184 },
   largeImg: { width: '100%', height: '100%' },
+  largeImgLuxScrim: {
+    ...StyleSheet.absoluteFillObject,
+  },
   badgeLeft: {
     position: 'absolute',
     top: 12,
@@ -849,8 +1082,15 @@ const styles = StyleSheet.create({
   badgeRightTextBuying: { color: '#000' },
   largeBody: { padding: 16, paddingBottom: 18 },
   propTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  propLocality: {
+    marginTop: 6,
+    fontSize: 12,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.45)',
+    letterSpacing: 0.4,
+  },
   propTitleBuying: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000' },
-  propPrice: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000', marginTop: 6 },
+  propPrice: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000', marginTop: 10 },
   propPriceBuying: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: 'rgba(0,0,0,0.55)', marginTop: 6 },
   propSpecs: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', marginTop: 8 },
   specRowBuying: {
@@ -884,7 +1124,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ede8e0',
+    backgroundColor: '#F2F2F7',
     borderRadius: 12,
     paddingHorizontal: 16,
     height: 48,
@@ -911,15 +1151,17 @@ const styles = StyleSheet.create({
   exploreBtnWrap: {},
   exploreBtnLabel: { fontSize: 12, fontFamily: 'Satoshi-Medium', letterSpacing: 0.6 },
   replyCard: {
-    width: 240,
-    backgroundColor: '#fff',
-    borderRadius: 14,
-    padding: 16,
+    width: 244,
+    backgroundColor: '#ffffff',
+    borderRadius: 16,
+    padding: 18,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(60, 60, 67, 0.08)',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.10,
+    shadowRadius: 22,
+    elevation: 6,
   },
   replyName: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000' },
   replyAgency: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.55)', marginTop: 4 },

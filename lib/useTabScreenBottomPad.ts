@@ -7,7 +7,8 @@ export function useTabScreenBottomPad() {
   const measured = useBottomTabBarHeight();
   const insets = useSafeAreaInsets();
   const floatMargin = Platform.OS === 'ios' ? 24 : 16;
-  const fallback = 64 + floatMargin + Math.min(insets.bottom, 34);
-  const fromNav = measured > 0 ? measured + 10 : fallback;
-  return fromNav + 8;
+  /** Mirrors app/(tabs)/_layout tabBar bottom margin + pill height (64) + breath room. */
+  const geometric = 64 + floatMargin + insets.bottom + 12;
+  const fromNav = measured > 0 ? measured + 12 : 0;
+  return Math.max(fromNav, geometric);
 }

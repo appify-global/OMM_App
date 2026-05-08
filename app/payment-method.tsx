@@ -9,6 +9,9 @@ import { Alert, Dimensions, FlatList, type ListRenderItemInfo, Keyboard, Keyboar
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+
 import {
   AUTO_PAY_OPTIONS,
   PAYMENT_CARDS,
@@ -242,6 +245,7 @@ function SheetChrome({
   children: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
       <KeyboardAvoidingView
@@ -753,6 +757,7 @@ function AutoPaySheet({
 export default function PaymentMethodScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const [sheet, setSheet] = useState<SheetMode>(null);
   const [otherSettings, setOtherSettings] = useState<PaymentOtherSettings>({
     billing: { ...PAYMENT_METHOD_OTHER.billing },
@@ -794,14 +799,8 @@ export default function PaymentMethodScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={styles.navBar}>
-        <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#000000" />
-        </Pressable>
-        <View style={styles.navCenter}>
-          <Text style={styles.navTitle}>Payment method</Text>
-        </View>
-        <View style={styles.navSide} />
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Payment method" onBack={() => router.back()} />
       </View>
 
       <ScrollView
@@ -914,15 +913,9 @@ export default function PaymentMethodScreen() {
 }
 
 const styles = StyleSheet.create({
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',

@@ -8,6 +8,9 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+
 /**
  * Raise a dispute — Figma 1053:3056. Empty values; placeholders only.
  * https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-3056
@@ -86,6 +89,7 @@ function DashedInputBox({
 export default function RaiseDisputeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const [deal, setDeal] = useState('');
   const [category, setCategory] = useState('');
   const [otherParty, setOtherParty] = useState('');
@@ -117,15 +121,9 @@ export default function RaiseDisputeScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}>
-        <View style={styles.navBar}>
-          <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-            <FontAwesome name="chevron-left" size={20} color="#000000" />
-          </Pressable>
-          <View style={styles.navCenter}>
-            <Text style={styles.navTitle}>Raise a dispute</Text>
-          </View>
-          <View style={styles.navSide} />
-        </View>
+        <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Raise a dispute" onBack={() => router.back()} />
+      </View>
 
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -142,7 +140,7 @@ export default function RaiseDisputeScreen() {
                 value={deal}
                 onChangeText={setDeal}
                 style={styles.input}
-                placeholder="OMM-20418 · 218 Victoria St, West Melbourne"
+                placeholder="OMM-20418 · 142 Orrong Rd, Hawthorn East"
                 placeholderTextColor={MUTED}
               />
             </DashedInputBox>
@@ -168,7 +166,7 @@ export default function RaiseDisputeScreen() {
                 value={otherParty}
                 onChangeText={setOtherParty}
                 style={styles.input}
-                placeholder="Sarah Chen · Biggin Scott West Melbourne"
+                placeholder="Sarah Chen · Marshall White Boroondara"
                 placeholderTextColor={MUTED}
               />
             </DashedInputBox>
@@ -245,16 +243,10 @@ export default function RaiseDisputeScreen() {
 }
 
 const styles = StyleSheet.create({
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000', lineHeight: 27 },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
   intro: {

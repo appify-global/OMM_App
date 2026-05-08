@@ -8,7 +8,11 @@ import { Text } from '@/components/OMMText';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
 import { clearAuthenticated } from '@/lib/auth-session';
+import { useScrollEdgeReveal } from '@/lib/scrollEdge';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+import { useTabScreenBottomPad } from '@/lib/useTabScreenBottomPad';
 
 /**
  * Profile tab — buyer / user settings hub.
@@ -22,7 +26,7 @@ const GROUP_R = 16;
 /** Light gray dashed rules — full profile (ref. second screen) */
 const DASH_COLOR = 'rgba(0, 0, 0, 0.34)';
 const DASH_WIDTH = 1;
-const STAR_FILLED = '#6b5344';
+const STAR_FILLED = '#FFCC00';
 const STAR_EMPTY = 'rgba(0, 0, 0, 0.22)';
 
 type MenuIcon =
@@ -98,9 +102,10 @@ function SectionMenuGroup({ children }: { children: ReactNode }) {
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
+  const bottomPad = useTabScreenBottomPad();
+  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
-
-  const tabBarPad = 100;
+  const scrollEdge = useScrollEdgeReveal({ threshold: 120 });
 
   const onLogOut = () => {
     Alert.alert('Log out', 'You will need to sign in again to access your account.', [
@@ -121,10 +126,16 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Profile" />
+      </View>
       <ScrollView
+        style={styles.scrollFill}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scrollInner, { paddingBottom: insets.bottom + tabBarPad }]}>
+        onScroll={scrollEdge.onScroll}
+        scrollEventThrottle={scrollEdge.scrollEventThrottle}
+        contentContainerStyle={[styles.scrollInner, { paddingBottom: bottomPad + 16 }]}>
         <View style={styles.headerRow}>
           <View style={styles.headerTextCol}>
             <Text style={styles.userName}>John Lim</Text>
@@ -252,13 +263,18 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
+  scrollFill: { flex: 1, minHeight: 0 },
   scrollInner: { paddingHorizontal: H_PAD },
+  headBlock: {
+    paddingTop: 8,
+    paddingBottom: 8,
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     minHeight: 64,
-    paddingTop: 8,
+    paddingTop: 12,
   },
   headerTextCol: { flex: 1, paddingRight: 16 },
   userName: {

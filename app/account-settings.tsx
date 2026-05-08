@@ -1,4 +1,3 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
@@ -7,6 +6,9 @@ import { TextInput } from '@/components/OMMTextInput';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 /**
  * Account settings — profile fields + notifications + save.
@@ -74,6 +76,7 @@ function DashedFieldShell({
 
 export default function AccountSettingsScreen() {
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -90,19 +93,8 @@ export default function AccountSettingsScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}>
-        <View style={styles.navBar}>
-          <Pressable
-            onPress={() => router.back()}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Back"
-            style={styles.navSide}>
-            <FontAwesome name="chevron-left" size={20} color="#000000" />
-          </Pressable>
-          <View style={styles.navCenter}>
-            <Text style={styles.navTitle}>Account settings</Text>
-          </View>
-          <View style={styles.navSide} />
+        <View style={[styles.headBlock, hPad]}>
+          <ScreenHeader title="Account settings" onBack={() => router.back()} />
         </View>
 
         <ScrollView
@@ -194,20 +186,7 @@ export default function AccountSettingsScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-    backgroundColor: 'transparent',
-  },
-  navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  navTitle: {
-    fontSize: 18,
-    fontFamily: 'Satoshi-Medium',
-    color: '#000000',
-  },
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   scroll: {
     paddingHorizontal: H_PAD,
     paddingTop: 8,

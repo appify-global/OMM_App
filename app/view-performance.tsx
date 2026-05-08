@@ -5,6 +5,8 @@ import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
 
 /**
@@ -14,7 +16,7 @@ import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
 
 const H_PAD = 20;
 const CARD_RADIUS = 10;
-const TREND = '#C07A50';
+const TREND = '#0A84FF';
 const BAR_GREY = 'rgba(0, 0, 0, 0.38)';
 
 const DASH = {
@@ -57,15 +59,18 @@ function StatCard({
 
 export default function ViewPerformanceScreen() {
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
   const chartH = 168;
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Performance" onBack={() => router.back()} />
+      </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 28 }]}>
-        <Text style={styles.title}>Performance</Text>
         <Text style={styles.subtitle}>{DEMO_PRIMARY_LISTING_TITLE} • Last 30 days</Text>
 
         <View style={styles.statsRow}>
@@ -144,13 +149,7 @@ export default function ViewPerformanceScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 4 },
-  title: {
-    fontSize: 28,
-    fontFamily: 'Satoshi-Medium',
-    color: '#000000',
-    letterSpacing: -0.6,
-    marginBottom: 8,
-  },
+  headBlock: { paddingTop: 8, paddingBottom: 8 },
   subtitle: {
     fontSize: 14,
     fontWeight: '400',

@@ -6,6 +6,9 @@ import { TextInput } from '@/components/OMMTextInput';
 import { Pressable, ScrollView, StyleSheet, View, type StyleProp, type TextStyle, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+
 /** [Figma 1053:1137](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-1137) */
 const SCREEN_H_PAD = 32;
 const FIELD_RADIUS = 14;
@@ -80,8 +83,9 @@ function BriefField({
 
 export default function PostBuyerBriefScreen() {
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
-  const [suburbs, setSuburbs] = useState('218 Victoria St, West Melbourne — walk-up flat');
+  const [suburbs, setSuburbs] = useState('142 Orrong Rd, Hawthorn East — Victorian with north garden');
   const [budget, setBudget] = useState('$1.80m – $2.60m · flexible if sole mandate');
   const [propertyType, setPropertyType] = useState('Period home or renovated townhouse · 3........');
   const [beds, setBeds] = useState('3+ (4 preferred)');
@@ -93,17 +97,8 @@ export default function PostBuyerBriefScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-          style={styles.headerBack}>
-          <FontAwesome name="chevron-left" size={18} color="#000000" />
-        </Pressable>
-        <Text style={styles.headerTitle}>Post buyer brief</Text>
-        <View style={styles.headerBackPlaceholder} />
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Post buyer brief" onBack={() => router.back()} />
       </View>
 
       <ScrollView
@@ -167,29 +162,7 @@ export default function PostBuyerBriefScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: SCREEN_H_PAD,
-    paddingBottom: 4,
-    minHeight: 44,
-  },
-  headerBack: {
-    width: 40,
-    height: 40,
-    marginLeft: -8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  headerBackPlaceholder: { width: 40 },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 18,
-    fontFamily: 'Satoshi-Medium',
-    color: '#000000',
-  },
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   scroll: {
     paddingHorizontal: SCREEN_H_PAD,
     paddingTop: 6,

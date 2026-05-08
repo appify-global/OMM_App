@@ -9,6 +9,9 @@ import { Alert, Platform, Pressable, ScrollView, Share, StyleSheet, View } from 
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+
 import { buildInvoiceDocumentBody, invoiceExportFilename, saveInvoiceToDocumentDirectory } from '@/lib/invoice-export';
 import type { InvoiceDetailModel } from '@/lib/invoices-mock';
 import { getInvoiceDetailAtIndex } from '@/lib/invoices-mock';
@@ -254,6 +257,7 @@ function DownloadSavedToast({
 export default function InvoiceDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const { i } = useLocalSearchParams<{ i?: string }>();
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -422,14 +426,8 @@ export default function InvoiceDetailScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={styles.navBar}>
-        <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#000000" />
-        </Pressable>
-        <View style={styles.navCenter}>
-          <Text style={styles.navTitle}>Invoices</Text>
-        </View>
-        <View style={styles.navSide} />
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Invoices" onBack={() => router.back()} />
       </View>
 
       {!detail ? (
@@ -456,15 +454,9 @@ export default function InvoiceDetailScreen() {
 }
 
 const styles = StyleSheet.create({
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',

@@ -8,6 +8,9 @@ import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+
 /**
  * GST / ABN — Figma 1053:4377.
  * https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-4377
@@ -155,6 +158,7 @@ function PrefRow({
 export default function GstAbnScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const [registeredGst, setRegisteredGst] = useState(true);
   const [abn, setAbn] = useState('12 345 678 901');
   const [businessName, setBusinessName] = useState('AZ Real Estate Pty Ltd');
@@ -169,14 +173,8 @@ export default function GstAbnScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={styles.navBar}>
-        <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#000000" />
-        </Pressable>
-        <View style={styles.navCenter}>
-          <Text style={styles.navTitle}>GST / ABN</Text>
-        </View>
-        <View style={styles.navSide} />
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="GST / ABN" onBack={() => router.back()} />
       </View>
 
       <ScrollView
@@ -255,15 +253,9 @@ export default function GstAbnScreen() {
 }
 
 const styles = StyleSheet.create({
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 19,
     fontFamily: 'Satoshi-Medium',

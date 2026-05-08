@@ -56,7 +56,11 @@ function FormField({
       <Text style={styles.fieldLabel}>{label}</Text>
       <View style={styles.inputShell}>
         <TextInput
-          style={[styles.input, right ? styles.inputWithRight : undefined]}
+          style={[
+            styles.input,
+            secureTextEntry ? styles.inputSecure : undefined,
+            right ? styles.inputWithRight : undefined,
+          ]}
           value={value}
           onChangeText={onChangeText}
           keyboardType={keyboardType}
@@ -250,37 +254,16 @@ export default function SignUpScreen() {
     <KeyboardAvoidingView
       style={[styles.root, { paddingTop: insets.top }]}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-      <ScrollView
-        contentContainerStyle={[styles.scrollPad, { paddingBottom: insets.bottom + 28 }]}
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
-        {step > 1 && step < 4 ? (
-          <Pressable
-            style={styles.backRow}
-            onPress={() => setStep((s) => (s > 1 ? ((s - 1) as 1 | 2 | 3 | 4) : s))}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel="Go back">
-            <FontAwesome name="chevron-left" size={16} color="#000000" />
-            <Text style={styles.backText}>Back</Text>
-          </Pressable>
-        ) : null}
-
-        <Text style={styles.step}>
-          {step === 1 ? 'STEP 01' : step === 2 ? 'STEP 02' : step === 3 ? 'STEP 03' : 'STEP 04'}
-        </Text>
-        <Text style={styles.screenTitle}>
-          {step === 1
-            ? 'Create your account'
-            : step === 2
-              ? 'Your role & location'
-              : step === 3
-                ? 'Identity & documents'
-                : 'Verification in progress'}
-        </Text>
-
-        {step === 1 ? (
-          <>
+      {step === 1 ? (
+        <View style={styles.step1Outer}>
+          <ScrollView
+            style={styles.step1Scroll}
+            contentContainerStyle={styles.step1ScrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            keyboardDismissMode="on-drag">
+            <Text style={styles.step}>STEP 01</Text>
+            <Text style={styles.screenTitle}>Create your account</Text>
             <FormField label="FIRST NAME *" value={firstName} onChangeText={setFirstName} autoComplete="name-given" />
             <FormField label="LAST NAME *" value={lastName} onChangeText={setLastName} autoComplete="name-family" />
             <FormField
@@ -331,7 +314,6 @@ export default function SignUpScreen() {
                 </Text>
               </Text>
             </View>
-
             <View style={styles.checkboxRow}>
               <Pressable
                 onPress={() => setAgreeReferral((v) => !v)}
@@ -347,8 +329,50 @@ export default function SignUpScreen() {
                 </Text>
               </Text>
             </View>
-          </>
-        ) : null}
+          </ScrollView>
+          <View style={[styles.step1Footer, { paddingBottom: Math.max(insets.bottom, 14) }]}>
+            <AppButton variant="filled" disabled={primaryDisabled} onPress={goNext}>
+              Continue
+            </AppButton>
+            <View style={[styles.footerCenter, styles.step1FooterLinks]}>
+              <Text style={styles.footerMuted}>Already have an account? </Text>
+              <Link href="/sign-in" asChild>
+                <Pressable>
+                  <Text style={styles.footerBold}>Sign in</Text>
+                </Pressable>
+              </Link>
+            </View>
+            <View style={[styles.supportRow, styles.step1FooterSupport]}>
+              <Text style={styles.supportMuted}>Need help? </Text>
+              <Text style={styles.link} onPress={() => router.push('/(auth)/contact-support')}>
+                Contact support
+              </Text>
+            </View>
+          </View>
+        </View>
+      ) : (
+        <ScrollView
+          contentContainerStyle={[styles.scrollPad, { paddingBottom: insets.bottom + 28 }]}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}>
+          {step > 1 && step < 4 ? (
+            <Pressable
+              style={styles.backRow}
+              onPress={() => setStep((s) => (s > 1 ? ((s - 1) as 1 | 2 | 3 | 4) : s))}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="Go back">
+              <FontAwesome name="chevron-left" size={16} color="#000000" />
+              <Text style={styles.backText}>Back</Text>
+            </Pressable>
+          ) : null}
+
+          <Text style={styles.step}>
+            {step === 2 ? 'STEP 02' : step === 3 ? 'STEP 03' : 'STEP 04'}
+          </Text>
+          <Text style={styles.screenTitle}>
+            {step === 2 ? 'Your role & location' : step === 3 ? 'Identity & documents' : 'Verification in progress'}
+          </Text>
 
         {step === 2 ? (
           <>
@@ -477,18 +501,7 @@ export default function SignUpScreen() {
           </AppButton>
         )}
 
-        {step === 1 ? (
-          <View style={styles.footerCenter}>
-            <Text style={styles.footerMuted}>Already have an account? </Text>
-            <Link href="/sign-in" asChild>
-              <Pressable>
-                <Text style={styles.footerBold}>Sign in</Text>
-              </Pressable>
-            </Link>
-          </View>
-        ) : null}
-
-        {step < 4 ? (
+        {step > 1 && step < 4 ? (
           <View style={styles.supportRow}>
             <Text style={styles.supportMuted}>Need help? </Text>
             <Text style={styles.link} onPress={() => router.push('/(auth)/contact-support')}>
@@ -497,6 +510,7 @@ export default function SignUpScreen() {
           </View>
         ) : null}
       </ScrollView>
+      )}
 
       <LegalDocModal
         visible={legalOpen === 'terms'}
@@ -523,6 +537,21 @@ export default function SignUpScreen() {
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#fff' },
   scrollPad: { paddingHorizontal: AUTH_PAD_H, paddingTop: 8 },
+  step1Outer: { flex: 1 },
+  step1Scroll: { flex: 1 },
+  step1ScrollContent: {
+    paddingHorizontal: AUTH_PAD_H,
+    paddingTop: 8,
+    paddingBottom: 48,
+    flexGrow: 1,
+  },
+  step1Footer: {
+    paddingHorizontal: AUTH_PAD_H,
+    paddingTop: 12,
+    backgroundColor: '#fff',
+  },
+  step1FooterLinks: { marginTop: 12, marginBottom: 0 },
+  step1FooterSupport: { marginTop: 10 },
   backRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -576,6 +605,16 @@ const styles = StyleSheet.create({
     color: 'rgba(26,26,26,0.96)',
     backgroundColor: 'rgba(255,255,255,0.96)',
   },
+  /** Secure fields: avoid bullet text being vertically clipped (esp. Android + custom font). */
+  inputSecure: Platform.select({
+    ios: { lineHeight: 22, paddingVertical: 15 },
+    android: {
+      textAlignVertical: 'center',
+      paddingVertical: 12,
+      includeFontPadding: false,
+    },
+    default: {},
+  }),
   inputWithRight: { paddingRight: 44 },
   selectPressable: {
     minHeight: 54,

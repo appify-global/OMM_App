@@ -1,4 +1,3 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
@@ -6,6 +5,9 @@ import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 import type { DisputeStatus } from '@/lib/disputes-mock';
 import { DISPUTES_LIST } from '@/lib/disputes-mock';
@@ -150,6 +152,7 @@ const badge = StyleSheet.create({
 export default function DisputesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const [filter, setFilter] = useState<FilterKey>('open');
 
   const rows = useMemo(() => {
@@ -159,14 +162,8 @@ export default function DisputesScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={styles.navBar}>
-        <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <FontAwesome name="chevron-left" size={20} color="#000000" />
-        </Pressable>
-        <View style={styles.navCenter}>
-          <Text style={styles.navTitle}>Disputes</Text>
-        </View>
-        <View style={styles.navSide} />
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Disputes" onBack={() => router.back()} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}>
@@ -245,14 +242,7 @@ export default function DisputesScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-  },
-  navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',

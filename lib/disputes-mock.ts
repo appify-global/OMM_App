@@ -37,13 +37,13 @@ export type DisputeDetail = DisputeListRow & {
 const DR1042: DisputeDetail = {
   id: 'DR-1042',
   status: 'under_review',
-  title: 'Commission conflict · Victoria St',
+  title: 'Commission conflict · Orrong Rd',
   timeLabel: 'Opened 3d ago',
   statusHeadline: 'OMM support is reviewing. Expect an update by Wed 22 Apr.',
   openedAssignedLine: 'Opened 3d ago · Assigned to Priya M.',
-  deal: 'OMM-20418 · 218 Victoria St, West Melbourne VIC 3003',
+  deal: 'OMM-20418 · 142 Orrong Rd, Hawthorn East VIC 3123',
   category: 'Commission',
-  otherParty: 'Sarah Chen · Biggin Scott West Melbourne',
+  otherParty: 'Sarah Chen · Marshall White Boroondara',
   amountLine: '$420.00 (20% of quoted commission)',
   summary: '20% lower than agreed during countersign',
   detailsBody:

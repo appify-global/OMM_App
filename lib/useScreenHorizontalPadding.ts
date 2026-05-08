@@ -1,18 +1,21 @@
 import { useMemo } from 'react';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { useDeviceClass } from '@/lib/useDeviceClass';
 
 /**
- * Consistent horizontal padding: screen gutter + device safe area (notch / home indicator).
+ * iOS-style responsive horizontal padding — gutter ladder is 16 / 20 / 24 across
+ * SE → standard → Pro Max widths, plus the device's safe-area inset (landscape
+ * notch / left edge cut-out).
  */
 export function useScreenHorizontalPadding() {
   const insets = useSafeAreaInsets();
+  const { gutter } = useDeviceClass();
   return useMemo(
     () => ({
-      paddingLeft: layout.screenGutter + insets.left,
-      paddingRight: layout.screenGutter + insets.right,
+      paddingLeft: gutter + insets.left,
+      paddingRight: gutter + insets.right,
     }),
-    [insets.left, insets.right],
+    [gutter, insets.left, insets.right],
   );
 }

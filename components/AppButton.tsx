@@ -1,8 +1,18 @@
 import type { ReactNode } from 'react';
 import { Text } from '@/components/OMMText';
-import { Platform, Pressable, type PressableProps, StyleSheet, type TextStyle, View, type StyleProp, type ViewStyle } from 'react-native';
+import {
+  Platform,
+  Pressable,
+  type PressableProps,
+  StyleSheet,
+  type TextStyle,
+  View,
+  type StyleProp,
+  type ViewStyle,
+} from 'react-native';
 
 import { Fonts, ink, palette } from '@/constants/theme';
+import { hapticLight } from '@/lib/haptics';
 
 /**
  * Primary CTAs — height 48, **12px corners** everywhere (rectangular, not stadium pill).
@@ -41,6 +51,7 @@ export function AppButton({
   style,
   textStyle,
   accessibilityRole = 'button',
+  onPressIn,
   ...rest
 }: AppButtonProps) {
   const label = (
@@ -60,6 +71,17 @@ export function AppButton({
     <Pressable
       accessibilityRole={accessibilityRole}
       disabled={disabled}
+      onPressIn={(e) => {
+        if (!disabled && Platform.OS === 'ios') {
+          hapticLight();
+        }
+        onPressIn?.(e);
+      }}
+      android_ripple={{
+        color:
+          variant === 'filled' ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.06)',
+        borderless: false,
+      }}
       style={({ pressed }) => [
         styles.inner,
         variant === 'filled' && styles.filled,
@@ -149,6 +171,7 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.9,
+    transform: [{ scale: 0.986 }],
   },
   disabled: {
     opacity: 0.5,

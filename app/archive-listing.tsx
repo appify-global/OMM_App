@@ -4,6 +4,8 @@ import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
 
 /**
@@ -13,7 +15,7 @@ import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
 
 const H_PAD = 20;
 const FIELD_RADIUS = 12;
-const ACCENT = '#C07A50';
+const ACCENT = '#0A84FF';
 
 const DASH = {
   borderWidth: 1.5,
@@ -30,15 +32,17 @@ const BULLETS = [
 
 export default function ArchiveListingScreen() {
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Archive listing" onBack={() => router.back()} />
+      </View>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 28 }]}>
-        <Text style={styles.title}>Archive listing</Text>
-
         <Text style={styles.lead}>
           Archiving hides <Text style={styles.leadBold}>{DEMO_PRIMARY_LISTING_TITLE}</Text> from active search.
           Buyers will no longer see it. You can restore it later from archived listings.
@@ -91,13 +95,7 @@ export default function ArchiveListingScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 4 },
-  title: {
-    fontSize: 28,
-    fontFamily: 'Satoshi-Medium',
-    color: '#000000',
-    letterSpacing: -0.6,
-    marginBottom: 14,
-  },
+  headBlock: { paddingTop: 8, paddingBottom: 8 },
   lead: {
     fontSize: 15,
     fontWeight: '400',

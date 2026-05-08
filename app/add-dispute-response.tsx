@@ -1,4 +1,3 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Text } from '@/components/OMMText';
@@ -6,6 +5,9 @@ import { TextInput } from '@/components/OMMTextInput';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 import { getDisputeDetail } from '@/lib/disputes-mock';
 
@@ -25,6 +27,7 @@ const MUTED = 'rgba(0, 0, 0, 0.55)';
 export default function AddDisputeResponseScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const disputeId = typeof id === 'string' ? id : id?.[0];
   const d = disputeId ? getDisputeDetail(disputeId) : null;
@@ -44,15 +47,9 @@ export default function AddDisputeResponseScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}>
-        <View style={styles.navBar}>
-          <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-            <FontAwesome name="chevron-left" size={20} color="#000000" />
-          </Pressable>
-          <View style={styles.navCenter}>
-            <Text style={styles.navTitle}>Add response</Text>
-          </View>
-          <View style={styles.navSide} />
-        </View>
+        <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Add response" onBack={() => router.back()} />
+      </View>
 
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -126,16 +123,10 @@ function ResponseDashedField({
 }
 
 const styles = StyleSheet.create({
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000', lineHeight: 27 },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
   sub: {

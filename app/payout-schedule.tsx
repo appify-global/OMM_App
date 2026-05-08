@@ -1,4 +1,3 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
@@ -7,6 +6,9 @@ import { TextInput } from '@/components/OMMTextInput';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 /**
  * Payout schedule — Figma 1053:3766.
@@ -102,6 +104,7 @@ function RadioOuter({ selected }: { selected: boolean }) {
 export default function PayoutScheduleScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const [frequency, setFrequency] = useState<Frequency | null>(null);
   const [payoutDay, setPayoutDay] = useState<Weekday | null>(null);
   const [minPayout, setMinPayout] = useState('');
@@ -116,15 +119,9 @@ export default function PayoutScheduleScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}>
-        <View style={styles.navBar}>
-          <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-            <FontAwesome name="chevron-left" size={20} color="#000000" />
-          </Pressable>
-          <View style={styles.navCenter}>
-            <Text style={styles.navTitle}>Payout schedule</Text>
-          </View>
-          <View style={styles.navSide} />
-        </View>
+        <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Payout schedule" onBack={() => router.back()} />
+      </View>
 
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -224,16 +221,10 @@ export default function PayoutScheduleScreen() {
 }
 
 const styles = StyleSheet.create({
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',

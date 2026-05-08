@@ -7,6 +7,7 @@ import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
+import { FadeSlideIn } from '@/components/motion';
 import { setAuthenticated } from '@/lib/auth-session';
 
 /** Figma: Log in — node 1053:760, horizontal inset 32px */
@@ -39,6 +40,8 @@ export default function SignInScreen() {
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
+        <FadeSlideIn>
+          <>
         <View>
           <Image
             source={require('@/assets/images/match-logo.png')}
@@ -118,6 +121,8 @@ export default function SignInScreen() {
             </Link>
           </View>
         </View>
+        </>
+        </FadeSlideIn>
       </ScrollView>
     </KeyboardAvoidingView>
   );

@@ -1,5 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { ScreenHeader } from '@/components/ScreenHeader';
+import { SheetHeader } from '@/components/SheetHeader';
 import { type Href, useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useMemo, useState } from 'react';
@@ -121,23 +121,10 @@ export default function MessagesScreen() {
     return THREADS;
   }, [filter]);
 
-  const headerRight = (
-    <View style={styles.bellWrap}>
-      <Pressable
-        onPress={() => router.push('/notifications' as Href)}
-        style={styles.bellBtn}
-        accessibilityRole="button"
-        accessibilityLabel="Notifications">
-        <FontAwesome name="bell-o" size={20} color={ink} />
-      </Pressable>
-      <View style={styles.bellBadge} />
-    </View>
-  );
-
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
+    <View style={styles.screen}>
       <View style={[styles.headerChrome, hPad]}>
-        <ScreenHeader title="Messages" onBack={() => router.back()} right={headerRight} />
+        <SheetHeader title="Messages" onClose={() => router.back()} />
       </View>
 
       <View style={[styles.searchOuter, hPad]}>
@@ -213,24 +200,6 @@ const styles = StyleSheet.create({
   },
   listBody: {
     paddingTop: 12,
-  },
-  bellWrap: { width: 44, alignItems: 'flex-end', justifyContent: 'center' },
-  bellBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  bellBadge: {
-    position: 'absolute',
-    top: 2,
-    right: 2,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: '#000000',
-    borderWidth: 1.5,
-    borderColor: '#ffffff',
   },
   searchOuter: {
     marginBottom: 16,

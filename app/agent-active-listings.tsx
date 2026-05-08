@@ -5,6 +5,9 @@ import { Text } from '@/components/OMMText';
 import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+
 /**
  * Agent — full active listings (See all).
  * [Figma 1053:6822](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-6822&t=2eZigRM0BwNtC5wd-4)
@@ -32,7 +35,7 @@ type ListingRow = {
 const ALL_LISTINGS: ListingRow[] = [
   {
     id: '1',
-    address: '15 Rowe St, Fitzroy North VIC 3068',
+    address: '142 Orrong Rd, Hawthorn East VIC 3123',
     specs: 'HOUSE · 4 BED · 2 BATH · 2 CAR',
     priceLine: '$2.1m — $2.3m',
     status: 'live',
@@ -88,6 +91,7 @@ function statusLabel(s: ListingStatus): string {
 
 export default function AgentActiveListingsScreen() {
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
   const [filter, setFilter] = useState<(typeof FILTER_CHIPS)[number]['key']>('all');
 
@@ -98,19 +102,8 @@ export default function AgentActiveListingsScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={styles.navBar}>
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-          style={styles.navSide}>
-          <FontAwesome name="chevron-left" size={20} color="#000000" />
-        </Pressable>
-        <View style={styles.navCenter}>
-          <Text style={styles.navTitle}>Active listings</Text>
-        </View>
-        <View style={styles.navSide} />
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Active listings" onBack={() => router.back()} />
       </View>
 
       <ScrollView
@@ -193,16 +186,9 @@ export default function AgentActiveListingsScreen() {
 }
 
 const styles = StyleSheet.create({
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#ffffff' },
-  navBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-    backgroundColor: 'transparent',
-  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
-  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000' },
   scroll: { paddingHorizontal: H_PAD, paddingTop: 12 },
   agentCard: {

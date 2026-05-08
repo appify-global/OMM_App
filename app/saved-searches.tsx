@@ -1,10 +1,11 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
+import { ScreenHeader } from '@/components/ScreenHeader';
+import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 type SavedItem = {
   name: string;
@@ -70,6 +71,7 @@ function SavedSearchListCard({ item, onPress }: { item: SavedItem; onPress?: () 
 
 export default function SavedSearchesScreen() {
   const insets = useSafeAreaInsets();
+  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
 
   const handleGoToResults = () => {
@@ -79,17 +81,8 @@ export default function SavedSearchesScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={styles.header}>
-        <Pressable
-          onPress={() => router.back()}
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="Back"
-          style={styles.headerSide}>
-          <FontAwesome name="chevron-left" size={20} color="#000000" />
-        </Pressable>
-        <Text style={styles.headerTitle}>Saved Searches</Text>
-        <View style={styles.headerSide} />
+      <View style={[styles.headBlock, hPad]}>
+        <ScreenHeader title="Saved searches" onBack={() => router.back()} />
       </View>
 
       <ScrollView
@@ -123,20 +116,7 @@ export default function SavedSearchesScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingBottom: 12,
-  },
-  headerSide: { width: 40, alignItems: 'flex-start', justifyContent: 'center' },
-  headerTitle: {
-    flex: 1,
-    textAlign: 'center',
-    fontSize: 17,
-    fontFamily: 'Satoshi-Medium',
-    color: '#000000',
-  },
+  headBlock: { paddingTop: 8, paddingBottom: 4 },
   scroll: { paddingHorizontal: 20 },
   newSearchBtn: { marginTop: 4 },
   newSearchBtnText: { fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.6 },
