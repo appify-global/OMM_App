@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  * [Figma 1053:7188 / section 1053:7187](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-7187)
  */
 
-import { borderHairline, ink, inkSubtle, palette } from '@/constants/theme';
+import { borderHairline, fillMisty, ink, inkSubtle, palette } from '@/constants/theme';
 import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { AGENT_IMG } from '@/lib/propertyImages';
 
@@ -140,15 +140,17 @@ export default function MessagesScreen() {
         <ScreenHeader title="Messages" onBack={() => router.back()} right={headerRight} />
       </View>
 
-      <View style={[styles.searchWrap, hPad]}>
-        <FontAwesome name="search" size={16} color={inkSubtle} style={styles.searchIcon} />
-        <TextInput
-          style={styles.searchInput}
-          value={query}
-          onChangeText={setQuery}
-          placeholder="Search deals, threads, people…"
-          placeholderTextColor={inkSubtle}
-        />
+      <View style={[styles.searchOuter, hPad]}>
+        <View style={styles.searchWrap}>
+          <FontAwesome name="search" size={16} color={inkSubtle} style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search deals, threads, people…"
+            placeholderTextColor={inkSubtle}
+          />
+        </View>
       </View>
 
       <ScrollView
@@ -214,12 +216,8 @@ const styles = StyleSheet.create({
   },
   bellWrap: { width: 44, alignItems: 'flex-end', justifyContent: 'center' },
   bellBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.18)',
-    backgroundColor: '#fff',
+    width: 44,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -234,17 +232,29 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#ffffff',
   },
+  searchOuter: {
+    marginBottom: 16,
+    maxWidth: '100%',
+  },
   searchWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    height: 50,
-    borderRadius: 25,
+    height: 44,
+    maxWidth: '100%',
+    overflow: 'hidden',
+    borderRadius: 12,
     backgroundColor: 'rgba(0,0,0,0.04)',
-    paddingHorizontal: 18,
+    paddingHorizontal: 14,
   },
-  searchIcon: { marginRight: 10 },
-  searchInput: { flex: 1, fontSize: 15, color: '#000000', paddingVertical: 8 },
+  searchIcon: { marginRight: 8 },
+  searchInput: {
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
+    fontSize: 15,
+    paddingVertical: 0,
+    color: ink,
+  },
   chipScroller: {
     flexGrow: 0,
     flexShrink: 0,
@@ -284,8 +294,19 @@ const styles = StyleSheet.create({
   shortcutIcon: { width: 20 },
   shortcutText: { flex: 1, fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000' },
   threadRow: { flexDirection: 'row', paddingVertical: 14, gap: 12 },
-  threadAvatarWrap: { width: 66, height: 64, position: 'relative' },
-  threadAvatar: { width: 66, height: 64, borderRadius: 8 },
+  threadAvatarWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: fillMisty,
+    flexShrink: 0,
+  },
+  threadAvatar: {
+    width: '100%',
+    height: '100%',
+  },
   unreadDot: {
     position: 'absolute',
     top: 2,
@@ -303,7 +324,7 @@ const styles = StyleSheet.create({
   threadTime: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)' },
   threadPreview: { marginTop: 6, fontSize: 14, lineHeight: 20, color: 'rgba(0, 0, 0, 0.55)' },
   threadRule: {
-    marginLeft: 78,
+    marginLeft: 64,
     height: StyleSheet.hairlineWidth,
     backgroundColor: 'rgba(0, 0, 0, 0.12)',
   },

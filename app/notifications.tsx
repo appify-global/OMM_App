@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useState } from 'react';
 import { Text } from '@/components/OMMText';
+import type { ImageSourcePropType } from 'react-native';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,9 +14,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  * [Figma 1053:7632 / section 1053:7187](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-7187)
  */
 
-import { borderHairline, ink, inkSubtle, palette } from '@/constants/theme';
+import { borderHairline, fillMisty, ink, inkSubtle, palette } from '@/constants/theme';
 import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
+import { AGENT_IMG, PROPERTY_IMG_1, PROPERTY_IMG_2 } from '@/lib/propertyImages';
 
 type FilterKey = 'all' | 'unread' | 'matches' | 'system';
 
@@ -61,6 +62,10 @@ type NotifRow = {
   body: string;
   time: string;
   unread: boolean;
+  /** Listing shot or agent headshot — always shown in the row. */
+  image: ImageSourcePropType;
+  /** Small contextual glyph on the thumbnail corner. */
+  rowIcon: ComponentProps<typeof FontAwesome>['name'];
 };
 
 const RECENT_ITEMS: NotifRow[] = [
@@ -70,6 +75,8 @@ const RECENT_ITEMS: NotifRow[] = [
     body: 'Buyer brief “Richmond / Cremorne” matches 218 Victoria St, West Melbourne, score 92.',
     time: '2m',
     unread: true,
+    image: PROPERTY_IMG_1,
+    rowIcon: 'home',
   },
   {
     id: 'r2',
@@ -77,6 +84,8 @@ const RECENT_ITEMS: NotifRow[] = [
     body: 'The digital contract for Barkly St, St Kilda has been opened for review.',
     time: '1h',
     unread: true,
+    image: AGENT_IMG,
+    rowIcon: 'file-text-o',
   },
 ];
 
@@ -87,6 +96,8 @@ const EARLIER_ITEMS: NotifRow[] = [
     body: 'Buyer brief “Richmond / Cremorne” matches 218 Victoria St, West Melbourne, score 92.',
     time: '2m',
     unread: true,
+    image: PROPERTY_IMG_2,
+    rowIcon: 'home',
   },
   {
     id: 'e2',
@@ -94,6 +105,8 @@ const EARLIER_ITEMS: NotifRow[] = [
     body: 'The digital contract for Barkly St, St Kilda has been opened for review.',
     time: '1h',
     unread: true,
+    image: AGENT_IMG,
+    rowIcon: 'file-text-o',
   },
 ];
 
@@ -105,7 +118,10 @@ function NotificationRow({ row, onPress }: { row: NotifRow; onPress: () => void 
       accessibilityRole="button"
       accessibilityLabel={`${row.title}, ${row.time}`}>
       <View style={styles.thumbWrap}>
-        <Image source={PROPERTY_IMG_1} style={styles.thumb} resizeMode="cover" />
+        <Image source={row.image} style={styles.thumb} resizeMode="cover" accessibilityIgnoresInvertColors />
+        <View style={styles.thumbIconBadge}>
+          <FontAwesome name={row.rowIcon} size={11} color={palette.white} />
+        </View>
         {row.unread ? <View style={styles.unreadDot} /> : null}
       </View>
       <View style={styles.notifTextCol}>
@@ -327,13 +343,40 @@ const styles = StyleSheet.create({
     color: 'rgba(0, 0, 0, 0.45)',
     marginBottom: 12,
   },
-  notifRow: { flexDirection: 'row', paddingVertical: 12, gap: 14 },
-  thumbWrap: { width: 48, position: 'relative', paddingTop: 10 },
-  thumb: { width: 48, height: 48, borderRadius: 8 },
+  notifRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    paddingVertical: 12,
+    gap: 12,
+  },
+  thumbWrap: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    overflow: 'hidden',
+    position: 'relative',
+    backgroundColor: fillMisty,
+    flexShrink: 0,
+  },
+  thumb: {
+    width: '100%',
+    height: '100%',
+  },
+  thumbIconBadge: {
+    position: 'absolute',
+    left: 4,
+    bottom: 4,
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    backgroundColor: 'rgba(0,0,0,0.72)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   unreadDot: {
     position: 'absolute',
-    top: 6,
-    right: -2,
+    top: 4,
+    right: 4,
     width: 10,
     height: 10,
     borderRadius: 5,
@@ -347,7 +390,7 @@ const styles = StyleSheet.create({
   notifTime: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)' },
   notifBody: { marginTop: 6, fontSize: 14, lineHeight: 20, color: 'rgba(0, 0, 0, 0.55)' },
   notifRule: {
-    marginLeft: 62,
+    marginLeft: 64,
     height: StyleSheet.hairlineWidth,
     backgroundColor: 'rgba(0, 0, 0, 0.12)',
   },
