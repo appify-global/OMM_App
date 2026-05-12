@@ -9,21 +9,17 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 /**
  * Contact support — ticket form + attachments.
  * [Figma 1053:2327](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-2327&t=2eZigRM0BwNtC5wd-4)
  * Fields start empty (no design prefill).
  */
 
-const H_PAD = 20;
 const FIELD_H = 54;
 const MESSAGE_BOX_H = 150;
 const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
-const DASH = '5 4';
 const BLOCK_GAP = 24;
 const LABEL_FIELD_GAP = 8;
 /** Space between main attach row and thumbnail row */
@@ -56,7 +52,6 @@ function DashedFrame({
         fill="none"
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={DASH}
       />
     </Svg>
   );
@@ -100,7 +95,6 @@ function FieldBlock({
 export default function ContactSupportScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
@@ -120,9 +114,20 @@ export default function ContactSupportScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}>
-        <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Contact support" onBack={() => router.back()} />
-      </View>
+        <View style={styles.navBar}>
+          <Pressable
+            style={styles.navSide}
+            onPress={() => router.back()}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Back">
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
+          </Pressable>
+          <View style={styles.navCenter}>
+            <Text style={styles.navTitle}>Contact support</Text>
+          </View>
+          <View style={styles.navSide} />
+        </View>
 
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -288,13 +293,19 @@ function DashedThumbWrap({
 }
 
 const styles = StyleSheet.create({
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000' },
   scroll: {
-    paddingHorizontal: H_PAD,
+    paddingHorizontal: layout.screenGutter,
     paddingTop: 8,
   },
   intro: {

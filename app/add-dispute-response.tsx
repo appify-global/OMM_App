@@ -1,3 +1,4 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Text } from '@/components/OMMText';
@@ -6,28 +7,23 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 import { getDisputeDetail } from '@/lib/disputes-mock';
 
 /**
  * Add response — empty message field only (no pre-fill).
  */
 
-const H_PAD = 20;
 const BLOCK_GAP = 24;
 const LABEL_FIELD_GAP = 8;
 const FIELD_MIN_H = 140;
 const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
-const DASH = '5 4';
 const MUTED = 'rgba(0, 0, 0, 0.55)';
 
 export default function AddDisputeResponseScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const disputeId = typeof id === 'string' ? id : id?.[0];
   const d = disputeId ? getDisputeDetail(disputeId) : null;
@@ -47,9 +43,15 @@ export default function AddDisputeResponseScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}>
-        <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Add response" onBack={() => router.back()} />
-      </View>
+        <View style={styles.navBar}>
+          <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
+          </Pressable>
+          <View style={styles.navCenter}>
+            <Text style={styles.navTitle}>Add response</Text>
+          </View>
+          <View style={styles.navSide} />
+        </View>
 
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -106,7 +108,6 @@ function ResponseDashedField({
           fill="none"
           stroke={STROKE}
           strokeWidth={STROKE_W}
-          strokeDasharray={DASH}
         />
       </Svg>
       <TextInput
@@ -123,12 +124,18 @@ function ResponseDashedField({
 }
 
 const styles = StyleSheet.create({
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000', lineHeight: 27 },
-  scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 8 },
   sub: {
     fontSize: 12,
     fontWeight: '400',

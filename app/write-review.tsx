@@ -9,9 +9,7 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 import { DEMO_AGENT_AGENCY, DEMO_PRIMARY_STREET } from '@/lib/melbourne-demo-locations';
 
 /**
@@ -19,12 +17,10 @@ import { DEMO_AGENT_AGENCY, DEMO_PRIMARY_STREET } from '@/lib/melbourne-demo-loc
  * [Figma 1053:2603](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-2603&t=2eZigRM0BwNtC5wd-4)
  */
 
-const H_PAD = 20;
 const BLOCK_GAP = 24;
 const LABEL_FIELD_GAP = 8;
 const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
-const DASH = '5 4';
 const MUTED = 'rgba(0, 0, 0, 0.55)';
 const CARD_R = 8;
 const PENDING_CARD_W = 180;
@@ -89,7 +85,6 @@ function DashedFrame({
         fill="none"
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={DASH}
       />
     </Svg>
   );
@@ -159,7 +154,7 @@ function TapStars({
     <View style={[styles.starRow, { gap }]}>
       {[1, 2, 3, 4, 5].map((i) => (
         <Pressable key={i} onPress={() => onChange(i)} hitSlop={6} accessibilityRole="button" accessibilityLabel={`${i} stars`}>
-          <FontAwesome name={i <= value ? 'star' : 'star-o'} size={size} color={i <= value ? '#FFCC00' : LIGHT_STAR} />
+          <FontAwesome name={i <= value ? 'star' : 'star-o'} size={size} color={i <= value ? '#6b5344' : LIGHT_STAR} />
         </Pressable>
       ))}
     </View>
@@ -241,7 +236,6 @@ function PendingCard({
 export default function WriteReviewScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
 
   const [agent, setAgent] = useState('');
   const [deal, setDeal] = useState('');
@@ -273,9 +267,15 @@ export default function WriteReviewScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}>
-        <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Write a review" onBack={() => router.back()} />
-      </View>
+        <View style={styles.navBar}>
+          <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
+          </Pressable>
+          <View style={styles.navCenter}>
+            <Text style={styles.navTitle}>Write a review</Text>
+          </View>
+          <View style={styles.navSide} />
+        </View>
 
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -401,10 +401,16 @@ function AttachRow() {
 }
 
 const styles = StyleSheet.create({
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',
@@ -412,7 +418,7 @@ const styles = StyleSheet.create({
     lineHeight: 27,
   },
   scroll: {
-    paddingHorizontal: H_PAD,
+    paddingHorizontal: layout.screenGutter,
     paddingTop: 8,
   },
   intro: {
@@ -449,7 +455,7 @@ const styles = StyleSheet.create({
   pendingCarousel: {
     flexDirection: 'row',
     paddingBottom: 4,
-    paddingRight: H_PAD,
+    paddingRight: layout.screenGutter,
   },
   pendingGutter: { marginRight: 12 },
   pendingCardInner: {

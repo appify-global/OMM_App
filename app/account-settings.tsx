@@ -1,3 +1,4 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
@@ -7,19 +8,17 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
+import { layout } from '@/constants/theme';
 
 /**
  * Account settings — profile fields + notifications + save.
  * [Figma 1053:2256](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-2256&t=2eZigRM0BwNtC5wd-4)
  */
 
-const H_PAD = 20;
 const FIELD_H = 54;
-const STROKE = 'rgba(0, 0, 0, 0.55)';
-const STROKE_W = 1.5;
-const DASH = '5 4';
+const STROKE = FIELD_OUTLINE_COLOR;
+const STROKE_W = FIELD_OUTLINE_WIDTH;
 
 function DashedFrame({
   width,
@@ -48,7 +47,6 @@ function DashedFrame({
         fill="none"
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={DASH}
       />
     </Svg>
   );
@@ -76,7 +74,6 @@ function DashedFieldShell({
 
 export default function AccountSettingsScreen() {
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
@@ -93,8 +90,19 @@ export default function AccountSettingsScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}>
-        <View style={[styles.headBlock, hPad]}>
-          <ScreenHeader title="Account settings" onBack={() => router.back()} />
+        <View style={styles.navBar}>
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Back"
+            style={styles.navSide}>
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
+          </Pressable>
+          <View style={styles.navCenter}>
+            <Text style={styles.navTitle}>Account settings</Text>
+          </View>
+          <View style={styles.navSide} />
         </View>
 
         <ScrollView
@@ -186,9 +194,22 @@ export default function AccountSettingsScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+    backgroundColor: 'transparent',
+  },
+  navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
+  navTitle: {
+    fontSize: 18,
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
+  },
   scroll: {
-    paddingHorizontal: H_PAD,
+    paddingHorizontal: layout.screenGutter,
     paddingTop: 8,
   },
   blockGap: {
@@ -255,9 +276,6 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 14,
     backgroundColor: '#000000',
-    borderWidth: STROKE_W,
-    borderColor: STROKE,
-    borderStyle: 'dashed',
     alignItems: 'center',
     justifyContent: 'center',
   },

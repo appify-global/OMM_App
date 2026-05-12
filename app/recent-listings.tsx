@@ -10,8 +10,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { propertyImageAtIndex } from '@/lib/propertyImages';
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
+import { layout } from '@/constants/theme';
 
-const PAD = 24;
 const CARD_GAP = 14;
 const ROW_PAD = 16;
 
@@ -141,19 +142,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: PAD,
+    paddingHorizontal: layout.screenGutter,
     marginBottom: 18,
   },
   metaLeft: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#6b6b6b' },
   metaRight: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: '#595959' },
-  list: { paddingHorizontal: PAD, gap: CARD_GAP },
+  list: { paddingHorizontal: layout.screenGutter, gap: CARD_GAP },
   row: {
     flexDirection: 'row',
     minHeight: 128,
     borderRadius: 10,
-    borderWidth: 1,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(0, 0, 0, 0.18)',
+    borderWidth: FIELD_OUTLINE_WIDTH,
+    borderColor: FIELD_OUTLINE_COLOR,
     backgroundColor: '#fff',
     padding: ROW_PAD,
     gap: 14,

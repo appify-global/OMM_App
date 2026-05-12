@@ -4,23 +4,21 @@ import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+import { layout } from '@/constants/theme';
 import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 
 /**
  * Archive listing confirmation.
  * [Figma 1053:9411](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-9411&t=2eZigRM0BwNtC5wd-4)
  */
 
-const H_PAD = 20;
 const FIELD_RADIUS = 12;
-const ACCENT = '#0A84FF';
+const ACCENT = '#C07A50';
 
-const DASH = {
-  borderWidth: 1.5,
-  borderColor: 'rgba(0, 0, 0, 0.45)',
-  borderStyle: 'dashed' as const,
+const CARD_OUTLINE = {
+  borderWidth: FIELD_OUTLINE_WIDTH,
+  borderColor: FIELD_OUTLINE_COLOR,
   backgroundColor: '#fff',
 };
 
@@ -32,23 +30,21 @@ const BULLETS = [
 
 export default function ArchiveListingScreen() {
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Archive listing" onBack={() => router.back()} />
-      </View>
+    <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 28 }]}>
+        <Text style={styles.title}>Archive listing</Text>
+
         <Text style={styles.lead}>
           Archiving hides <Text style={styles.leadBold}>{DEMO_PRIMARY_LISTING_TITLE}</Text> from active search.
           Buyers will no longer see it. You can restore it later from archived listings.
         </Text>
 
-        <View style={[styles.infoCard, DASH]}>
+        <View style={[styles.infoCard, CARD_OUTLINE]}>
           <View style={styles.infoHeader}>
             <MaterialCommunityIcons name="alert-circle" size={22} color={ACCENT} />
             <Text style={styles.infoTitle}>Your data is preserved</Text>
@@ -59,7 +55,7 @@ export default function ArchiveListingScreen() {
           </Text>
         </View>
 
-        <View style={[styles.infoCard, DASH]}>
+        <View style={[styles.infoCard, CARD_OUTLINE]}>
           <View style={styles.infoHeader}>
             <MaterialCommunityIcons name="archive-outline" size={22} color="rgba(0, 0, 0, 0.45)" />
             <Text style={styles.infoTitle}>What happens when you archive</Text>
@@ -94,8 +90,14 @@ export default function ArchiveListingScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  scroll: { paddingHorizontal: H_PAD, paddingTop: 4 },
-  headBlock: { paddingTop: 8, paddingBottom: 8 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 4 },
+  title: {
+    fontSize: 28,
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
+    letterSpacing: -0.6,
+    marginBottom: 14,
+  },
   lead: {
     fontSize: 15,
     fontWeight: '400',

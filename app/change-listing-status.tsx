@@ -4,21 +4,19 @@ import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+import { layout } from '@/constants/theme';
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 
 /**
- * Change listing status — dashed option cards + radio.
+ * Change listing status — option cards + radio.
  * [Figma 1053:9353](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-9353&t=2eZigRM0BwNtC5wd-4)
  */
 
-const H_PAD = 20;
 const FIELD_RADIUS = 12;
 
-const DASH = {
-  borderWidth: 1.5,
-  borderColor: 'rgba(0, 0, 0, 0.45)',
-  borderStyle: 'dashed' as const,
+const CARD_OUTLINE = {
+  borderWidth: FIELD_OUTLINE_WIDTH,
+  borderColor: FIELD_OUTLINE_COLOR,
   backgroundColor: '#fff',
 };
 
@@ -52,19 +50,16 @@ function Radio({ selected }: { selected: boolean }) {
 
 export default function ChangeListingStatusScreen() {
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
   const [status, setStatus] = useState<StatusId>('live');
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Change status" onBack={() => router.back()} />
-      </View>
+    <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 28 }]}>
+        <Text style={styles.title}>Change status</Text>
         <Text style={styles.subtitle}>Select a new status for this listing.</Text>
 
         <View style={styles.options}>
@@ -74,7 +69,7 @@ export default function ChangeListingStatusScreen() {
               <Pressable
                 key={opt.id}
                 onPress={() => setStatus(opt.id)}
-                style={[styles.optionCard, DASH]}
+                style={[styles.optionCard, CARD_OUTLINE]}
                 accessibilityRole="radio"
                 accessibilityState={{ selected }}>
                 <Radio selected={selected} />
@@ -107,8 +102,14 @@ export default function ChangeListingStatusScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  scroll: { paddingHorizontal: H_PAD, paddingTop: 4 },
-  headBlock: { paddingTop: 8, paddingBottom: 8 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 4 },
+  title: {
+    fontSize: 28,
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
+    letterSpacing: -0.6,
+    marginBottom: 8,
+  },
   subtitle: {
     fontSize: 14,
     fontWeight: '400',

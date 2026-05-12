@@ -3,6 +3,7 @@ import { Text } from '@/components/OMMText';
 import { Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { layout } from '@/constants/theme';
 import { AppButton, APP_BUTTON_STACK_GAP } from '@/components/AppButton';
 import { DEMO_SOI_PROPERTY_LINE } from '@/lib/melbourne-demo-locations';
 
@@ -79,7 +80,6 @@ export function SoiBottomSheet({
   );
 }
 
-const H_PAD = 20;
 
 const styles = StyleSheet.create({
   wrap: {
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingHorizontal: H_PAD,
+    paddingHorizontal: layout.screenGutter,
     paddingTop: 8,
     maxHeight: '88%',
   },

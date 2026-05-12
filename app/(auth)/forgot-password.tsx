@@ -19,7 +19,8 @@ import {
   APP_BUTTON_STACK_GAP,
 } from '@/components/AppButton';
 
-const PAD_H = 32;
+import { layout } from '@/constants/theme';
+import { FIELD_OUTLINE_COLOR } from '@/lib/field-outline';
 
 type Step = 1 | 2 | 3 | 4 | 5;
 
@@ -144,7 +145,7 @@ export default function ForgotPasswordScreen() {
         contentContainerStyle={[
           styles.scroll,
           {
-            paddingHorizontal: PAD_H,
+            paddingHorizontal: layout.authGutter,
             paddingBottom: Math.max(insets.bottom, 16) + 24,
           },
         ]}
@@ -339,10 +340,9 @@ const styles = StyleSheet.create({
   inputShell: { position: 'relative', marginBottom: 0 },
   input: {
     height: 54,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(0, 0, 0, 0.55)',
-    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: FIELD_OUTLINE_COLOR,
+    borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 14,
@@ -380,10 +380,9 @@ const styles = StyleSheet.create({
     flex: 1,
     maxWidth: OTP_CELL,
     height: 52,
-    borderWidth: 1.5,
-    borderColor: 'rgba(0, 0, 0, 0.45)',
-    borderRadius: 8,
-    borderStyle: 'dashed',
+    borderWidth: 1,
+    borderColor: FIELD_OUTLINE_COLOR,
+    borderRadius: 10,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#fff',

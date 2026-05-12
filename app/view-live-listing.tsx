@@ -4,12 +4,14 @@ import { type Href, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Text } from '@/components/OMMText';
-import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Linking, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
 import { PlayTourModal } from '@/components/PlayTourModal';
 import { SoiBottomSheet } from '@/components/SoiBottomSheet';
+import { useSavedListings } from '@/lib/saved-listings-context';
+import { VIEW_LIVE_LISTING_CARD } from '@/lib/saved-listings';
 
 /**
  * View live listing / property information.
@@ -19,9 +21,13 @@ import { SoiBottomSheet } from '@/components/SoiBottomSheet';
 
 import { AGENT_IMG, PROPERTY_IMG_1 } from '@/lib/propertyImages';
 import { DEMO_AGENT_AGENCY, DEMO_PRIMARY_ADDRESS_MULTILINE } from '@/lib/melbourne-demo-locations';
+import { layout } from '@/constants/theme';
 
-/** 8 / 12 / 16 / 20 / 24 / 32 rhythm */
-const PAD = 24;
+/** Demo seller contact for "Contact" — replace with API data when wired. */
+const DEMO_SELLER_EMAIL = 'anton.zhouk@bigginscott.com.au';
+const DEMO_SELLER_PHONE_DISPLAY = '+61 3 9328 4500';
+const DEMO_SELLER_PHONE_TEL = '+61393284500';
+
 const SECTION = 28;
 const GAP_MD = 16;
 
@@ -52,8 +58,11 @@ function FeatureCell({
 export default function ViewLiveListingScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { isSaved, toggleSaved } = useSavedListings();
+  const saved = isSaved(VIEW_LIVE_LISTING_CARD.id);
   const [soiOpen, setSoiOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
+  const [sellerContactOpen, setSellerContactOpen] = useState(false);
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -66,6 +75,15 @@ export default function ViewLiveListingScreen() {
           accessibilityLabel="Back"
           style={[styles.backBtn, { top: 8 }]}>
           <FontAwesome name="chevron-left" size={22} color="#000000" />
+        </Pressable>
+        <Pressable
+          onPress={() => void toggleSaved(VIEW_LIVE_LISTING_CARD)}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel={saved ? 'Remove from saved properties' : 'Save property'}
+          accessibilityState={{ selected: saved }}
+          style={[styles.saveStarBtn, { top: 8 }]}>
+          <FontAwesome name={saved ? 'star' : 'star-o'} size={20} color="#000000" />
         </Pressable>
         <Pressable
           style={styles.playTourPill}
@@ -186,13 +204,84 @@ export default function ViewLiveListingScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-        <AppButton
-          variant="filled"
-          onPress={() => router.push('/contact-seller-chat' as Href)}
-          textStyle={styles.contactBtnText}>
-          CONTACT SELLER
-        </AppButton>
+        <View style={styles.footerBtnRow}>
+          <View style={styles.footerBtnCol}>
+            <AppButton
+              variant="filled"
+              onPress={() => router.push('/contact-seller-chat' as Href)}
+              textStyle={styles.contactBtnText}
+              accessibilityLabel="Message seller">
+              MESSAGE
+            </AppButton>
+          </View>
+          <View style={styles.footerBtnCol}>
+            <AppButton
+              variant="outlined"
+              onPress={() => setSellerContactOpen(true)}
+              textStyle={styles.contactBtnTextOutlined}
+              accessibilityLabel="Show seller email and phone">
+              CONTACT
+            </AppButton>
+          </View>
+        </View>
       </View>
+
+      <Modal
+        visible={sellerContactOpen}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setSellerContactOpen(false)}>
+        <View style={styles.contactSheetStack}>
+          <Pressable
+            style={styles.contactSheetScrim}
+            onPress={() => setSellerContactOpen(false)}
+            accessibilityRole="button"
+            accessibilityLabel="Dismiss"
+          />
+          <View style={[styles.contactSheet, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+            <View style={styles.contactSheetHandleWrap}>
+              <View style={styles.contactSheetHandle} />
+            </View>
+            <Text style={styles.contactSheetTitle}>Seller contact</Text>
+            <Text style={styles.contactSheetHint}>Email or call the Real Estate Agent.</Text>
+
+            <View style={styles.contactSheetDivider} />
+
+            <View style={styles.contactSheetRow}>
+              <Text style={styles.contactModalKicker}>EMAIL</Text>
+              <Pressable
+                onPress={() => void Linking.openURL(`mailto:${DEMO_SELLER_EMAIL}`)}
+                accessibilityRole="link"
+                accessibilityLabel={`Email ${DEMO_SELLER_EMAIL}`}>
+                <Text style={styles.contactModalValue}>{DEMO_SELLER_EMAIL}</Text>
+              </Pressable>
+            </View>
+
+            <View style={styles.contactSheetDivider} />
+
+            <View style={styles.contactSheetRow}>
+              <Text style={styles.contactModalKicker}>PHONE</Text>
+              <Pressable
+                onPress={() => void Linking.openURL(`tel:${DEMO_SELLER_PHONE_TEL}`)}
+                accessibilityRole="link"
+                accessibilityLabel={`Call ${DEMO_SELLER_PHONE_DISPLAY}`}>
+                <Text style={styles.contactModalValue}>{DEMO_SELLER_PHONE_DISPLAY}</Text>
+              </Pressable>
+            </View>
+
+            <View style={styles.contactSheetDivider} />
+
+            <View style={styles.contactSheetDoneWrap}>
+              <AppButton
+                variant="filled"
+                onPress={() => setSellerContactOpen(false)}
+                textStyle={styles.contactSheetDoneBtn}>
+                DONE
+              </AppButton>
+            </View>
+          </View>
+        </View>
+      </Modal>
 
       <SoiBottomSheet visible={soiOpen} onClose={() => setSoiOpen(false)} />
       <PlayTourModal visible={tourOpen} onClose={() => setTourOpen(false)} />
@@ -212,6 +301,17 @@ const styles = StyleSheet.create({
   backBtn: {
     position: 'absolute',
     left: 16,
+    zIndex: 2,
+    width: 44,
+    height: 44,
+    borderRadius: 14,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  saveStarBtn: {
+    position: 'absolute',
+    right: 16,
     zIndex: 2,
     width: 44,
     height: 44,
@@ -250,7 +350,7 @@ const styles = StyleSheet.create({
   },
   dot: { width: 7, height: 7, borderRadius: 4, backgroundColor: 'rgba(0, 0, 0, 0.2)' },
   dotActive: { backgroundColor: 'rgba(0, 0, 0, 0.55)' },
-  scroll: { paddingHorizontal: PAD },
+  scroll: { paddingHorizontal: layout.screenGutter },
   kicker: {
     fontSize: 12,
     fontFamily: 'Satoshi-Medium',
@@ -407,11 +507,93 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: PAD,
+    paddingHorizontal: layout.screenGutter,
     paddingTop: GAP_MD,
     backgroundColor: '#ffffff',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: 'rgba(0, 0, 0, 0.08)',
   },
-  contactBtnText: { fontSize: 15, fontFamily: 'Satoshi-Medium', letterSpacing: 0.2 },
+  footerBtnRow: {
+    flexDirection: 'row',
+    gap: 12,
+    alignItems: 'stretch',
+  },
+  footerBtnCol: {
+    flex: 1,
+    minWidth: 0,
+  },
+  contactBtnText: { fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.2 },
+  contactBtnTextOutlined: { fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.2 },
+  contactSheetStack: {
+    flex: 1,
+    justifyContent: 'flex-end',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+  },
+  contactSheetScrim: {
+    flex: 1,
+  },
+  contactSheet: {
+    backgroundColor: '#ffffff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: layout.screenGutter,
+    paddingTop: 8,
+  },
+  contactSheetHandleWrap: {
+    alignItems: 'center',
+    paddingVertical: 8,
+  },
+  contactSheetHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+  },
+  contactSheetTitle: {
+    fontSize: 18,
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  contactSheetHint: {
+    fontSize: 14,
+    fontWeight: '400',
+    color: 'rgba(0, 0, 0, 0.55)',
+    textAlign: 'center',
+    lineHeight: 20,
+    marginBottom: 8,
+    paddingHorizontal: 8,
+  },
+  contactSheetDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(0, 0, 0, 0.12)',
+    marginVertical: 0,
+  },
+  contactSheetRow: {
+    paddingVertical: 16,
+    paddingHorizontal: 4,
+  },
+  contactModalKicker: {
+    fontSize: 10,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.45)',
+    letterSpacing: 0.8,
+    marginBottom: 8,
+  },
+  contactModalValue: {
+    fontSize: 16,
+    fontFamily: 'Satoshi-Medium',
+    color: '#000',
+    textDecorationLine: 'underline',
+  },
+  contactSheetDoneWrap: {
+    marginTop: 8,
+    paddingTop: 12,
+  },
+  contactSheetDoneBtn: {
+    fontSize: 14,
+    fontFamily: 'Satoshi-Medium',
+    letterSpacing: 0.5,
+  },
 });

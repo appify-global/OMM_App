@@ -4,41 +4,36 @@ import { Text } from '@/components/OMMText';
 import { Dimensions, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { layout } from '@/constants/theme';
 /**
  * Photos & floorplan — manage listing media.
  * [Figma 1053:9141](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-9141&t=2eZigRM0BwNtC5wd-4)
  */
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 
-const H_PAD = 20;
 const GRID_GAP = 10;
 const THUMB_RADIUS = 12;
-const DASH = {
-  borderWidth: 1.5,
-  borderColor: 'rgba(0, 0, 0, 0.45)',
-  borderStyle: 'dashed' as const,
+const CARD_OUTLINE = {
+  borderWidth: FIELD_OUTLINE_WIDTH,
+  borderColor: FIELD_OUTLINE_COLOR,
   backgroundColor: '#fff',
 };
 
 export default function PhotosFloorplanScreen() {
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
   const winW = Dimensions.get('window').width;
-  const cell = (winW - H_PAD * 2 - GRID_GAP * 2) / 3;
+  const cell = (winW - layout.screenGutter * 2 - GRID_GAP * 2) / 3;
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Photos & floorplan" onBack={() => router.back()} />
-      </View>
+    <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 28 }]}>
+        <Text style={styles.title}>Photos & floorplan</Text>
         <Text style={styles.subtitle}>Drag to reorder — image 1 is cover on cards & PDF.</Text>
 
         <View style={styles.grid}>
@@ -77,7 +72,7 @@ export default function PhotosFloorplanScreen() {
             resizeMode="cover"
           />
           <Pressable
-            style={[styles.uploadTile, { width: cell, height: cell }, DASH]}
+            style={[styles.uploadTile, { width: cell, height: cell }, CARD_OUTLINE]}
             accessibilityRole="button"
             accessibilityLabel="Upload photo">
             <MaterialCommunityIcons name="tray-arrow-up" size={28} color="rgba(0, 0, 0, 0.4)" />
@@ -85,7 +80,7 @@ export default function PhotosFloorplanScreen() {
         </View>
 
         <Text style={styles.floorLabel}>FLOOR PLAN</Text>
-        <View style={[styles.floorCard, DASH]}>
+        <View style={[styles.floorCard, CARD_OUTLINE]}>
           <MaterialCommunityIcons name="file-document-outline" size={28} color="#000000" />
           <View style={styles.floorTextCol}>
             <Text style={styles.floorName} numberOfLines={1}>
@@ -116,8 +111,14 @@ export default function PhotosFloorplanScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  scroll: { paddingHorizontal: H_PAD, paddingTop: 4 },
-  headBlock: { paddingTop: 8, paddingBottom: 8 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 4 },
+  title: {
+    fontSize: 28,
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
+    letterSpacing: -0.6,
+    marginBottom: 10,
+  },
   subtitle: {
     fontSize: 14,
     fontWeight: '400',

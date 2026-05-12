@@ -9,9 +9,7 @@ import { Alert, Dimensions, FlatList, type ListRenderItemInfo, Keyboard, Keyboar
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 import {
   AUTO_PAY_OPTIONS,
   PAYMENT_CARDS,
@@ -19,6 +17,7 @@ import {
   type PaymentCardDisplay,
   PAYMENT_METHOD_OTHER,
 } from '@/lib/payment-method-mock';
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 
 /**
  * Payment method — Figma 1053:4044 (+ Add card sheet 1053:4131).
@@ -32,17 +31,13 @@ const FIELD_MIN_H = 56;
 const DEFAULT_ROW_MIN_H = 88;
 const SCRIM_WEB = 'rgba(26,26,26,0.45)';
 const SCRIM_OVERLAY = 'rgba(26,26,26,0.28)';
-/** Clearer dash rhythm for form fields (Figma-aligned stroke still 1.5) */
-const SHEET_DASH = '7 5';
 
 const { width: SCREEN_W } = Dimensions.get('window');
-const H_PAD = 20;
-const STROKE = 'rgba(0, 0, 0, 0.55)';
-const STROKE_W = 1.5;
-/** Inner content height inside dashed stroke for fixed field rows */
+const STROKE = FIELD_OUTLINE_COLOR;
+const STROKE_W = FIELD_OUTLINE_WIDTH;
+/** Inner content height inside outline stroke for fixed field rows */
 const FIELD_INNER_H = FIELD_MIN_H - STROKE_W * 2;
 const AUTO_PAY_ROW_H = 52;
-const DASH = '5 4';
 const MUTED = 'rgba(0, 0, 0, 0.55)';
 const BLOCK_AFTER_INTRO = 20;
 const BLOCK_AFTER_CAROUSEL = 20;
@@ -63,16 +58,14 @@ const SIDE_CARD_SCALE = 0.82;
 const SNAP = CAROUSEL_SLOT_W;
 const CAROUSEL_SIDE_INSET = (SCREEN_W - CAROUSEL_SLOT_W) / 2;
 
-function DashedFrame({
+function RoundedOutlineFrame({
   width,
   height,
   borderRadius,
-  dashPattern = DASH,
 }: {
   width: number;
   height: number;
   borderRadius: number;
-  dashPattern?: string;
 }) {
   if (width <= 0 || height <= 0) return null;
   const inset = STROKE_W / 2;
@@ -88,29 +81,26 @@ function DashedFrame({
         fill="none"
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={dashPattern}
       />
     </Svg>
   );
 }
 
-function DashedShell({
+function OutlineShell({
   borderRadius,
   children,
   minHeight,
   height,
   style,
   elevated,
-  dashPattern,
 }: {
   borderRadius: number;
   children: ReactNode;
   minHeight?: number;
-  /** When set, fixes vertical size so dashed SVG matches the field box (recommended for TextInputs). */
+  /** When set, fixes vertical size so the SVG outline matches the field box (recommended for TextInputs). */
   height?: number;
   style?: object;
   elevated?: boolean;
-  dashPattern?: string;
 }) {
   const initialH = height ?? Math.max(minHeight ?? 0, 1);
   const [size, setSize] = useState({ w: 0, h: initialH });
@@ -132,7 +122,7 @@ function DashedShell({
         const { width, height: layoutH } = e.nativeEvent.layout;
         setSize({ w: Math.ceil(width), h: Math.ceil(layoutH) });
       }}>
-      <DashedFrame width={size.w} height={size.h} borderRadius={borderRadius} dashPattern={dashPattern} />
+      <RoundedOutlineFrame width={size.w} height={size.h} borderRadius={borderRadius} />
       {children}
     </View>
   );
@@ -214,7 +204,7 @@ function OtherRow({
 }) {
   return (
     <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={({ pressed }) => [pressed && { opacity: 0.88 }]}>
-      <DashedShell borderRadius={LIST_ROW_R} minHeight={56} style={styles.otherRowShell}>
+      <OutlineShell borderRadius={LIST_ROW_R} minHeight={56} style={styles.otherRowShell}>
         <View style={styles.otherRowInner}>
           <Text style={styles.otherLabel}>{label}</Text>
           <View style={styles.otherRight}>
@@ -228,7 +218,7 @@ function OtherRow({
             />
           </View>
         </View>
-      </DashedShell>
+      </OutlineShell>
     </Pressable>
   );
 }
@@ -245,7 +235,6 @@ function SheetChrome({
   children: ReactNode;
 }) {
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
       <KeyboardAvoidingView
@@ -350,10 +339,9 @@ function AddCardSheet({
         <View style={styles.addCardFieldGap} />
               <Text style={styles.addCardFieldKicker}>CARD NUMBER</Text>
               <View style={styles.addCardKickerGap} />
-              <DashedShell
+              <OutlineShell
                 borderRadius={FIELD_ROW_R}
                 height={FIELD_MIN_H}
-                dashPattern={SHEET_DASH}
                 style={styles.addCardFieldShell}>
                 <View style={styles.addCardFieldInner}>
                   <TextInput
@@ -367,15 +355,14 @@ function AddCardSheet({
                     underlineColorAndroid="transparent"
                   />
                 </View>
-              </DashedShell>
+              </OutlineShell>
 
               <View style={styles.addCardBetweenFields} />
               <Text style={styles.addCardFieldKicker}>NAME ON CARD</Text>
               <View style={styles.addCardKickerGap} />
-              <DashedShell
+              <OutlineShell
                 borderRadius={FIELD_ROW_R}
                 height={FIELD_MIN_H}
-                dashPattern={SHEET_DASH}
                 style={styles.addCardFieldShell}>
                 <View style={styles.addCardFieldInner}>
                   <TextInput
@@ -388,17 +375,16 @@ function AddCardSheet({
                     underlineColorAndroid="transparent"
                   />
                 </View>
-              </DashedShell>
+              </OutlineShell>
 
               <View style={styles.addCardBetweenFields} />
               <View style={styles.addCardExpiryRow}>
                 <View style={styles.addCardExpiryCol}>
                   <Text style={styles.addCardFieldKicker}>EXPIRY</Text>
                   <View style={styles.addCardKickerGap} />
-                  <DashedShell
+                  <OutlineShell
                     borderRadius={FIELD_ROW_R}
                     height={FIELD_MIN_H}
-                    dashPattern={SHEET_DASH}
                     style={styles.addCardFieldShell}>
                     <View style={styles.addCardFieldInner}>
                       <TextInput
@@ -412,16 +398,15 @@ function AddCardSheet({
                         underlineColorAndroid="transparent"
                       />
                     </View>
-                  </DashedShell>
+                  </OutlineShell>
                 </View>
                 <View style={styles.addCardExpiryGap} />
                 <View style={styles.addCardExpiryCol}>
                   <Text style={styles.addCardFieldKicker}>CVV</Text>
                   <View style={styles.addCardKickerGap} />
-                  <DashedShell
+                  <OutlineShell
                     borderRadius={FIELD_ROW_R}
                     height={FIELD_MIN_H}
-                    dashPattern={SHEET_DASH}
                     style={styles.addCardFieldShell}>
                     <View style={styles.addCardFieldInner}>
                       <TextInput
@@ -436,15 +421,14 @@ function AddCardSheet({
                         underlineColorAndroid="transparent"
                       />
                     </View>
-                  </DashedShell>
+                  </OutlineShell>
                 </View>
               </View>
 
               <View style={styles.addCardBetweenFields} />
-              <DashedShell
+              <OutlineShell
                 borderRadius={FIELD_ROW_R}
                 minHeight={DEFAULT_ROW_MIN_H}
-                dashPattern={SHEET_DASH}
                 style={styles.addCardFieldShell}>
                 <View style={styles.addCardDefaultInner}>
                   <View style={styles.addCardDefaultTextCol}>
@@ -461,7 +445,7 @@ function AddCardSheet({
                     ios_backgroundColor="#e9e9ea"
                   />
                 </View>
-              </DashedShell>
+              </OutlineShell>
 
               <View style={styles.addCardBeforeCta} />
               <Pressable
@@ -513,10 +497,9 @@ function InvoiceDeliverySheet({
         <Text style={styles.sheetIntro}>Invoices will be emailed to this address as PDF.</Text>
         <Text style={styles.addCardFieldKicker}>EMAIL ADDRESS</Text>
         <View style={styles.addCardKickerGap} />
-        <DashedShell
+        <OutlineShell
           borderRadius={FIELD_ROW_R}
           height={FIELD_MIN_H}
-          dashPattern={SHEET_DASH}
           style={styles.addCardFieldShell}>
           <View style={styles.addCardFieldInner}>
             <TextInput
@@ -531,7 +514,7 @@ function InvoiceDeliverySheet({
               underlineColorAndroid="transparent"
             />
           </View>
-        </DashedShell>
+        </OutlineShell>
         <View style={styles.addCardBeforeCta} />
         <Pressable
           onPress={save}
@@ -564,10 +547,9 @@ function BillingFieldRow({
     <View>
       <Text style={styles.addCardFieldKicker}>{label}</Text>
       <View style={styles.addCardKickerGap} />
-      <DashedShell
+      <OutlineShell
         borderRadius={FIELD_ROW_R}
         height={FIELD_MIN_H}
-        dashPattern={SHEET_DASH}
         style={styles.addCardFieldShell}>
         <View style={styles.addCardFieldInner}>
           <TextInput
@@ -581,7 +563,7 @@ function BillingFieldRow({
             underlineColorAndroid="transparent"
           />
         </View>
-      </DashedShell>
+      </OutlineShell>
     </View>
   );
 }
@@ -723,10 +705,9 @@ function AutoPaySheet({
               accessibilityRole="radio"
               accessibilityState={{ checked: selected === opt }}
               accessibilityLabel={`Auto-pay ${opt}`}>
-              <DashedShell
+              <OutlineShell
                 borderRadius={FIELD_ROW_R}
                 height={AUTO_PAY_ROW_H}
-                dashPattern={SHEET_DASH}
                 style={styles.addCardFieldShell}>
                 <View style={styles.autoPayOptionInner}>
                   <Text style={styles.autoPayOptionLabel}>{opt}</Text>
@@ -736,7 +717,7 @@ function AutoPaySheet({
                     <View style={styles.autoPayCheckSpacer} />
                   )}
                 </View>
-              </DashedShell>
+              </OutlineShell>
             </Pressable>
           ))}
         </View>
@@ -757,7 +738,6 @@ function AutoPaySheet({
 export default function PaymentMethodScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const [sheet, setSheet] = useState<SheetMode>(null);
   const [otherSettings, setOtherSettings] = useState<PaymentOtherSettings>({
     billing: { ...PAYMENT_METHOD_OTHER.billing },
@@ -799,8 +779,14 @@ export default function PaymentMethodScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Payment method" onBack={() => router.back()} />
+      <View style={styles.navBar}>
+        <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
+        </Pressable>
+        <View style={styles.navCenter}>
+          <Text style={styles.navTitle}>Payment method</Text>
+        </View>
+        <View style={styles.navSide} />
       </View>
 
       <ScrollView
@@ -853,11 +839,11 @@ export default function PaymentMethodScreen() {
         <Pressable
           onPress={() => setSheet('addCard')}
           style={({ pressed }) => [pressed && { opacity: 0.9 }]}>
-          <DashedShell borderRadius={ADD_BTN_R} minHeight={48} style={styles.addBtnShell}>
+          <OutlineShell borderRadius={ADD_BTN_R} minHeight={48} style={styles.addBtnShell}>
             <View style={styles.addBtnInner}>
               <Text style={styles.addBtnText}>ADD PAYMENT METHOD</Text>
             </View>
-          </DashedShell>
+          </OutlineShell>
         </Pressable>
 
         <View style={{ height: OTHER_SECTION_TOP }} />
@@ -913,9 +899,15 @@ export default function PaymentMethodScreen() {
 }
 
 const styles = StyleSheet.create({
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',
@@ -924,7 +916,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   scrollFill: { flex: 1, backgroundColor: '#fff' },
-  scroll: { flexGrow: 1, backgroundColor: '#fff', paddingHorizontal: H_PAD, paddingTop: 8 },
+  scroll: { flexGrow: 1, backgroundColor: '#fff', paddingHorizontal: layout.screenGutter, paddingTop: 8 },
   intro: {
     fontSize: 14,
     fontWeight: '400',
@@ -941,7 +933,7 @@ const styles = StyleSheet.create({
     marginLeft: 1,
   },
   carouselClip: {
-    marginHorizontal: -H_PAD,
+    marginHorizontal: -layout.screenGutter,
     overflow: 'visible',
     backgroundColor: '#fff',
   },
@@ -1046,7 +1038,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 8,
     marginTop: 12,
-    paddingHorizontal: H_PAD,
+    paddingHorizontal: layout.screenGutter,
   },
   dot: {
     width: 7,
@@ -1137,7 +1129,7 @@ const styles = StyleSheet.create({
     elevation: 16,
   },
   addCardScrollContent: {
-    paddingHorizontal: H_PAD,
+    paddingHorizontal: layout.screenGutter,
     paddingTop: 4,
   },
   sheetHandleWrap: {

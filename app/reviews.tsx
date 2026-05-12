@@ -7,10 +7,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { HeaderToggle } from '@/components/HeaderToggle';
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 import { DEMO_AGENT_AGENCY, DEMO_PRIMARY_STREET } from '@/lib/melbourne-demo-locations';
 
 /**
@@ -18,15 +15,13 @@ import { DEMO_AGENT_AGENCY, DEMO_PRIMARY_STREET } from '@/lib/melbourne-demo-loc
  * [Figma 1053:2426](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-2426&t=2eZigRM0BwNtC5wd-4)
  */
 
-const H_PAD = 20;
 /** Vertical gap between major blocks — aligns with design rhythm */
 const SECTION_GAP = 24;
 /** Review list: gap between dashed cards (Figma gap-[16px]) */
 const LIST_CARD_GAP = 16;
 const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
-const DASH = '5 4';
-const STAR_FILLED = '#FFCC00';
+const STAR_FILLED = '#6b5344';
 const STAR_EMPTY = 'rgba(0, 0, 0, 0.22)';
 const MUTED = 'rgba(0, 0, 0, 0.55)';
 const CARD_R = 8;
@@ -69,7 +64,7 @@ const REVIEW_ROWS = [
     id: 'r1',
     headline: 'Sarah Chen · Biggin Scott',
     when: '2w ago',
-    meta: 'OMM-20418 · 142 Orrong Rd',
+    meta: 'OMM-20418 · 218 Victoria St',
     rating: 5 as const,
     body: 'Smooth SOI handover and commission sign-off in under 2h hours. Would deal with again.',
     filter: 'seller' as FilterKey,
@@ -117,7 +112,6 @@ function DashedFrame({
         fill="none"
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={DASH}
       />
     </Svg>
   );
@@ -174,15 +168,25 @@ function StarRow({
 export default function ReviewsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const [filter, setFilter] = useState<FilterKey>('all');
 
   const filtered = REVIEW_ROWS.filter((r) => filter === 'all' || r.filter === filter);
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Reviews" onBack={() => router.back()} />
+      <View style={styles.navBar}>
+        <Pressable
+          style={styles.navSide}
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Back">
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
+        </Pressable>
+        <View style={styles.navCenter}>
+          <Text style={styles.navTitle}>Reviews</Text>
+        </View>
+        <View style={styles.navSide} />
       </View>
 
       <ScrollView
@@ -225,17 +229,43 @@ export default function ReviewsScreen() {
         <View style={{ height: SECTION_GAP }} />
 
         <View style={styles.filterRow}>
-          <HeaderToggle
-            items={[
-              { key: 'all', label: 'All' },
-              { key: 'buyer', label: 'As buyer' },
-              { key: 'seller', label: 'As seller' },
+          <Pressable
+            onPress={() => setFilter('all')}
+            style={({ pressed }) => [
+              styles.filterSeg,
+              filter === 'all' ? styles.filterSegActive : styles.filterSegIdle,
+              pressed && { opacity: 0.88 },
             ]}
-            value={filter}
-            onChange={setFilter}
-            align="center"
-            accessibilityLabel="Reviews role filter"
-          />
+            accessibilityRole="button"
+            accessibilityState={{ selected: filter === 'all' }}>
+            <Text style={[styles.filterAllLabel, filter === 'all' && styles.filterAllLabelOn]}>All</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setFilter('buyer')}
+            style={({ pressed }) => [
+              styles.filterSegWide,
+              filter === 'buyer' ? styles.filterSegActiveWide : styles.filterSegIdle,
+              pressed && { opacity: 0.88 },
+            ]}
+            accessibilityRole="button"
+            accessibilityState={{ selected: filter === 'buyer' }}>
+            <Text style={[styles.filterCapsLabel, filter === 'buyer' && styles.filterCapsLabelOn]} numberOfLines={1}>
+              AS BUYER AGENT
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setFilter('seller')}
+            style={({ pressed }) => [
+              styles.filterSegWide,
+              filter === 'seller' ? styles.filterSegActiveWide : styles.filterSegIdle,
+              pressed && { opacity: 0.88 },
+            ]}
+            accessibilityRole="button"
+            accessibilityState={{ selected: filter === 'seller' }}>
+            <Text style={[styles.filterCapsLabel, filter === 'seller' && styles.filterCapsLabelOn]} numberOfLines={1}>
+              AS SELLER AGENT
+            </Text>
+          </Pressable>
         </View>
 
         <View style={{ height: SECTION_GAP }} />
@@ -330,9 +360,15 @@ function PendingCard({
 }
 
 const styles = StyleSheet.create({
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',
@@ -340,7 +376,7 @@ const styles = StyleSheet.create({
     lineHeight: 27,
   },
   scroll: {
-    paddingHorizontal: H_PAD,
+    paddingHorizontal: layout.screenGutter,
     paddingTop: 8,
   },
   summaryShell: {
@@ -411,7 +447,7 @@ const styles = StyleSheet.create({
   pendingCarousel: {
     flexDirection: 'row',
     paddingBottom: 4,
-    paddingRight: H_PAD,
+    paddingRight: layout.screenGutter,
   },
   pendingGutter: {
     marginRight: 12,
@@ -521,8 +557,57 @@ const styles = StyleSheet.create({
     lineHeight: 13.5,
   },
   filterRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
+    gap: 8,
     minHeight: 44,
+  },
+  filterSeg: {
+    borderRadius: 18,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    minHeight: 31,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  filterSegWide: {
+    borderRadius: 18,
+    paddingHorizontal: 13,
+    paddingVertical: 7,
+    minHeight: 30,
+    justifyContent: 'center',
+    alignItems: 'center',
+    maxWidth: '100%',
+  },
+  filterSegActive: {
+    backgroundColor: '#000000',
+  },
+  filterSegActiveWide: {
+    backgroundColor: '#000000',
+  },
+  filterSegIdle: {
+    backgroundColor: '#fff',
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.14)',
+  },
+  filterAllLabel: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: '#2e2e2e',
+  },
+  filterAllLabelOn: {
+    color: '#fff',
+  },
+  filterCapsLabel: {
+    fontSize: 11,
+    fontWeight: '400',
+    color: '#2e2e2e',
+    letterSpacing: 0.2,
+  },
+  filterCapsLabelOn: {
+    color: '#fff',
+    fontSize: 11,
   },
   reviewList: {
     gap: LIST_CARD_GAP,

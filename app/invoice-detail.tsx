@@ -9,9 +9,7 @@ import { Alert, Platform, Pressable, ScrollView, Share, StyleSheet, View } from 
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 import { buildInvoiceDocumentBody, invoiceExportFilename, saveInvoiceToDocumentDirectory } from '@/lib/invoice-export';
 import type { InvoiceDetailModel } from '@/lib/invoices-mock';
 import { getInvoiceDetailAtIndex } from '@/lib/invoices-mock';
@@ -22,7 +20,6 @@ import { getInvoiceDetailAtIndex } from '@/lib/invoices-mock';
  * https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-3953
  */
 
-const H_PAD = 20;
 const CARD_PAD = 16;
 /** Vertical gap between major dashed sections */
 const SECTION_GAP = 16;
@@ -37,7 +34,6 @@ const ACTION_GAP = 12;
 const CARD_R = 8;
 const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
-const DASH = '5 4';
 const MUTED = 'rgba(0, 0, 0, 0.55)';
 const BTN_BG = '#000000';
 
@@ -64,7 +60,6 @@ function DashedFrame({
         fill="none"
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={DASH}
       />
     </Svg>
   );
@@ -257,7 +252,6 @@ function DownloadSavedToast({
 export default function InvoiceDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const { i } = useLocalSearchParams<{ i?: string }>();
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -426,8 +420,14 @@ export default function InvoiceDetailScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Invoices" onBack={() => router.back()} />
+      <View style={styles.navBar}>
+        <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
+        </Pressable>
+        <View style={styles.navCenter}>
+          <Text style={styles.navTitle}>Invoices</Text>
+        </View>
+        <View style={styles.navSide} />
       </View>
 
       {!detail ? (
@@ -454,17 +454,23 @@ export default function InvoiceDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',
     color: '#000000',
     lineHeight: 27,
   },
-  scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
-  missWrap: { paddingHorizontal: H_PAD, paddingTop: 24 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 8 },
+  missWrap: { paddingHorizontal: layout.screenGutter, paddingTop: 24 },
   missText: { fontSize: 14, fontWeight: '400', color: '#000000', lineHeight: 21 },
   dashShell: {
     position: 'relative',

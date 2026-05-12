@@ -1,3 +1,4 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
@@ -6,9 +7,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 import {
   type InvoiceFilterKey,
   type InvoiceRow,
@@ -24,7 +23,6 @@ import {
  * List and summary read from `INVOICES` in `lib/invoices-mock` (swap for API). No TextInput fields.
  */
 
-const H_PAD = 20;
 const AFTER_SUMMARY = 16;
 const AFTER_CHIPS = 20;
 const ROW_GAP = 12;
@@ -33,7 +31,6 @@ const SUMMARY_MIN_H = 152;
 const ROW_CARD_MIN_H = 168;
 const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
-const DASH = '5 4';
 const MUTED = 'rgba(0, 0, 0, 0.55)';
 const CHIP_INACTIVE_BG = '#efefef';
 const EXPORT_BG = '#000000';
@@ -68,7 +65,6 @@ function DashedFrame({
         fill="none"
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={DASH}
       />
     </Svg>
   );
@@ -162,7 +158,6 @@ function InvoiceCard({ row, index }: { row: InvoiceRow; index: number }) {
 export default function InvoicesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const [filter, setFilter] = useState<InvoiceFilterKey>('paid');
 
   const monthSlice = useMemo(() => invoicesThisMonth(INVOICES), []);
@@ -179,8 +174,14 @@ export default function InvoicesScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Invoices" onBack={() => router.back()} />
+      <View style={styles.navBar}>
+        <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
+        </Pressable>
+        <View style={styles.navCenter}>
+          <Text style={styles.navTitle}>Invoices</Text>
+        </View>
+        <View style={styles.navSide} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 100 }]}>
@@ -245,16 +246,22 @@ export default function InvoicesScreen() {
 }
 
 const styles = StyleSheet.create({
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',
     color: '#000000',
     lineHeight: 27,
   },
-  scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 8 },
   dashShell: {
     position: 'relative',
     width: '100%',

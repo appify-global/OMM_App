@@ -2,17 +2,14 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { type Href, useRouter } from 'expo-router';
 import type { ComponentProps, ReactNode } from 'react';
-import { Fragment, useState } from 'react';
-import Svg, { Line } from 'react-native-svg';
+import { Fragment } from 'react';
 import { Text } from '@/components/OMMText';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
 import { clearAuthenticated } from '@/lib/auth-session';
-import { useScrollEdgeReveal } from '@/lib/scrollEdge';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-import { useTabScreenBottomPad } from '@/lib/useTabScreenBottomPad';
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
+import { useTabBarOnScroll } from '@/lib/tab-bar-visibility';
 
 /**
  * Profile tab — buyer / user settings hub.
@@ -20,13 +17,11 @@ import { useTabScreenBottomPad } from '@/lib/useTabScreenBottomPad';
  */
 
 import { AGENT_IMG } from '@/lib/propertyImages';
-const H_PAD = 20;
+import { layout } from '@/constants/theme';
+
 const SECTION_GAP = 24;
 const GROUP_R = 16;
-/** Light gray dashed rules — full profile (ref. second screen) */
-const DASH_COLOR = 'rgba(0, 0, 0, 0.34)';
-const DASH_WIDTH = 1;
-const STAR_FILLED = '#FFCC00';
+const STAR_FILLED = '#6b5344';
 const STAR_EMPTY = 'rgba(0, 0, 0, 0.22)';
 
 type MenuIcon =
@@ -40,29 +35,9 @@ function MenuIconGlyph({ spec, size = 20 }: { spec: MenuIcon; size?: number }) {
   return <MaterialCommunityIcons name={spec.name} size={size} color="#000000" />;
 }
 
-/** Full-width dashed rule between rows — image 2 ref; RN border dashed is unreliable on Android. */
-function BetweenRowDashedLine() {
-  const [w, setW] = useState(0);
-  return (
-    <View
-      style={styles.dashRuleHost}
-      onLayout={(e) => setW(Math.ceil(e.nativeEvent.layout.width))}
-      pointerEvents="none">
-      {w > 0 ? (
-        <Svg width={w} height={2} accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-          <Line
-            x1={0}
-            y1={1}
-            x2={w}
-            y2={1}
-            stroke={DASH_COLOR}
-            strokeWidth={1}
-            strokeDasharray="5 4"
-          />
-        </Svg>
-      ) : null}
-    </View>
-  );
+/** Hairline rule between menu rows. */
+function BetweenRowHairline() {
+  return <View style={styles.menuHairline} />;
 }
 
 function MenuRow({
@@ -87,7 +62,7 @@ function MenuRow({
         <Text style={styles.menuLabel}>{label}</Text>
         <FontAwesome name="chevron-right" size={14} color="rgba(0, 0, 0, 0.35)" />
       </Pressable>
-      {!isLast ? <BetweenRowDashedLine /> : null}
+      {!isLast ? <BetweenRowHairline /> : null}
     </Fragment>
   );
 }
@@ -102,10 +77,10 @@ function SectionMenuGroup({ children }: { children: ReactNode }) {
 
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
-  const bottomPad = useTabScreenBottomPad();
-  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
-  const scrollEdge = useScrollEdgeReveal({ threshold: 120 });
+  const { onScroll } = useTabBarOnScroll();
+
+  const tabBarPad = 100;
 
   const onLogOut = () => {
     Alert.alert('Log out', 'You will need to sign in again to access your account.', [
@@ -126,16 +101,12 @@ export default function ProfileScreen() {
   };
 
   return (
-    <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Profile" />
-      </View>
+    <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
       <ScrollView
-        style={styles.scrollFill}
         showsVerticalScrollIndicator={false}
-        onScroll={scrollEdge.onScroll}
-        scrollEventThrottle={scrollEdge.scrollEventThrottle}
-        contentContainerStyle={[styles.scrollInner, { paddingBottom: bottomPad + 16 }]}>
+        onScroll={onScroll}
+        scrollEventThrottle={16}
+        contentContainerStyle={[styles.scrollInner, { paddingBottom: insets.bottom + tabBarPad }]}>
         <View style={styles.headerRow}>
           <View style={styles.headerTextCol}>
             <Text style={styles.userName}>John Lim</Text>
@@ -263,18 +234,13 @@ export default function ProfileScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  scrollFill: { flex: 1, minHeight: 0 },
-  scrollInner: { paddingHorizontal: H_PAD },
-  headBlock: {
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
+  scrollInner: { paddingHorizontal: layout.screenGutter },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
     minHeight: 64,
-    paddingTop: 12,
+    paddingTop: 8,
   },
   headerTextCol: { flex: 1, paddingRight: 16 },
   userName: {
@@ -325,16 +291,16 @@ const styles = StyleSheet.create({
   },
   sectionMenuGroup: {
     alignSelf: 'stretch',
-    borderWidth: DASH_WIDTH,
-    borderColor: DASH_COLOR,
-    borderStyle: 'dashed',
+    borderWidth: FIELD_OUTLINE_WIDTH,
+    borderColor: FIELD_OUTLINE_COLOR,
     borderRadius: GROUP_R,
     backgroundColor: '#fff',
     overflow: 'hidden',
   },
-  dashRuleHost: {
-    width: '100%',
-    height: 2,
+  menuHairline: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: FIELD_OUTLINE_COLOR,
+    alignSelf: 'stretch',
   },
   menuRow: {
     flexDirection: 'row',

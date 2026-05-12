@@ -3,11 +3,15 @@ import { Text } from '@/components/OMMText';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { layout } from '@/constants/theme';
 import { useTabScreenBottomPad } from '@/lib/useTabScreenBottomPad';
 
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
+
 /** [Figma Property Listing](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-4465) */
-export const PL_PAD = 32;
+export const PL_PAD = layout.listingWizardGutter;
 export const PL_BORDER = 'rgba(0, 0, 0, 0.55)';
+export const PL_FIELD_BORDER = FIELD_OUTLINE_COLOR;
 export const PL_LABEL = 'rgba(0, 0, 0, 0.55)';
 export const PL_TITLE = 'rgba(0, 0, 0, 0.72)';
 export const PL_BODY = '#000000';
@@ -20,10 +24,10 @@ export function useListingFlowBottomPad() {
   return useTabScreenBottomPad();
 }
 
+/** Solid outline for listing fields, cards, and drop zones. */
 export const dashedShell = {
-  borderWidth: 1.5,
-  borderColor: PL_BORDER,
-  borderStyle: 'dashed' as const,
+  borderWidth: FIELD_OUTLINE_WIDTH,
+  borderColor: FIELD_OUTLINE_COLOR,
   backgroundColor: '#fff',
 };
 
@@ -124,9 +128,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: PL_PAD,
-    borderWidth: 1.5,
-    borderColor: PL_BORDER,
-    borderStyle: 'dashed',
   },
   ctaLabel: { color: '#fff', fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: -0.35 },
 });

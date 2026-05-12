@@ -3,6 +3,7 @@ import { Text } from '@/components/OMMText';
 import { Modal, Platform, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { layout } from '@/constants/theme';
 import { AppButton } from '@/components/AppButton';
 import { DEMO_MANAGE_LISTING_HEADER } from '@/lib/melbourne-demo-locations';
 
@@ -88,7 +89,6 @@ export function ManageListingSheet({
   );
 }
 
-const H_PAD = 20;
 const DIVIDER_INSET = 20;
 
 const styles = StyleSheet.create({
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    paddingHorizontal: H_PAD,
+    paddingHorizontal: layout.screenGutter,
     paddingTop: 8,
   },
   handleWrap: { alignItems: 'center', paddingVertical: 8 },

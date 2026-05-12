@@ -2,11 +2,11 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { Text } from '@/components/OMMText';
-import { Image, ImageBackground, StyleSheet, View } from 'react-native';
+import { Image, ImageBackground, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AppButton } from '@/components/AppButton';
-import { PulsePress, Stagger } from '@/components/motion';
+import { AppButton, APP_BUTTON_STACK_GAP } from '@/components/AppButton';
+import { OAuthProviderCircles } from '@/components/oauth/OAuthProviderCircles';
 
 /**
  * Welcome — [Figma: OMM / Welcome Screen](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1286-160)
@@ -47,47 +47,48 @@ export default function WelcomeScreen() {
             },
           ]}>
           <View style={styles.copyBlock}>
-            <Stagger staggerMs={75}>
-              <View style={styles.heroSection}>
-                <Image
-                  source={require('@/assets/images/match-logo.png')}
-                  style={styles.logo}
-                  resizeMode="contain"
-                  accessibilityLabel="MATCH"
-                />
-              </View>
+            <Image
+              source={require('@/assets/images/match-logo.png')}
+              style={styles.logo}
+              resizeMode="contain"
+              accessibilityLabel="MATCH"
+            />
 
-              <View style={styles.heroSection}>
-                <Text style={styles.headlineMuted}>Off-market deals in</Text>
-                <Text style={styles.headlineRegular}>one workspace.</Text>
-              </View>
+            {/* 1286:195 — Satoshi Medium 30 / lh 36 */}
+            <Text style={styles.headlineMuted}>Off-market deals in</Text>
+            {/* 1286:196 — Satoshi Regular 30 / lh 36 */}
+            <Text style={styles.headlineRegular}>one workspace.</Text>
 
-              <View style={styles.heroSection}>
-                <Text style={styles.tagline}>
-                  OMM for A-Z Real Estate{'\n'}
-                  Match buyer briefs, run referrals, and track commissions with a full Victorian compliance trail.
-                </Text>
-              </View>
+            {/* 1286:197 — 14 Medium, rgba(107,107,115,0.85), lh 20, two paragraphs */}
+            <Text style={styles.tagline}>
+              OMM for A-Z Real Estate{'\n'}
+              Match buyer briefs, run referrals, and track commissions with a full Victorian compliance trail.
+            </Text>
 
-              <View style={styles.ctaSection}>
-                <AppButton
-                  variant="dashed"
-                  style={styles.signUpBtnWrap}
-                  onPress={() => router.push('/sign-up')}
-                  accessibilityLabel="Sign up">
-                  Sign Up
-                </AppButton>
-              </View>
+            <AppButton
+              variant="dashed"
+              style={styles.signUpBtnWrap}
+              onPress={() => router.push('/sign-up')}
+              accessibilityLabel="Sign up">
+              Sign Up
+            </AppButton>
 
-              <View style={styles.heroSection}>
-                <View style={styles.footerRow}>
-                  <Text style={styles.footerDark}>Already have an account?</Text>
-                  <PulsePress onPress={() => router.push('/sign-in')} accessibilityLabel="Sign in">
-                    <Text style={styles.footerMuted}>Sign in</Text>
-                  </PulsePress>
-                </View>
-              </View>
-            </Stagger>
+            <View style={styles.oauthWrap}>
+              <OAuthProviderCircles
+                onGooglePress={() => router.push('/sign-up')}
+                onMicrosoftPress={() => router.push('/sign-up')}
+                googleAccessibilityLabel="Sign Up with Google"
+                microsoftAccessibilityLabel="Sign Up with Microsoft Account"
+              />
+            </View>
+
+            {/* 1286:198 — footer, gap 6 */}
+            <View style={styles.footerRow}>
+              <Text style={styles.footerDark}>Already have an account?</Text>
+              <Pressable onPress={() => router.push('/sign-in')} accessibilityRole="link" hitSlop={10}>
+                <Text style={styles.footerMuted}>Sign in</Text>
+              </Pressable>
+            </View>
           </View>
         </View>
       </ImageBackground>
@@ -114,20 +115,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
   },
   copyBlock: {
-    width: '100%',
-    maxWidth: 384,
-    alignItems: 'center',
-  },
-  /** Center horizontally without breaking full-width CTAs nested below. */
-  heroSection: {
-    alignSelf: 'center',
-    alignItems: 'center',
-    width: '100%',
-    maxWidth: 384,
-  },
-  /** Full bleed within copy column for dashed Sign Up rail. */
-  ctaSection: {
-    alignSelf: 'stretch',
     width: '100%',
     maxWidth: 384,
     alignItems: 'center',
@@ -167,7 +154,11 @@ const styles = StyleSheet.create({
     width: '100%',
     maxWidth: 329,
     alignSelf: 'center',
+    marginBottom: APP_BUTTON_STACK_GAP,
+  },
+  oauthWrap: {
     marginBottom: 24,
+    alignSelf: 'center',
   },
   footerRow: {
     flexDirection: 'row',

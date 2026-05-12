@@ -5,9 +5,7 @@ import { Text } from '@/components/OMMText';
 import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 /**
  * Agent reviews — full list & distribution.
  * [Figma 1053:6675](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-6675&t=2eZigRM0BwNtC5wd-4)
@@ -16,7 +14,6 @@ import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
 import { DEMO_AGENT_AGENCY } from '@/lib/melbourne-demo-locations';
 
-const H_PAD = 20;
 const CARD_R = 14;
 const GOLD = '#c9a227';
 
@@ -73,7 +70,6 @@ type ChipKey = (typeof CHIPS)[number]['key'];
 
 export default function AgentReviewsScreen() {
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
   const [chip, setChip] = useState<ChipKey>('all');
 
@@ -90,8 +86,19 @@ export default function AgentReviewsScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Reviews" onBack={() => router.back()} />
+      <View style={styles.navBar}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+          style={styles.navSide}>
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
+        </Pressable>
+        <View style={styles.navCenter}>
+          <Text style={styles.navTitle}>Reviews</Text>
+        </View>
+        <View style={styles.navSide} />
       </View>
 
       <ScrollView
@@ -186,11 +193,18 @@ export default function AgentReviewsScreen() {
 }
 
 const styles = StyleSheet.create({
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#ffffff' },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+    backgroundColor: 'transparent',
+  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center' },
   navTitle: { fontSize: 17, fontFamily: 'Satoshi-Medium', color: '#000000' },
-  scroll: { paddingHorizontal: H_PAD, paddingTop: 16 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 16 },
   summaryCard: {
     backgroundColor: '#fff',
     borderRadius: CARD_R,
@@ -226,8 +240,8 @@ const styles = StyleSheet.create({
   },
   distFill: { height: '100%', borderRadius: 3, backgroundColor: '#000000' },
   distPct: { width: 32, fontSize: 10, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', textAlign: 'right' },
-  chipsScroll: { marginBottom: 14, marginHorizontal: -H_PAD },
-  chipsInner: { paddingHorizontal: H_PAD, gap: 8, flexDirection: 'row', alignItems: 'center' },
+  chipsScroll: { marginBottom: 14, marginHorizontal: -layout.screenGutter },
+  chipsInner: { paddingHorizontal: layout.screenGutter, gap: 8, flexDirection: 'row', alignItems: 'center' },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',

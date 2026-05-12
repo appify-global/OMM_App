@@ -1,3 +1,4 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
@@ -6,25 +7,21 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 import type { DisputeStatus } from '@/lib/disputes-mock';
 import { DISPUTES_LIST } from '@/lib/disputes-mock';
 
 /**
- * Disputes hub — filters + dashed cards + raise CTA.
+ * Disputes hub — filters + outlined cards + raise CTA.
  * [Figma 1053:2793](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-2793&t=2eZigRM0BwNtC5wd-4)
  */
 
-const H_PAD = 20;
 const BLOCK_GAP = 24;
 const LIST_GAP = 14;
 const AFTER_INTRO = 16;
 const AFTER_FILTERS = 16;
 const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
-const DASH = '5 4';
 const MUTED = 'rgba(0, 0, 0, 0.55)';
 const CARD_R = 8;
 
@@ -60,7 +57,6 @@ function DashedFrame({
         fill="none"
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={DASH}
       />
     </Svg>
   );
@@ -152,7 +148,6 @@ const badge = StyleSheet.create({
 export default function DisputesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const [filter, setFilter] = useState<FilterKey>('open');
 
   const rows = useMemo(() => {
@@ -162,8 +157,14 @@ export default function DisputesScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Disputes" onBack={() => router.back()} />
+      <View style={styles.navBar}>
+        <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
+        </Pressable>
+        <View style={styles.navCenter}>
+          <Text style={styles.navTitle}>Disputes</Text>
+        </View>
+        <View style={styles.navSide} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}>
@@ -242,7 +243,14 @@ export default function DisputesScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
+  navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',
@@ -250,7 +258,7 @@ const styles = StyleSheet.create({
     lineHeight: 27,
   },
   scroll: {
-    paddingHorizontal: H_PAD,
+    paddingHorizontal: layout.screenGutter,
     paddingTop: 8,
   },
   intro: {

@@ -13,6 +13,7 @@ import {
   PublishStepHeader,
   useListingFlowBottomPad,
 } from './_shared';
+import { useListingDraft } from './listing-draft-context';
 import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
 import { DEMO_PRIMARY_SUBURB_LINE } from '@/lib/melbourne-demo-locations';
 
@@ -26,6 +27,7 @@ const DEMO = {
 export default function PublishListingReview() {
   const router = useRouter();
   const bottomPad = useListingFlowBottomPad();
+  const { addressDisclosure } = useListingDraft();
 
   const saveDraft = useCallback(() => {
     Alert.alert('Draft saved', 'Your listing draft has been saved.');
@@ -53,6 +55,11 @@ export default function PublishListingReview() {
           <View style={styles.addrBlock}>
             <Text style={styles.label}>PROPERTY ADDRESS</Text>
             <Text style={styles.addrLine}>{DEMO.address}</Text>
+            <Text style={styles.addrVisibility}>
+              {addressDisclosure === 'disclose'
+                ? 'Full street address will be visible to buyers.'
+                : 'Street address will not be shown on the listing — suburb / region only.'}
+            </Text>
           </View>
 
           <View style={styles.row2}>
@@ -143,6 +150,13 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   addrLine: { fontSize: 24, fontFamily: 'Satoshi-Medium', color: PL_BODY, letterSpacing: -0.5, lineHeight: 30 },
+  addrVisibility: {
+    fontSize: 13,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.5)',
+    lineHeight: 18,
+    marginTop: 8,
+  },
   row2: { flexDirection: 'row', gap: 24, marginBottom: 24 },
   colHalf: { flex: 1, minWidth: 0 },
   value: { fontSize: 20, fontFamily: 'Satoshi-Medium', color: PL_BODY },

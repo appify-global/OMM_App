@@ -7,9 +7,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Line, Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 import type { DisputeEvidenceFile, DisputeStatus } from '@/lib/disputes-mock';
 import { getDisputeDetail } from '@/lib/disputes-mock';
 
@@ -18,12 +16,10 @@ import { getDisputeDetail } from '@/lib/disputes-mock';
  * [Figma 1053:2893](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-2893&t=2eZigRM0BwNtC5wd-4)
  */
 
-const H_PAD = 20;
 const BLOCK_GAP = 24;
 const LABEL_FIELD_GAP = 8;
 const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
-const DASH = '5 4';
 const MUTED = 'rgba(0, 0, 0, 0.55)';
 const CARD_R = 8;
 const THUMB = 60;
@@ -52,7 +48,6 @@ function DashedFrame({
         fill="none"
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={DASH}
       />
     </Svg>
   );
@@ -70,7 +65,6 @@ function DashedHorizontalRule({ width }: { width: number }) {
         y2={y}
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={DASH}
       />
     </Svg>
   );
@@ -173,7 +167,6 @@ function EvidenceThumb({ file }: { file: DisputeEvidenceFile }) {
           fill="none"
           stroke={STROKE}
           strokeWidth={STROKE_W}
-          strokeDasharray={DASH}
         />
       </Svg>
       <FontAwesome name="picture-o" size={20} color={MUTED} />
@@ -194,7 +187,7 @@ function DisputeInfoCard({
 }) {
   const [innerW, setInnerW] = useState(0);
   const rows = [
-    { label: 'DEAL', value: deal },
+    { label: 'PROPERTY ADDRESS', value: deal },
     { label: 'CATEGORY', value: category },
     { label: 'OTHER PARTY', value: otherParty },
     { label: 'AMOUNT IN DISPUTE', value: amountLine },
@@ -222,17 +215,22 @@ function DisputeInfoCard({
 export default function DisputeDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const d = useMemo(() => getDisputeDetail(typeof id === 'string' ? id : id?.[0]), [id]);
 
   if (!d) {
     return (
       <View style={[styles.screen, { paddingTop: insets.top }]}>
-        <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Dispute" onBack={() => router.back()} />
-      </View>
-        <View style={{ paddingHorizontal: H_PAD, paddingTop: 24 }}>
+        <View style={styles.navBar}>
+          <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button">
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
+          </Pressable>
+          <View style={styles.navCenter}>
+            <Text style={styles.navTitle}>Dispute</Text>
+          </View>
+          <View style={styles.navSide} />
+        </View>
+        <View style={{ paddingHorizontal: layout.screenGutter, paddingTop: 24 }}>
           <Text style={styles.value}>This dispute could not be found.</Text>
         </View>
       </View>
@@ -252,8 +250,14 @@ export default function DisputeDetailScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title={`Dispute ${d.id}`} onBack={() => router.back()} />
+      <View style={styles.navBar}>
+        <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
+        </Pressable>
+        <View style={styles.navCenter}>
+          <Text style={styles.navTitle}>Dispute {d.id}</Text>
+        </View>
+        <View style={styles.navSide} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}>
@@ -343,15 +347,21 @@ export default function DisputeDetailScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',
     color: '#000000',
     lineHeight: 27,
   },
-  scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 8 },
   dashWrap: { position: 'relative', backgroundColor: '#fff' },
   dashInnerPad: { backgroundColor: 'transparent' },
   heroInner: {

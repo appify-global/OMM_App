@@ -42,7 +42,12 @@ export const Fonts = {
  * sticky filter rows share one alignment column.
  */
 export const layout = {
+  /** Default horizontal inset for scroll content & most screens (safe area added in hooks). */
   screenGutter: 20,
+  /** Sign-in, forgot password, and other auth stack screens. */
+  authGutter: 32,
+  /** Add-listing wizard and wide-step layouts (`PL_PAD`). */
+  listingWizardGutter: 32,
   headerSideWidth: 44,
   largeTitleSize: 26,
   navTitleSize: 17,
@@ -114,4 +119,13 @@ export const system = {
   yellow: '#FFCC00',
   /** Apple `.systemBlue` — interactive accent (links, selected). */
   blue: '#0A84FF',
+} as const;
+
+/**
+ * Common vertical rhythm for ScrollView content under custom headers.
+ * Prefer `space` for one-offs; use these when matching the majority of screens.
+ */
+export const scrollPadding = {
+  /** Typical `ScrollView` `paddingTop` when the screen hides the nav header. */
+  top: space[2],
 } as const;

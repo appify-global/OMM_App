@@ -1,3 +1,4 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
@@ -8,21 +9,17 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 /**
  * Share feedback — topic, feedback text, optional media attach.
  * [Figma 1053:3145](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-3145&t=2eZigRM0BwNtC5wd-4)
  * Fields start empty (no design prefill).
  */
 
-const H_PAD = 20;
 const FIELD_H = 54;
 const FEEDBACK_BOX_H = 150;
 const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
-const DASH = '5 4';
 const BLOCK_GAP = 24;
 
 function DashedFrame({
@@ -52,7 +49,6 @@ function DashedFrame({
         fill="none"
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={DASH}
       />
     </Svg>
   );
@@ -117,7 +113,6 @@ function FeedbackAttachBox() {
 export default function ShareFeedbackScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
 
   const [topic, setTopic] = useState('');
   const [feedback, setFeedback] = useState('');
@@ -135,9 +130,20 @@ export default function ShareFeedbackScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}>
-        <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Share feedback" onBack={() => router.back()} />
-      </View>
+        <View style={styles.navBar}>
+          <Pressable
+            style={styles.navSide}
+            onPress={() => router.back()}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Back">
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
+          </Pressable>
+          <View style={styles.navCenter}>
+            <Text style={styles.navTitle}>Share feedback</Text>
+          </View>
+          <View style={styles.navSide} />
+        </View>
 
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -199,13 +205,19 @@ export default function ShareFeedbackScreen() {
 }
 
 const styles = StyleSheet.create({
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000' },
   scroll: {
-    paddingHorizontal: H_PAD,
+    paddingHorizontal: layout.screenGutter,
     paddingTop: 8,
   },
   intro: {

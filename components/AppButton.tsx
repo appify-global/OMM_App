@@ -1,18 +1,9 @@
 import type { ReactNode } from 'react';
 import { Text } from '@/components/OMMText';
-import {
-  Platform,
-  Pressable,
-  type PressableProps,
-  StyleSheet,
-  type TextStyle,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+import { Platform, Pressable, type PressableProps, StyleSheet, type TextStyle, View, type StyleProp, type ViewStyle } from 'react-native';
 
 import { Fonts, ink, palette } from '@/constants/theme';
-import { hapticLight } from '@/lib/haptics';
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 
 /**
  * Primary CTAs — height 48, **12px corners** everywhere (rectangular, not stadium pill).
@@ -20,7 +11,7 @@ import { hapticLight } from '@/lib/haptics';
  */
 export const APP_BUTTON_HEIGHT = 48;
 
-/** Shared corner radius for filled, outlined, and dashed (Welcome Sign Up only). */
+/** Shared corner radius for filled, outlined, and welcome secondary CTA variant. */
 export const APP_BUTTON_RADIUS = 12;
 
 export type AppButtonVariant = 'filled' | 'outlined' | 'dashed';
@@ -41,7 +32,7 @@ export type AppButtonProps = Omit<PressableProps, 'children' | 'style'> & {
 /**
  * - **filled**: solid #000000, white label (Login, Continue, CONTACT SELLER, …)
  * - **outlined**: white, solid 1px #000000 border (Back to Login, DOWNLOAD, …)
- * - **dashed**: Welcome **Sign Up** only — white, **dashed** border, soft shadow; same 12px radius as outlined.
+ * - **dashed**: Welcome **Sign Up** — white face, subtle hairline border + soft shadow (same radius as outlined).
  */
 export function AppButton({
   variant,
@@ -51,7 +42,6 @@ export function AppButton({
   style,
   textStyle,
   accessibilityRole = 'button',
-  onPressIn,
   ...rest
 }: AppButtonProps) {
   const label = (
@@ -71,17 +61,6 @@ export function AppButton({
     <Pressable
       accessibilityRole={accessibilityRole}
       disabled={disabled}
-      onPressIn={(e) => {
-        if (!disabled && Platform.OS === 'ios') {
-          hapticLight();
-        }
-        onPressIn?.(e);
-      }}
-      android_ripple={{
-        color:
-          variant === 'filled' ? 'rgba(255, 255, 255, 0.18)' : 'rgba(0, 0, 0, 0.06)',
-        borderless: false,
-      }}
       style={({ pressed }) => [
         styles.inner,
         variant === 'filled' && styles.filled,
@@ -151,9 +130,8 @@ const styles = StyleSheet.create({
   },
   dashedFace: {
     backgroundColor: palette.white,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(0, 0, 0, 0.45)',
+    borderWidth: FIELD_OUTLINE_WIDTH,
+    borderColor: FIELD_OUTLINE_COLOR,
   },
   textBase: {
     fontSize: 14,
@@ -171,7 +149,6 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.9,
-    transform: [{ scale: 0.986 }],
   },
   disabled: {
     opacity: 0.5,

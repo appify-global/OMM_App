@@ -4,6 +4,7 @@ import { Text } from '@/components/OMMText';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { layout } from '@/constants/theme';
 import { AppButton } from '@/components/AppButton';
 
 /**
@@ -13,7 +14,6 @@ import { AppButton } from '@/components/AppButton';
 
 import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
 
-const PAD = 20;
 
 function FieldBlock({ label, value }: { label: string; value: string }) {
   return (
@@ -89,9 +89,9 @@ export default function SellerMatchDetailScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  topBar: { paddingHorizontal: PAD, paddingVertical: 8 },
+  topBar: { paddingHorizontal: layout.screenGutter, paddingVertical: 8 },
   backBtn: { width: 40, height: 40, justifyContent: 'center' },
-  scroll: { paddingHorizontal: PAD, paddingTop: 8 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 8 },
   profileBlock: { alignItems: 'center', marginBottom: 28 },
   avatar: {
     width: 88,
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: PAD,
+    paddingHorizontal: layout.screenGutter,
     paddingTop: 12,
     backgroundColor: '#fff',
     borderTopWidth: StyleSheet.hairlineWidth,

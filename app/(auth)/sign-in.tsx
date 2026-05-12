@@ -7,11 +7,10 @@ import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
-import { FadeSlideIn } from '@/components/motion';
+import { OAuthProviderCircles } from '@/components/oauth/OAuthProviderCircles';
 import { setAuthenticated } from '@/lib/auth-session';
-
-/** Figma: Log in — node 1053:760, horizontal inset 32px */
-const PAD_H = 32;
+import { layout } from '@/constants/theme';
+import { FIELD_OUTLINE_COLOR } from '@/lib/field-outline';
 
 export default function SignInScreen() {
   const router = useRouter();
@@ -28,6 +27,12 @@ export default function SignInScreen() {
     router.replace('/(tabs)');
   };
 
+  const onOAuthContinue = async () => {
+    // TODO: wire Google / Microsoft OAuth
+    await setAuthenticated();
+    router.replace('/(tabs)');
+  };
+
   return (
     <KeyboardAvoidingView
       style={[styles.root, { paddingTop: insets.top }]}
@@ -36,12 +41,10 @@ export default function SignInScreen() {
         style={styles.scrollView}
         contentContainerStyle={[
           styles.scrollContent,
-          { paddingHorizontal: PAD_H, paddingBottom: Math.max(insets.bottom, 16) + 24 },
+          { paddingHorizontal: layout.authGutter, paddingBottom: Math.max(insets.bottom, 16) + 24 },
         ]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
-        <FadeSlideIn>
-          <>
         <View>
           <Image
             source={require('@/assets/images/match-logo.png')}
@@ -55,14 +58,14 @@ export default function SignInScreen() {
             <Text style={styles.subtitle}>Sign in with your OMM agent account.</Text>
           </View>
 
-          <Text style={styles.label}>EMAIL ADDRESS</Text>
+          <Text style={styles.label}>WORK EMAIL</Text>
           <View style={[styles.inputShell, styles.inputShellEmail]}>
             <TextInput
               style={styles.input}
               autoCapitalize="none"
               keyboardType="email-address"
               autoComplete="email"
-              placeholder="you@example.com"
+              placeholder="you@company.com"
               placeholderTextColor="rgba(0, 0, 0, 0.45)"
               value={email}
               onChangeText={setEmail}
@@ -75,7 +78,7 @@ export default function SignInScreen() {
               style={[styles.input, styles.inputWithRight]}
               secureTextEntry={!showPassword}
               autoComplete="password"
-              placeholder="Password"
+              placeholder="StrongPass123"
               placeholderTextColor="rgba(0, 0, 0, 0.45)"
               value={password}
               onChangeText={setPassword}
@@ -112,6 +115,15 @@ export default function SignInScreen() {
             Login
           </AppButton>
 
+          <View style={styles.oauthWrap}>
+            <OAuthProviderCircles
+              onGooglePress={onOAuthContinue}
+              onMicrosoftPress={onOAuthContinue}
+              googleAccessibilityLabel="Sign in with Google"
+              microsoftAccessibilityLabel="Sign in with Microsoft"
+            />
+          </View>
+
           <View style={styles.footer}>
             <Text style={styles.footerMuted}>{"Don't have an account?"}</Text>
             <Link href="/sign-up" asChild>
@@ -121,8 +133,6 @@ export default function SignInScreen() {
             </Link>
           </View>
         </View>
-        </>
-        </FadeSlideIn>
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -179,14 +189,13 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   inputShell: { position: 'relative', marginBottom: 0 },
-  /** Figma: ~20px below email field before PASSWORD label */
+  /** Figma: ~20px below work email field before PASSWORD label */
   inputShellEmail: { marginBottom: 20 },
   input: {
     height: 54,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(0, 0, 0, 0.55)',
-    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: FIELD_OUTLINE_COLOR,
+    borderRadius: 12,
     paddingHorizontal: 14,
     paddingVertical: 14,
     fontSize: 14,
@@ -231,6 +240,11 @@ const styles = StyleSheet.create({
   bottomBlock: {
     width: '100%',
     paddingTop: 8,
+  },
+  oauthWrap: {
+    alignItems: 'center',
+    marginTop: 22,
+    marginBottom: 10,
   },
   footer: {
     flexDirection: 'row',

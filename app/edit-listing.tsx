@@ -6,21 +6,18 @@ import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
+import { layout } from '@/constants/theme';
 
-const H_PAD = 24;
-const BORDER = 'rgba(0, 0, 0, 0.5)';
 const LABEL = 'rgba(0, 0, 0, 0.42)';
 const INPUT = '#000000';
 const SINGLE_LINE_H = 54;
 /** Standard rounded rectangle — corner radius only (not capsule / pill). */
 const FIELD_RADIUS = 12;
 
-const dashedField = {
-  borderWidth: 1,
-  borderColor: BORDER,
-  borderStyle: 'dashed' as const,
+const fieldOutline = {
+  borderWidth: FIELD_OUTLINE_WIDTH,
+  borderColor: FIELD_OUTLINE_COLOR,
   backgroundColor: '#fff',
 };
 
@@ -38,7 +35,7 @@ function FieldRow({
   return (
     <View style={styles.fieldBlock}>
       <Text style={styles.label}>{label}</Text>
-      <View style={[styles.inputField, dashedField]}>
+      <View style={[styles.inputField, fieldOutline]}>
         <TextInput
           value={value}
           onChangeText={onChangeText}
@@ -54,11 +51,10 @@ function FieldRow({
 }
 
 /**
- * Edit listing — dashed fields, left-aligned copy per design (empty form).
+ * Edit listing — field form (empty state).
  */
 export default function EditListingScreen() {
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
@@ -74,14 +70,12 @@ export default function EditListingScreen() {
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={insets.top}>
-      <View style={[styles.root, { paddingTop: insets.top }]}>
-        <View style={[styles.headBlock, hPad]}>
-          <ScreenHeader title="Edit listing" onBack={() => router.back()} />
-        </View>
+      <View style={[styles.root, { paddingTop: insets.top + 8 }]}>
         <ScrollView
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}>
+          <Text style={styles.pageTitle}>Edit listing</Text>
 
           <FieldRow label="LISTING TITLE" value={title} onChangeText={setTitle} />
           <FieldRow label="LIST PRICE" value={price} onChangeText={setPrice} />
@@ -93,7 +87,7 @@ export default function EditListingScreen() {
 
           <View style={styles.fieldBlock}>
             <Text style={styles.label}>DESCRIPTION</Text>
-            <View style={[styles.inputArea, dashedField]}>
+            <View style={[styles.inputArea, fieldOutline]}>
               <TextInput
                 value={description}
                 onChangeText={setDescription}
@@ -126,8 +120,14 @@ export default function EditListingScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1 },
   root: { flex: 1, backgroundColor: '#fff' },
-  scroll: { paddingHorizontal: H_PAD, paddingTop: 4 },
-  headBlock: { paddingTop: 8, paddingBottom: 12 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 4 },
+  pageTitle: {
+    fontSize: 28,
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
+    letterSpacing: -0.6,
+    marginBottom: 28,
+  },
   fieldBlock: { marginBottom: 22 },
   label: {
     fontSize: 11,
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
+    paddingHorizontal: layout.screenGutter,
   },
   inputSingle: {
     flex: 1,
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     borderRadius: FIELD_RADIUS,
     minHeight: 168,
     overflow: 'hidden',
-    paddingHorizontal: 20,
+    paddingHorizontal: layout.screenGutter,
     paddingVertical: 16,
   },
   inputMultiline: {

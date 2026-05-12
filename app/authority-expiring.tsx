@@ -5,7 +5,8 @@ import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { borderHairline, borderSubtle, Fonts, ink, inkMuted, palette } from '@/constants/theme';
+import { borderHairline, Fonts, ink, inkMuted, palette } from '@/constants/theme';
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 /** [Figma 1053:1981](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-1981) */
@@ -224,9 +225,8 @@ const styles = StyleSheet.create({
     minHeight: 144,
     backgroundColor: '#fff',
     borderRadius: 14,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: borderSubtle,
+    borderWidth: FIELD_OUTLINE_WIDTH,
+    borderColor: FIELD_OUTLINE_COLOR,
     paddingHorizontal: 16,
     paddingTop: 15,
     paddingBottom: 14,

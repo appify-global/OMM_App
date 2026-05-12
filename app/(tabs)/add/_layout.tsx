@@ -1,15 +1,17 @@
 import { Stack } from 'expo-router';
 
-import { nativeStackDramatic } from '@/lib/motion';
+import { ListingDraftProvider } from './listing-draft-context';
 
 export default function AddStackLayout() {
   return (
-    <Stack
-      screenOptions={{
-        headerShown: false,
-        ...nativeStackDramatic,
-        contentStyle: { backgroundColor: '#fff' },
-      }}
-    />
+    <ListingDraftProvider>
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          animation: 'slide_from_right',
+          contentStyle: { backgroundColor: '#fff' },
+        }}
+      />
+    </ListingDraftProvider>
   );
 }

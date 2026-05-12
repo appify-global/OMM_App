@@ -1,3 +1,4 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
@@ -7,15 +8,12 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 /**
  * Payout schedule — Figma 1053:3766.
  * https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-3766&t=2eZigRM0BwNtC5wd-4
  */
 
-const H_PAD = 20;
 const BLOCK_GAP = 24;
 const LABEL_FIELD_GAP = 8;
 const AFTER_INTRO = 20;
@@ -24,7 +22,6 @@ const CARD_R = 8;
 const ROW_GAP = 10;
 const STROKE = 'rgba(0, 0, 0, 0.45)';
 const STROKE_W = 1.5;
-const DASH = '5 4';
 const MUTED = 'rgba(0, 0, 0, 0.55)';
 
 type Frequency = 'instant' | 'daily' | 'weekly' | 'monthly';
@@ -62,7 +59,6 @@ function DashedFrame({
         fill="none"
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={DASH}
       />
     </Svg>
   );
@@ -104,7 +100,6 @@ function RadioOuter({ selected }: { selected: boolean }) {
 export default function PayoutScheduleScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const [frequency, setFrequency] = useState<Frequency | null>(null);
   const [payoutDay, setPayoutDay] = useState<Weekday | null>(null);
   const [minPayout, setMinPayout] = useState('');
@@ -119,9 +114,15 @@ export default function PayoutScheduleScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}>
-        <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Payout schedule" onBack={() => router.back()} />
-      </View>
+        <View style={styles.navBar}>
+          <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
+          </Pressable>
+          <View style={styles.navCenter}>
+            <Text style={styles.navTitle}>Payout schedule</Text>
+          </View>
+          <View style={styles.navSide} />
+        </View>
 
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -221,17 +222,23 @@ export default function PayoutScheduleScreen() {
 }
 
 const styles = StyleSheet.create({
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',
     color: '#000000',
     lineHeight: 27,
   },
-  scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 8 },
   intro: {
     fontSize: 14,
     fontWeight: '400',

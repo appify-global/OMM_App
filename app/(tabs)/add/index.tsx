@@ -1,4 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Text } from '@/components/OMMText';
@@ -10,35 +11,41 @@ import {
   PL_BODY,
   PL_BORDER,
   PL_LABEL,
-  PL_MUTED,
   PL_TITLE,
   PrimaryCta,
   PublishStepHeader,
   dashedShell,
   useListingFlowBottomPad,
 } from './_shared';
+import { parseFormattedAudWholeDollars } from '@/lib/referral-pricing';
+import { useTabBarOnScroll } from '@/lib/tab-bar-visibility';
 
-const PROPERTY_TYPES = ['House', 'Apartment', 'Townhouse', 'Land', 'Other'] as const;
+import {
+  ADDRESS_DISCLOSURE_LABELS,
+  type AddressDisclosureChoice,
+  useListingDraft,
+} from './listing-draft-context';
+
+const ADDRESS_DISCLOSURE_OPTIONS = Object.keys(ADDRESS_DISCLOSURE_LABELS) as AddressDisclosureChoice[];
+
+const PROPERTY_TYPES = [
+  'House',
+  'Apartment',
+  'Townhouse',
+  'Villa',
+  'Land',
+  'Block of Units',
+] as const;
 const COUNT_OPTS = ['1', '2', '3', '4', '5', '6+'] as const;
 
-function formatListingPriceAUD(n: number): string {
+/** Strip non-digits and format as Australian dollar display while typing. */
+function formatPriceInputDisplay(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  if (!digits) return '';
+  const n = Number.parseInt(digits, 10);
+  if (!Number.isFinite(n)) return '';
   return `$${n.toLocaleString('en-AU', { maximumFractionDigits: 0 })}`;
 }
-
-const LISTING_PRICE_OPTS: string[] = (() => {
-  const r: string[] = [];
-  for (let v = 400_000; v < 1_000_000; v += 50_000) {
-    r.push(formatListingPriceAUD(v));
-  }
-  for (let v = 1_000_000; v <= 3_000_000; v += 100_000) {
-    r.push(formatListingPriceAUD(v));
-  }
-  for (let v = 3_500_000; v <= 9_500_000; v += 500_000) {
-    r.push(formatListingPriceAUD(v));
-  }
-  r.push('$10,000,000+');
-  return r;
-})();
 
 function PickModal<T extends string>({
   visible,
@@ -95,11 +102,13 @@ const pickStyles = StyleSheet.create({
   optionText: { fontSize: 16, color: PL_BODY },
 });
 
-export default function PublishListingStep1() {
+function PublishListingStep1() {
   const router = useRouter();
   const bottomPad = useListingFlowBottomPad();
+  const { onScroll } = useTabBarOnScroll();
+  const { addressDisclosure, setAddressDisclosure, listingPriceFromAud, listingPriceToAud, setListingPriceRange } =
+    useListingDraft();
 
-  const [title, setTitle] = useState('');
   const [address, setAddress] = useState('');
   const [propertyType, setPropertyType] = useState<string>('');
   const [priceFrom, setPriceFrom] = useState('');
@@ -107,14 +116,32 @@ export default function PublishListingStep1() {
   const [beds, setBeds] = useState('');
   const [baths, setBaths] = useState('');
   const [cars, setCars] = useState('');
+  const [landAreaSize, setLandAreaSize] = useState('');
+  const [internalArea, setInternalArea] = useState('');
 
-  const [pickKind, setPickKind] = useState<
-    null | 'type' | 'beds' | 'baths' | 'cars' | 'priceFrom' | 'priceTo'
-  >(null);
+  const [pickKind, setPickKind] = useState<null | 'type' | 'beds' | 'baths' | 'cars'>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (listingPriceFromAud != null) {
+        setPriceFrom(formatPriceInputDisplay(String(listingPriceFromAud)));
+      }
+      if (listingPriceToAud != null) {
+        setPriceTo(formatPriceInputDisplay(String(listingPriceToAud)));
+      }
+    }, [listingPriceFromAud, listingPriceToAud]),
+  );
 
   const saveDraft = useCallback(() => {
     Alert.alert('Draft saved', 'Your listing draft has been saved.');
   }, []);
+
+  const goStep2 = useCallback(() => {
+    const fromAud = parseFormattedAudWholeDollars(priceFrom);
+    const toAud = parseFormattedAudWholeDollars(priceTo);
+    setListingPriceRange(fromAud, toAud);
+    router.push('/add/media' as Href);
+  }, [priceFrom, priceTo, router, setListingPriceRange]);
 
   return (
     <View style={[styles.root, { paddingBottom: bottomPad }]}>
@@ -122,32 +149,11 @@ export default function PublishListingStep1() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
+        onScroll={onScroll}
+        scrollEventThrottle={16}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.scroll}>
         <Text style={styles.pageTitle}>Property Details</Text>
-
-        <View style={styles.aiBanner}>
-          <View style={styles.aiBadge}>
-            <Text style={styles.aiBadgeText}>AI</Text>
-          </View>
-          <View style={styles.aiCopy}>
-            <Text style={styles.aiTitle}>Auto-filled from PriceFinder</Text>
-            <Text style={styles.aiSub}>Review & confirm. Previous photos are excluded.</Text>
-          </View>
-        </View>
-
-        <View style={styles.fieldBlock}>
-          <Text style={styles.floatLabel}>PROPERTY TITLE</Text>
-          <View style={[styles.inputShell, dashedShell]}>
-            <TextInput
-              style={styles.input}
-              value={title}
-              onChangeText={setTitle}
-              placeholder="Property title"
-              placeholderTextColor="rgba(0, 0, 0, 0.35)"
-            />
-          </View>
-        </View>
 
         <View style={styles.fieldBlock}>
           <Text style={styles.floatLabel}>PROPERTY ADDRESS</Text>
@@ -156,9 +162,36 @@ export default function PublishListingStep1() {
               style={styles.input}
               value={address}
               onChangeText={setAddress}
-              placeholder="Street address, suburb, state, postcode"
+              placeholder="12 Collins St, Melbourne VIC 3000"
               placeholderTextColor="rgba(0, 0, 0, 0.35)"
             />
+          </View>
+        </View>
+
+        <View style={styles.fieldBlock}>
+          <Text style={styles.floatLabel}>ADDRESS VISIBILITY</Text>
+          <Text style={styles.fieldHint}>
+            Choose whether buyers see the full street address on the published listing.
+          </Text>
+          <View
+            style={styles.segmentRow}
+            accessibilityRole="radiogroup"
+            accessibilityLabel="Address visibility">
+            {ADDRESS_DISCLOSURE_OPTIONS.map((key) => {
+              const selected = addressDisclosure === key;
+              return (
+                <Pressable
+                  key={key}
+                  onPress={() => setAddressDisclosure(key)}
+                  style={[styles.segmentCell, dashedShell, selected && styles.segmentCellSelected]}
+                  accessibilityRole="radio"
+                  accessibilityState={{ selected }}>
+                  <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>
+                    {ADDRESS_DISCLOSURE_LABELS[key]}
+                  </Text>
+                </Pressable>
+              );
+            })}
           </View>
         </View>
 
@@ -168,7 +201,7 @@ export default function PublishListingStep1() {
             onPress={() => setPickKind('type')}
             style={[styles.inputShell, dashedShell, styles.inputRow]}>
             <Text style={[styles.input, !propertyType && styles.inputPlaceholder]}>
-              {propertyType || 'Select type'}
+              {propertyType || 'Townhouse'}
             </Text>
             <FontAwesome name="chevron-down" size={12} color={PL_BORDER} />
           </Pressable>
@@ -177,39 +210,39 @@ export default function PublishListingStep1() {
         <View style={styles.rangeBlock}>
           <Text style={styles.rangeSectionLabel}>LISTING PRICE RANGE</Text>
           <View style={styles.rangeRow}>
-            <Pressable
-              onPress={() => setPickKind('priceFrom')}
-              style={[styles.rangeHalf, dashedShell]}>
+            <View style={[styles.rangeHalf, dashedShell]}>
               <Text style={styles.innerCaps}>FROM</Text>
-              <View style={styles.rangePickerRow}>
-                <Text style={[styles.rangeValue, !priceFrom && styles.inputPlaceholder]} numberOfLines={1}>
-                  {priceFrom || 'Select'}
-                </Text>
-                <FontAwesome name="chevron-down" size={11} color={PL_BORDER} />
-              </View>
-            </Pressable>
+              <TextInput
+                style={styles.rangeInput}
+                value={priceFrom}
+                onChangeText={(t) => setPriceFrom(formatPriceInputDisplay(t))}
+                placeholder="$850,000"
+                placeholderTextColor="rgba(0, 0, 0, 0.35)"
+                keyboardType="number-pad"
+              />
+            </View>
             <Text style={styles.rangeDash}>–</Text>
-            <Pressable
-              onPress={() => setPickKind('priceTo')}
-              style={[styles.rangeHalf, dashedShell]}>
+            <View style={[styles.rangeHalf, dashedShell]}>
               <Text style={styles.innerCaps}>TO</Text>
-              <View style={styles.rangePickerRow}>
-                <Text style={[styles.rangeValue, !priceTo && styles.inputPlaceholder]} numberOfLines={1}>
-                  {priceTo || 'Select'}
-                </Text>
-                <FontAwesome name="chevron-down" size={11} color={PL_BORDER} />
-              </View>
-            </Pressable>
+              <TextInput
+                style={styles.rangeInput}
+                value={priceTo}
+                onChangeText={(t) => setPriceTo(formatPriceInputDisplay(t))}
+                placeholder="$920,000"
+                placeholderTextColor="rgba(0, 0, 0, 0.35)"
+                keyboardType="number-pad"
+              />
+            </View>
           </View>
         </View>
 
         <View style={styles.tripleRow}>
           <View style={styles.tripleCol}>
-            <Text style={styles.smallCaps}>BEDS</Text>
+            <Text style={styles.smallCaps}>BEDROOMS</Text>
             <Pressable
               onPress={() => setPickKind('beds')}
               style={[styles.tripleField, dashedShell, styles.inputRowCenter]}>
-              <Text style={[styles.tripleVal, !beds && styles.inputPlaceholder]}>{beds || '—'}</Text>
+              <Text style={[styles.tripleVal, !beds && styles.inputPlaceholder]}>{beds || '3'}</Text>
               <FontAwesome name="chevron-down" size={11} color={PL_BORDER} />
             </Pressable>
           </View>
@@ -218,7 +251,7 @@ export default function PublishListingStep1() {
             <Pressable
               onPress={() => setPickKind('baths')}
               style={[styles.tripleField, dashedShell, styles.inputRowCenter]}>
-              <Text style={[styles.tripleVal, !baths && styles.inputPlaceholder]}>{baths || '—'}</Text>
+              <Text style={[styles.tripleVal, !baths && styles.inputPlaceholder]}>{baths || '2'}</Text>
               <FontAwesome name="chevron-down" size={11} color={PL_BORDER} />
             </Pressable>
           </View>
@@ -227,16 +260,43 @@ export default function PublishListingStep1() {
             <Pressable
               onPress={() => setPickKind('cars')}
               style={[styles.tripleField, dashedShell, styles.inputRowCenter]}>
-              <Text style={[styles.tripleVal, !cars && styles.inputPlaceholder]}>{cars || '—'}</Text>
+              <Text style={[styles.tripleVal, !cars && styles.inputPlaceholder]}>{cars || '2'}</Text>
               <FontAwesome name="chevron-down" size={11} color={PL_BORDER} />
             </Pressable>
           </View>
         </View>
+
+        <View style={styles.fieldBlock}>
+          <Text style={styles.floatLabel}>LAND AREA SIZE</Text>
+          <View style={[styles.inputShell, dashedShell]}>
+            <TextInput
+              style={styles.input}
+              value={landAreaSize}
+              onChangeText={setLandAreaSize}
+              placeholder="450 sqm"
+              placeholderTextColor="rgba(0, 0, 0, 0.35)"
+            />
+          </View>
+        </View>
+
+        <View style={styles.fieldBlock}>
+          <Text style={styles.floatLabel}>INTERNAL AREA</Text>
+          <View style={[styles.inputShell, dashedShell]}>
+            <TextInput
+              style={styles.input}
+              value={internalArea}
+              onChangeText={setInternalArea}
+              placeholder="180 sqm"
+              placeholderTextColor="rgba(0, 0, 0, 0.35)"
+            />
+          </View>
+        </View>
+
         <View style={{ height: 24 }} />
       </ScrollView>
 
       <View style={{ paddingBottom: 6 }}>
-        <PrimaryCta label="CONTINUE" onPress={() => router.push('/add/media' as Href)} />
+        <PrimaryCta label="CONTINUE" onPress={goStep2} />
       </View>
 
       <PickModal
@@ -248,7 +308,7 @@ export default function PublishListingStep1() {
       />
       <PickModal
         visible={pickKind === 'beds'}
-        title="Beds"
+        title="Bedrooms"
         options={COUNT_OPTS}
         onPick={(v) => setBeds(v)}
         onClose={() => setPickKind(null)}
@@ -267,20 +327,6 @@ export default function PublishListingStep1() {
         onPick={(v) => setCars(v)}
         onClose={() => setPickKind(null)}
       />
-      <PickModal
-        visible={pickKind === 'priceFrom'}
-        title="Price from"
-        options={LISTING_PRICE_OPTS}
-        onPick={(v) => setPriceFrom(v)}
-        onClose={() => setPickKind(null)}
-      />
-      <PickModal
-        visible={pickKind === 'priceTo'}
-        title="Price to"
-        options={LISTING_PRICE_OPTS}
-        onPick={(v) => setPriceTo(v)}
-        onClose={() => setPickKind(null)}
-      />
     </View>
   );
 }
@@ -289,34 +335,6 @@ const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: '#fff' },
   scroll: { paddingTop: 8, paddingBottom: 16 },
   pageTitle: { fontSize: 24, fontFamily: 'Satoshi-Medium', color: PL_TITLE, marginLeft: PL_PAD, marginBottom: 20 },
-  aiBanner: {
-    marginHorizontal: PL_PAD - 4,
-    marginBottom: 24,
-    padding: 12,
-    minHeight: 81,
-    borderRadius: 10,
-    ...dashedShell,
-    flexDirection: 'row',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 1,
-  },
-  aiBadge: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#6e6e6e',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
-  },
-  aiBadgeText: { color: '#fff', fontSize: 11, fontFamily: 'Satoshi-Medium' },
-  aiCopy: { flex: 1 },
-  aiTitle: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: '#000000' },
-  aiSub: { fontSize: 11, color: PL_MUTED, marginTop: 4 },
 
   fieldBlock: { marginBottom: 18, paddingHorizontal: PL_PAD },
   floatLabel: {
@@ -326,6 +344,41 @@ const styles = StyleSheet.create({
     letterSpacing: 0.1,
     marginBottom: 6,
     marginLeft: 8,
+  },
+  fieldHint: {
+    fontSize: 12,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.45)',
+    lineHeight: 16,
+    marginBottom: 10,
+    marginLeft: 8,
+    marginRight: 8,
+  },
+  segmentRow: {
+    flexDirection: 'row',
+    gap: 10,
+  },
+  segmentCell: {
+    flex: 1,
+    borderRadius: 14,
+    minHeight: 48,
+    paddingVertical: 12,
+    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  segmentCellSelected: {
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    borderColor: PL_BODY,
+  },
+  segmentLabel: {
+    fontSize: 14,
+    fontFamily: 'Satoshi-Medium',
+    color: PL_LABEL,
+    textAlign: 'center',
+  },
+  segmentLabelSelected: {
+    color: PL_BODY,
   },
   inputShell: {
     borderRadius: 14,
@@ -355,14 +408,15 @@ const styles = StyleSheet.create({
     minHeight: 69.5,
   },
   innerCaps: { fontSize: 9, color: PL_LABEL, letterSpacing: 0.45, textTransform: 'uppercase' },
-  rangePickerRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 2,
-    gap: 6,
+  rangeInput: {
+    flex: 1,
+    marginTop: 4,
+    padding: 0,
+    fontSize: 16,
+    fontFamily: 'Satoshi-Medium',
+    color: PL_BODY,
+    minWidth: 0,
   },
-  rangeValue: { flex: 1, minWidth: 0, fontSize: 16, fontFamily: 'Satoshi-Medium', color: PL_BODY },
   rangeDash: { fontSize: 18, color: PL_LABEL, width: 17, textAlign: 'center' },
 
   tripleRow: { flexDirection: 'row', alignSelf: 'center', gap: 12, marginBottom: 8, width: '100%', paddingHorizontal: PL_PAD },
@@ -382,3 +436,5 @@ const styles = StyleSheet.create({
   inputRowCenter: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
   tripleVal: { fontSize: 14, color: '#000' },
 });
+
+export default PublishListingStep1;

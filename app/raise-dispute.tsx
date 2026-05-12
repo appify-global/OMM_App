@@ -8,15 +8,12 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleShee
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 /**
  * Raise a dispute — Figma 1053:3056. Empty values; placeholders only.
  * https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-3056
  */
 
-const H_PAD = 20;
 const BLOCK_GAP = 24;
 const LABEL_FIELD_GAP = 8;
 const AFTER_INTRO = 20;
@@ -25,7 +22,6 @@ const DETAILS_MIN_H = 132;
 const BOX_R = 8;
 const STROKE = 'rgba(142, 142, 147, 0.65)';
 const STROKE_W = 1;
-const DASH = '5 4';
 const MUTED = '#8E8E93';
 const TEXT_BLACK = '#000000';
 
@@ -52,7 +48,6 @@ function DashedFrame({
         fill="none"
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={DASH}
       />
     </Svg>
   );
@@ -89,7 +84,6 @@ function DashedInputBox({
 export default function RaiseDisputeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const [deal, setDeal] = useState('');
   const [category, setCategory] = useState('');
   const [otherParty, setOtherParty] = useState('');
@@ -121,9 +115,15 @@ export default function RaiseDisputeScreen() {
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}>
-        <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Raise a dispute" onBack={() => router.back()} />
-      </View>
+        <View style={styles.navBar}>
+          <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
+            <FontAwesome name="chevron-left" size={20} color="#000000" />
+          </Pressable>
+          <View style={styles.navCenter}>
+            <Text style={styles.navTitle}>Raise a dispute</Text>
+          </View>
+          <View style={styles.navSide} />
+        </View>
 
         <ScrollView
           keyboardShouldPersistTaps="handled"
@@ -134,13 +134,13 @@ export default function RaiseDisputeScreen() {
           </Text>
 
           <View style={styles.fieldBlock}>
-            <Text style={styles.label}>DEAL</Text>
+            <Text style={styles.label}>PROPERTY ADDRESS</Text>
             <DashedInputBox minHeight={FIELD_MIN_H}>
               <TextInput
                 value={deal}
                 onChangeText={setDeal}
                 style={styles.input}
-                placeholder="OMM-20418 · 142 Orrong Rd, Hawthorn East"
+                placeholder="OMM-20418 · 218 Victoria St, West Melbourne"
                 placeholderTextColor={MUTED}
               />
             </DashedInputBox>
@@ -166,7 +166,7 @@ export default function RaiseDisputeScreen() {
                 value={otherParty}
                 onChangeText={setOtherParty}
                 style={styles.input}
-                placeholder="Sarah Chen · Marshall White Boroondara"
+                placeholder="Sarah Chen · Biggin Scott West Melbourne"
                 placeholderTextColor={MUTED}
               />
             </DashedInputBox>
@@ -243,12 +243,18 @@ export default function RaiseDisputeScreen() {
 }
 
 const styles = StyleSheet.create({
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
   flex: { flex: 1 },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000', lineHeight: 27 },
-  scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 8 },
   intro: {
     fontSize: 14,
     fontWeight: '400',

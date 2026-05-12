@@ -1,11 +1,11 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import { Text } from '@/components/OMMText';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { layout } from '@/constants/theme';
 import { AppButton } from '@/components/AppButton';
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 /**
  * Buyer lead detail (buyer agent brief).
@@ -14,7 +14,6 @@ import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
 
-const PAD = 20;
 
 function FieldBlock({ label, value }: { label: string; value: string }) {
   return (
@@ -39,13 +38,19 @@ const DEMO_BUYER_AGENT = {
 
 export default function BuyerLeadDetailScreen() {
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Buyer brief" onBack={() => router.back()} />
+      <View style={styles.topBar}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+          style={styles.backBtn}>
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
+        </Pressable>
       </View>
 
       <ScrollView
@@ -84,8 +89,9 @@ export default function BuyerLeadDetailScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
-  scroll: { paddingHorizontal: PAD, paddingTop: 8 },
+  topBar: { paddingHorizontal: layout.screenGutter, paddingVertical: 8 },
+  backBtn: { width: 40, height: 40, justifyContent: 'center' },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 8 },
   profileBlock: { alignItems: 'center', marginBottom: 28 },
   avatar: {
     width: 88,
@@ -122,7 +128,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    paddingHorizontal: PAD,
+    paddingHorizontal: layout.screenGutter,
     paddingTop: 12,
     backgroundColor: '#fff',
     borderTopWidth: StyleSheet.hairlineWidth,

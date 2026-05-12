@@ -1,11 +1,10 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import { Text } from '@/components/OMMText';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 /**
  * Potential buyers — buyer briefs list.
  * [Figma 1053:6927](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-6927&t=gEfFuYKIwBHVUzXh-4)
@@ -13,7 +12,6 @@ import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
 
-const PAD = 20;
 
 type Row = {
   id: string;
@@ -27,7 +25,7 @@ const BRIEFS: Row[] = [
     id: '1',
     title: 'Inner east family relocation',
     priceRange: '$1.80m – $2.60m',
-    meta: 'Hawthorn East, Camberwell · Period home · 4 bed · schools',
+    meta: 'Richmond, Abbotsford, Clifton Hill · Period home · 4 bed · schools',
   },
   {
     id: '2',
@@ -63,14 +61,24 @@ const BRIEFS: Row[] = [
 
 export default function PotentialBuyersScreen() {
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Potential buyers" onBack={() => router.back()} />
-        <Text style={styles.subtitle}>6 buyer briefs</Text>
+      <View style={styles.header}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+          style={styles.backBtn}>
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
+        </Pressable>
+        <View style={styles.headerCenter}>
+          <Text style={styles.title}>Potential buyers</Text>
+          <Text style={styles.subtitle}>6 buyer briefs</Text>
+        </View>
+        <View style={styles.headerEnd} />
       </View>
 
       <ScrollView
@@ -117,17 +125,22 @@ export default function PotentialBuyersScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  headBlock: { paddingTop: 8, paddingBottom: 12 },
-  subtitle: {
-    marginTop: 6,
-    marginLeft: 4,
-    fontSize: 13,
-    fontFamily: 'Satoshi-Medium',
-    color: 'rgba(0, 0, 0, 0.45)',
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: layout.screenGutter,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(0, 0, 0, 0.12)',
   },
-  scroll: { paddingHorizontal: PAD, paddingTop: 16 },
+  backBtn: { width: 40, height: 40, justifyContent: 'center' },
+  headerCenter: { flex: 1, alignItems: 'center' },
+  headerEnd: { width: 40 },
+  title: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  subtitle: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', marginTop: 4 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 16 },
   banner: {
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#f3efe8',
     borderRadius: 14,
     padding: 16,
     marginBottom: 20,

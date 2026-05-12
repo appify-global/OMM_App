@@ -555,9 +555,8 @@ const styles = StyleSheet.create({
     height: 46,
     borderRadius: 12,
     backgroundColor: 'transparent',
-    borderWidth: 1.5,
+    borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.85)',
-    borderStyle: 'dashed',
   },
   downloadBtnText: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: '#fff', letterSpacing: 0.3 },
   primaryWide: {

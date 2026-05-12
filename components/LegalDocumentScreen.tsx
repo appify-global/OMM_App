@@ -7,15 +7,15 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { layout } from '@/constants/theme';
+
 /**
- * Shared legal document layout — dashed scroll (Terms, Privacy, Guidelines).
+ * Shared legal document layout — scrollable body (Terms, Privacy, Guidelines).
  */
 
-const H_PAD = 20;
 const BOX_R = 8;
 const STROKE = 'rgba(0, 0, 0, 0.45)';
 const STROKE_W = 1.5;
-const DASH = '5 4';
 const BODY_COLOR = 'rgba(0, 0, 0, 0.72)';
 
 function DashedFrame({
@@ -41,7 +41,6 @@ function DashedFrame({
         fill="none"
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={DASH}
       />
     </Svg>
   );
@@ -111,7 +110,7 @@ const styles = StyleSheet.create({
     lineHeight: 27,
   },
   scroll: {
-    paddingHorizontal: H_PAD,
+    paddingHorizontal: layout.screenGutter,
     paddingTop: 8,
   },
   dashWrap: { position: 'relative', backgroundColor: '#fff' },

@@ -7,9 +7,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 import { INVOICES, invoicesThisMonth } from '@/lib/invoices-mock';
 
 /**
@@ -18,7 +16,6 @@ import { INVOICES, invoicesThisMonth } from '@/lib/invoices-mock';
  * Demo values match product design; replace with API data when wired.
  */
 
-const H_PAD = 20;
 const BLOCK_GAP = 24;
 const ROW_GAP = 10;
 const CARD_R = 14;
@@ -28,8 +25,6 @@ const MUTED = '#999999';
 const MUTED_ROW = 'rgba(0, 0, 0, 0.55)';
 const STROKE = 'rgba(0, 0, 0, 0.45)';
 const STROKE_W = 1.5;
-const DASH = '5 4';
-
 const DEMO = {
   balance: '$4,230.00',
   nextPayout: 'Fri 24 Apr',
@@ -62,7 +57,6 @@ function DashedFrame({
         fill="none"
         stroke={STROKE}
         strokeWidth={STROKE_W}
-        strokeDasharray={DASH}
       />
     </Svg>
   );
@@ -118,13 +112,18 @@ function SectionBlock({ title, children }: { title: string; children: ReactNode 
 export default function PaymentsBillingScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const invoicesThisMonthCount = invoicesThisMonth(INVOICES).length;
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Payments & Billing" onBack={() => router.back()} />
+      <View style={styles.navBar}>
+        <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
+        </Pressable>
+        <View style={styles.navCenter}>
+          <Text style={styles.navTitle}>Payments & Billing</Text>
+        </View>
+        <View style={styles.navSide} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 100 }]}>
@@ -159,9 +158,15 @@ export default function PaymentsBillingScreen() {
 }
 
 const styles = StyleSheet.create({
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#fff' },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: {
     fontSize: 18,
     fontFamily: 'Satoshi-Medium',
@@ -169,7 +174,7 @@ const styles = StyleSheet.create({
     lineHeight: 27,
     textAlign: 'center',
   },
-  scroll: { paddingHorizontal: H_PAD, paddingTop: 8 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 8 },
   balanceCard: {
     backgroundColor: BALANCE_CARD,
     borderRadius: CARD_R,

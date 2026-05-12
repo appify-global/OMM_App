@@ -1,5 +1,3 @@
-import { ScrollEdgeFade } from "@/components/ScrollEdgeFade";
-import { ScrollEdgeProvider } from "@/lib/scrollEdge";
 import {
   TAB_ICON_INACTIVE,
   TAB_SLOT_SIZE,
@@ -10,18 +8,19 @@ import {
   TabProfileGlyph,
 } from "@/components/TabBarGlyphs";
 import { isAuthenticated } from "@/lib/auth-session";
-import { BottomTabBar, type BottomTabBarButtonProps, type BottomTabBarProps } from "@react-navigation/bottom-tabs";
+import { TabBarVisibilityProvider } from "@/lib/tab-bar-visibility";
+import type { BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
 import { PlatformPressable } from "@react-navigation/elements";
 import { Redirect, Tabs } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 type TabName = "home" | "activities" | "add" | "list" | "profile";
 
 function TabBarIcon({ tab, focused }: { tab: TabName; focused: boolean }) {
   const inactive = TAB_ICON_INACTIVE;
-  const active = "#ffffff";
+  /** REA-inspired light “selected” tray; glyphs stay dark on tint. */
+  const active = "#111111";
 
   const glyph = (color: string) => {
     switch (tab) {
@@ -47,7 +46,7 @@ function TabBarIcon({ tab, focused }: { tab: TabName; focused: boolean }) {
 
 /**
  * Navigation’s UIKit tab item uses `justifyContent: 'flex-start'` for icon-above-label.
- * With labels hidden the icon stays glued to the top of the pill — override to center.
+ * Icons should stay vertically centered relative to labels — override Navigation defaults.
  */
 function TabBarButton({ style, ...rest }: BottomTabBarButtonProps) {
   return (
@@ -60,8 +59,9 @@ function TabBarButton({ style, ...rest }: BottomTabBarButtonProps) {
 }
 
 export default function TabLayout() {
-  const insets = useSafeAreaInsets();
   const [gate, setGate] = useState<"loading" | "authed" | "guest">("loading");
+
+  const [tabBarHidden, setTabBarHidden] = useState(false);
 
   useEffect(() => {
     let alive = true;
@@ -95,37 +95,22 @@ export default function TabLayout() {
     return <Redirect href="/welcome" />;
   }
 
-  const tabBarBottom = (Platform.OS === "ios" ? 24 : 16) + insets.bottom;
-  /** Cover the floating tab bar (64px) + its bottom margin + 160px feathered band above. */
-  const fadeHeight = 64 + tabBarBottom + 160;
-
-  /**
-   * Render the scroll-edge frost INSIDE the navigator's tab-bar slot — that way the
-   * default `BottomTabBar` paints on top of it and the floating pill stays crisp.
-   */
-  const renderTabBar = (props: BottomTabBarProps) => (
-    <View pointerEvents="box-none" style={StyleSheet.absoluteFill}>
-      <ScrollEdgeFade height={fadeHeight} />
-      <BottomTabBar {...props} />
-    </View>
-  );
-
   return (
-    <ScrollEdgeProvider>
-    <Tabs
-      tabBar={renderTabBar}
-      safeAreaInsets={{ top: 0, bottom: 0, left: 0, right: 0 }}
-      screenOptions={{
-        headerShown: false,
-        tabBarShowLabel: false,
-        tabBarActiveTintColor: "#000000",
-        tabBarInactiveTintColor: TAB_ICON_INACTIVE,
-        tabBarButton: (p) => <TabBarButton {...p} />,
-        tabBarStyle: [styles.tabBar, { marginBottom: tabBarBottom }],
-        tabBarItemStyle: styles.tabItem,
-        tabBarIconStyle: styles.tabIconPosition,
-      }}
-    >
+    <TabBarVisibilityProvider onHiddenChange={setTabBarHidden}>
+      <Tabs
+        safeAreaInsets={{ top: 0, bottom: 0, left: 0, right: 0 }}
+        screenOptions={{
+          headerShown: false,
+          tabBarShowLabel: true,
+          tabBarActiveTintColor: "#111111",
+          tabBarInactiveTintColor: TAB_ICON_INACTIVE,
+          tabBarLabelStyle: styles.tabBarLabel,
+          tabBarButton: (p) => <TabBarButton {...p} />,
+          tabBarStyle: [styles.tabBar, tabBarHidden && styles.tabBarHidden],
+          tabBarItemStyle: styles.tabItem,
+          tabBarIconStyle: styles.tabIconPosition,
+        }}
+      >
       <Tabs.Screen
         name="index"
         options={{
@@ -172,17 +157,18 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
-    </ScrollEdgeProvider>
+    </TabBarVisibilityProvider>
   );
 }
 
 const styles = StyleSheet.create({
   tabBar: {
     position: "absolute",
-    height: 64,
+    height: 72,
     borderTopWidth: 0,
     borderRadius: 50,
     marginHorizontal: 16,
+    marginBottom: Platform.select({ ios: 24, default: 16 }),
     paddingHorizontal: 10,
     paddingVertical: 12,
     backgroundColor: "#ffffff",
@@ -194,6 +180,11 @@ const styles = StyleSheet.create({
     shadowRadius: 20,
     elevation: 14,
   },
+  tabBarHidden: {
+    opacity: 0,
+    transform: [{ translateY: 100 }],
+    pointerEvents: "none",
+  },
   tabItem: {
     flex: 1,
     justifyContent: "center",
@@ -204,10 +195,16 @@ const styles = StyleSheet.create({
   },
   tabIconPosition: {
     marginTop: 0,
-    marginBottom: 0,
+    marginBottom: 2,
     justifyContent: "center",
     alignItems: "center",
     alignSelf: "center",
+  },
+  tabBarLabel: {
+    fontSize: 10,
+    fontFamily: "Satoshi-Medium",
+    letterSpacing: 0.15,
+    marginTop: -2,
   },
   tabPressableCentered: {
     flex: 1,
@@ -226,7 +223,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   slotActive: {
-    borderRadius: TAB_SLOT_SIZE / 2,
-    backgroundColor: "#000000",
+    borderRadius: 14,
+    backgroundColor: "rgba(17,17,17,0.07)",
   },
 });

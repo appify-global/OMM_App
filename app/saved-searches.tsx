@@ -1,11 +1,11 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 
 type SavedItem = {
   name: string;
@@ -71,7 +71,6 @@ function SavedSearchListCard({ item, onPress }: { item: SavedItem; onPress?: () 
 
 export default function SavedSearchesScreen() {
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
 
   const handleGoToResults = () => {
@@ -81,8 +80,17 @@ export default function SavedSearchesScreen() {
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Saved searches" onBack={() => router.back()} />
+      <View style={styles.header}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+          style={styles.headerSide}>
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
+        </Pressable>
+        <Text style={styles.headerTitle}>Saved Searches</Text>
+        <View style={styles.headerSide} />
       </View>
 
       <ScrollView
@@ -116,7 +124,20 @@ export default function SavedSearchesScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  headerSide: { width: 40, alignItems: 'flex-start', justifyContent: 'center' },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 17,
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
+  },
   scroll: { paddingHorizontal: 20 },
   newSearchBtn: { marginTop: 4 },
   newSearchBtnText: { fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.6 },
@@ -141,9 +162,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 14,
     padding: 16,
-    borderWidth: 1.5,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(0, 0, 0, 0.35)',
+    borderWidth: FIELD_OUTLINE_WIDTH,
+    borderColor: FIELD_OUTLINE_COLOR,
   },
   cardPressed: {
     opacity: 0.7,

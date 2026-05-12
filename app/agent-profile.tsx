@@ -5,9 +5,7 @@ import { Text } from '@/components/OMMText';
 import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { ScreenHeader } from '@/components/ScreenHeader';
-import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
-
+import { layout } from '@/constants/theme';
 /**
  * Agent profile — from chat overflow "View agent profile".
  * [Figma 1053:6508](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-6508&t=2eZigRM0BwNtC5wd-4)
@@ -15,7 +13,6 @@ import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 import { DEMO_AGENT_AGENCY } from '@/lib/melbourne-demo-locations';
 import { AGENT_IMG, PROPERTY_IMG_1, propertyImageAtIndex } from '@/lib/propertyImages';
-const H_PAD = 20;
 const CARD_R = 14;
 
 const REVIEWS = [
@@ -37,7 +34,7 @@ const REVIEWS = [
 
 const LISTINGS = [
   {
-    address: '142 Orrong Rd, Hawthorn East VIC 3123',
+    address: '15 Rowe St, Fitzroy North VIC 3068',
     specs: 'HOUSE · 4 BED · 2 BATH',
     price: '$2.1m — $2.3m',
     listed: 'Listed 3 days ago',
@@ -80,13 +77,23 @@ function SectionHeader({
 
 export default function AgentProfileScreen() {
   const insets = useSafeAreaInsets();
-  const hPad = useScreenHorizontalPadding();
   const router = useRouter();
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
-      <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Agent" onBack={() => router.back()} />
+      <View style={styles.navBar}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+          style={styles.navSide}>
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
+        </Pressable>
+        <View style={styles.navCenter}>
+          <Text style={styles.navTitle}>Agent</Text>
+        </View>
+        <View style={styles.navSide} />
       </View>
 
       <ScrollView
@@ -241,11 +248,18 @@ export default function AgentProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  headBlock: { paddingTop: 8, paddingBottom: 4 },
   screen: { flex: 1, backgroundColor: '#ffffff' },
+  navBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+    backgroundColor: 'transparent',
+  },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
+  navCenter: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 17, fontFamily: 'Satoshi-Medium', color: '#000000' },
-  scroll: { paddingHorizontal: H_PAD, paddingTop: 16 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 16 },
   heroCard: {
     backgroundColor: '#fff',
     borderRadius: CARD_R,

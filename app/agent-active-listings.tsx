@@ -15,7 +15,8 @@ import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 import { DEMO_AGENT_AGENCY } from '@/lib/melbourne-demo-locations';
 import { AGENT_IMG, PROPERTY_IMG_1, propertyImageAtIndex } from '@/lib/propertyImages';
-const H_PAD = 16;
+import { layout } from '@/constants/theme';
+
 const CARD_R = 12;
 const AGENT_CARD_R = 10;
 
@@ -190,7 +191,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#ffffff' },
   navSide: { width: 44, height: 44, alignItems: 'center', justifyContent: 'center' },
   navTitle: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000' },
-  scroll: { paddingHorizontal: H_PAD, paddingTop: 12 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 12 },
   agentCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -233,9 +234,9 @@ const styles = StyleSheet.create({
     color: 'rgba(0, 0, 0, 0.55)',
     marginTop: 4,
   },
-  chipsScroll: { marginBottom: 14, marginHorizontal: -H_PAD },
+  chipsScroll: { marginBottom: 14, marginHorizontal: -layout.screenGutter },
   chipsInner: {
-    paddingHorizontal: H_PAD,
+    paddingHorizontal: layout.screenGutter,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
