@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -13,16 +13,18 @@ import {
   PL_CARD,
   PL_CTA,
   PL_MUTED,
-  dashedShell,
+  fieldShell,
   useListingFlowBottomPad,
 } from './_shared';
+import { useListingDraft } from './listing-draft-context';
+import { persistDemoLiveListingDisclosure } from '@/lib/demo-live-listing-disclosure';
 import { DEMO_PRIMARY_SUBURB_LINE } from '@/lib/melbourne-demo-locations';
 
 const DEMO = {
   listingId: 'OMM-48291',
   property: DEMO_PRIMARY_SUBURB_LINE,
   price: '$2.0—2.2M',
-  referralFee: '25% • $500—550K',
+  referralFee: '$500—550K',
   authority: 'in 30 days',
   soi: 'Auto-gen • Attached',
   pdfTitle: 'Listing PDF',
@@ -40,7 +42,7 @@ function DownloadPdfModal({ visible, onCancel }: { visible: boolean; onCancel: (
           <Text style={dm.title}>Downloading PDF</Text>
           <Text style={dm.sub}>Saving to your device • takes a few seconds</Text>
 
-          <View style={[dm.card, dashedShell]}>
+          <View style={[dm.card, fieldShell]}>
             <View style={dm.pdfBadge}>
               <Text style={dm.pdfBadgeText}>PDF</Text>
             </View>
@@ -117,7 +119,7 @@ function SharePdfModal({ visible, onClose }: { visible: boolean; onClose: () => 
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
       <View style={sm.scrim}>
         <Pressable style={sm.sheet} onPress={(e) => e.stopPropagation()}>
-          <View style={[sm.headCard, dashedShell]}>
+          <View style={[sm.headCard, fieldShell]}>
             <View style={sm.headPdfBadge}>
               <Text style={sm.headPdfText}>PDF</Text>
             </View>
@@ -137,7 +139,7 @@ function SharePdfModal({ visible, onClose }: { visible: boolean; onClose: () => 
           </View>
 
           <Text style={sm.orLabel}>OR</Text>
-          <View style={[sm.orList, dashedShell]}>
+          <View style={[sm.orList, fieldShell]}>
             <ShareOrRow
               icon="external-link"
               title="Copy Link"
@@ -333,7 +335,12 @@ export default function ListingPublishedScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const bottomPad = useListingFlowBottomPad();
+  const { addressDisclosure } = useListingDraft();
   const [sheet, setSheet] = useState<Sheet>(null);
+
+  useEffect(() => {
+    void persistDemoLiveListingDisclosure(addressDisclosure);
+  }, [addressDisclosure]);
 
   const goHome = () =>
     router.replace(`/(tabs)?homeSegment=selling&_ts=${Date.now()}` as Href);
@@ -419,7 +426,12 @@ export default function ListingPublishedScreen() {
 
         <Pressable
           style={styles.primaryWide}
-          onPress={() => router.push('/view-live-listing' as Href)}
+          onPress={() =>
+            router.push({
+              pathname: '/view-live-listing',
+              params: { addressDisclosure },
+            } as Href)
+          }
           accessibilityRole="button">
           <Text style={styles.primaryWideLabel}>VIEW LIVE LISTING</Text>
         </Pressable>

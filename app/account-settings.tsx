@@ -180,10 +180,12 @@ export default function AccountSettingsScreen() {
 
           <Pressable
             onPress={onSave}
-            style={({ pressed }) => [styles.saveBtn, pressed && { opacity: 0.92 }]}
+            style={styles.saveBtn}
             accessibilityRole="button"
             accessibilityLabel="Save changes">
-            <Text style={styles.saveBtnText}>SAVE CHANGES</Text>
+            {({ pressed }) => (
+              <Text style={[styles.saveBtnText, pressed && { opacity: 0.72 }]}>SAVE CHANGES</Text>
+            )}
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>

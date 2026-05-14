@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
 import { Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -14,10 +14,14 @@ import {
   PL_TITLE,
   PrimaryCta,
   PublishStepHeader,
-  dashedShell,
+  fieldShell,
   useListingFlowBottomPad,
 } from './_shared';
-import { parseFormattedAudWholeDollars } from '@/lib/referral-pricing';
+import {
+  formatAudWhole,
+  parseFormattedAudWholeDollars,
+  suggestAudCompletionsFromDisplay,
+} from '@/lib/referral-pricing';
 import { useTabBarOnScroll } from '@/lib/tab-bar-visibility';
 
 import {
@@ -34,11 +38,11 @@ const PROPERTY_TYPES = [
   'Townhouse',
   'Villa',
   'Land',
-  'Block of Units',
+  'Block of units',
 ] as const;
 const COUNT_OPTS = ['1', '2', '3', '4', '5', '6+'] as const;
 
-/** Strip non-digits and format as Australian dollar display while typing. */
+/** `$` prefix + en-AU thousands grouping only; no AUD currency suffix in the field. */
 function formatPriceInputDisplay(raw: string): string {
   const digits = raw.replace(/\D/g, '');
   if (!digits) return '';
@@ -120,6 +124,42 @@ function PublishListingStep1() {
   const [internalArea, setInternalArea] = useState('');
 
   const [pickKind, setPickKind] = useState<null | 'type' | 'beds' | 'baths' | 'cars'>(null);
+  const [activePriceField, setActivePriceField] = useState<'from' | 'to' | null>(null);
+  const priceBlurClearRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const fromSuggestions = useMemo(
+    () => suggestAudCompletionsFromDisplay(priceFrom),
+    [priceFrom],
+  );
+  const toSuggestions = useMemo(() => suggestAudCompletionsFromDisplay(priceTo), [priceTo]);
+  const visiblePriceSuggestions = useMemo(() => {
+    if (activePriceField === 'from') return fromSuggestions;
+    if (activePriceField === 'to') return toSuggestions;
+    return [];
+  }, [activePriceField, fromSuggestions, toSuggestions]);
+
+  const clearPriceBlurTimer = () => {
+    if (priceBlurClearRef.current) {
+      clearTimeout(priceBlurClearRef.current);
+      priceBlurClearRef.current = null;
+    }
+  };
+
+  const schedulePriceFieldBlur = () => {
+    clearPriceBlurTimer();
+    priceBlurClearRef.current = setTimeout(() => setActivePriceField(null), 220);
+  };
+
+  const applyPriceSuggestion = (which: 'from' | 'to', aud: number) => {
+    clearPriceBlurTimer();
+    const next = formatPriceInputDisplay(String(aud));
+    if (which === 'from') {
+      setPriceFrom(next);
+    } else {
+      setPriceTo(next);
+    }
+    setActivePriceField(null);
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -137,6 +177,9 @@ function PublishListingStep1() {
   }, []);
 
   const goStep2 = useCallback(() => {
+    if (!address.trim()) {
+      return;
+    }
     const fromAud = parseFormattedAudWholeDollars(priceFrom);
     const toAud = parseFormattedAudWholeDollars(priceTo);
     setListingPriceRange(fromAud, toAud);
@@ -157,7 +200,7 @@ function PublishListingStep1() {
 
         <View style={styles.fieldBlock}>
           <Text style={styles.floatLabel}>PROPERTY ADDRESS</Text>
-          <View style={[styles.inputShell, dashedShell]}>
+          <View style={[styles.inputShell, fieldShell]}>
             <TextInput
               style={styles.input}
               value={address}
@@ -183,7 +226,7 @@ function PublishListingStep1() {
                 <Pressable
                   key={key}
                   onPress={() => setAddressDisclosure(key)}
-                  style={[styles.segmentCell, dashedShell, selected && styles.segmentCellSelected]}
+                  style={[styles.segmentCell, fieldShell, selected && styles.segmentCellSelected]}
                   accessibilityRole="radio"
                   accessibilityState={{ selected }}>
                   <Text style={[styles.segmentLabel, selected && styles.segmentLabelSelected]}>
@@ -199,9 +242,9 @@ function PublishListingStep1() {
           <Text style={styles.floatLabel}>PROPERTY TYPE</Text>
           <Pressable
             onPress={() => setPickKind('type')}
-            style={[styles.inputShell, dashedShell, styles.inputRow]}>
+            style={[styles.inputShell, fieldShell, styles.inputRow]}>
             <Text style={[styles.input, !propertyType && styles.inputPlaceholder]}>
-              {propertyType || 'Townhouse'}
+              {propertyType || 'Select property type'}
             </Text>
             <FontAwesome name="chevron-down" size={12} color={PL_BORDER} />
           </Pressable>
@@ -210,30 +253,62 @@ function PublishListingStep1() {
         <View style={styles.rangeBlock}>
           <Text style={styles.rangeSectionLabel}>LISTING PRICE RANGE</Text>
           <View style={styles.rangeRow}>
-            <View style={[styles.rangeHalf, dashedShell]}>
+            <View style={[styles.rangeHalf, fieldShell]}>
               <Text style={styles.innerCaps}>FROM</Text>
               <TextInput
                 style={styles.rangeInput}
                 value={priceFrom}
                 onChangeText={(t) => setPriceFrom(formatPriceInputDisplay(t))}
+                onFocus={() => {
+                  clearPriceBlurTimer();
+                  setActivePriceField('from');
+                }}
+                onBlur={schedulePriceFieldBlur}
                 placeholder="$850,000"
                 placeholderTextColor="rgba(0, 0, 0, 0.35)"
                 keyboardType="number-pad"
               />
             </View>
             <Text style={styles.rangeDash}>–</Text>
-            <View style={[styles.rangeHalf, dashedShell]}>
+            <View style={[styles.rangeHalf, fieldShell]}>
               <Text style={styles.innerCaps}>TO</Text>
               <TextInput
                 style={styles.rangeInput}
                 value={priceTo}
                 onChangeText={(t) => setPriceTo(formatPriceInputDisplay(t))}
+                onFocus={() => {
+                  clearPriceBlurTimer();
+                  setActivePriceField('to');
+                }}
+                onBlur={schedulePriceFieldBlur}
                 placeholder="$920,000"
                 placeholderTextColor="rgba(0, 0, 0, 0.35)"
                 keyboardType="number-pad"
               />
             </View>
           </View>
+          {visiblePriceSuggestions.length > 0 && activePriceField ? (
+            <View style={styles.priceSuggestWrap} accessibilityRole="menu">
+              <Text style={styles.priceSuggestHint}>Complete as</Text>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.priceSuggestScroll}>
+                {visiblePriceSuggestions.map((aud) => (
+                  <Pressable
+                    key={`${activePriceField}-${aud}`}
+                    style={styles.priceSuggestChip}
+                    onPressIn={() => clearPriceBlurTimer()}
+                    onPress={() => applyPriceSuggestion(activePriceField, aud)}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Complete price as ${formatAudWhole(aud)}`}>
+                    <Text style={styles.priceSuggestChipText}>{formatAudWhole(aud)}</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.tripleRow}>
@@ -241,7 +316,7 @@ function PublishListingStep1() {
             <Text style={styles.smallCaps}>BEDROOMS</Text>
             <Pressable
               onPress={() => setPickKind('beds')}
-              style={[styles.tripleField, dashedShell, styles.inputRowCenter]}>
+              style={[styles.tripleField, fieldShell, styles.inputRowCenter]}>
               <Text style={[styles.tripleVal, !beds && styles.inputPlaceholder]}>{beds || '3'}</Text>
               <FontAwesome name="chevron-down" size={11} color={PL_BORDER} />
             </Pressable>
@@ -250,7 +325,7 @@ function PublishListingStep1() {
             <Text style={styles.smallCaps}>BATHROOMS</Text>
             <Pressable
               onPress={() => setPickKind('baths')}
-              style={[styles.tripleField, dashedShell, styles.inputRowCenter]}>
+              style={[styles.tripleField, fieldShell, styles.inputRowCenter]}>
               <Text style={[styles.tripleVal, !baths && styles.inputPlaceholder]}>{baths || '2'}</Text>
               <FontAwesome name="chevron-down" size={11} color={PL_BORDER} />
             </Pressable>
@@ -259,7 +334,7 @@ function PublishListingStep1() {
             <Text style={styles.smallCaps}>CAR SPACES</Text>
             <Pressable
               onPress={() => setPickKind('cars')}
-              style={[styles.tripleField, dashedShell, styles.inputRowCenter]}>
+              style={[styles.tripleField, fieldShell, styles.inputRowCenter]}>
               <Text style={[styles.tripleVal, !cars && styles.inputPlaceholder]}>{cars || '2'}</Text>
               <FontAwesome name="chevron-down" size={11} color={PL_BORDER} />
             </Pressable>
@@ -268,7 +343,7 @@ function PublishListingStep1() {
 
         <View style={styles.fieldBlock}>
           <Text style={styles.floatLabel}>LAND AREA SIZE</Text>
-          <View style={[styles.inputShell, dashedShell]}>
+          <View style={[styles.inputShell, fieldShell]}>
             <TextInput
               style={styles.input}
               value={landAreaSize}
@@ -281,7 +356,7 @@ function PublishListingStep1() {
 
         <View style={styles.fieldBlock}>
           <Text style={styles.floatLabel}>INTERNAL AREA</Text>
-          <View style={[styles.inputShell, dashedShell]}>
+          <View style={[styles.inputShell, fieldShell]}>
             <TextInput
               style={styles.input}
               value={internalArea}
@@ -296,7 +371,7 @@ function PublishListingStep1() {
       </ScrollView>
 
       <View style={{ paddingBottom: 6 }}>
-        <PrimaryCta label="CONTINUE" onPress={goStep2} />
+        <PrimaryCta label="CONTINUE" onPress={goStep2} disabled={!address.trim()} />
       </View>
 
       <PickModal
@@ -418,6 +493,37 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   rangeDash: { fontSize: 18, color: PL_LABEL, width: 17, textAlign: 'center' },
+  priceSuggestWrap: {
+    marginTop: 10,
+    marginBottom: 2,
+  },
+  priceSuggestHint: {
+    fontSize: 11,
+    fontFamily: 'Satoshi-Medium',
+    color: PL_LABEL,
+    letterSpacing: 0.35,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  priceSuggestScroll: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingRight: 4,
+  },
+  priceSuggestChip: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderRadius: 10,
+    backgroundColor: '#fff',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(60, 60, 67, 0.22)',
+  },
+  priceSuggestChipText: {
+    fontSize: 15,
+    fontFamily: 'Satoshi-Medium',
+    color: PL_BODY,
+  },
 
   tripleRow: { flexDirection: 'row', alignSelf: 'center', gap: 12, marginBottom: 8, width: '100%', paddingHorizontal: PL_PAD },
   tripleCol: { flex: 1 },

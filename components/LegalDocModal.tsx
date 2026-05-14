@@ -16,7 +16,8 @@ type Props = {
 export function LegalDocModal({ visible, title, body, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const { height } = useWindowDimensions();
-  const maxH = Math.min(height * 0.72, height - insets.top - insets.bottom - 48);
+  /** Card never taller than 55% of screen — ScrollView handles overflow for long docs. */
+  const maxH = Math.min(height * 0.55, height - insets.top - insets.bottom - 48);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
@@ -46,9 +47,12 @@ export function LegalDocModal({ visible, title, body, onClose }: Props) {
               paddingHorizontal: 24,
               paddingTop: insets.top + 12,
               paddingBottom: insets.bottom + 12,
+              zIndex: 2,
+              elevation: 12,
             },
           ]}>
-          <View style={[styles.card, { maxHeight: maxH }]} pointerEvents="auto">
+          {/* Fixed height so ScrollView resolves correctly inside a centered card */}
+          <View style={[styles.card, { height: maxH }]} pointerEvents="auto">
             <View style={styles.cardHeader}>
               <Text style={styles.title}>{title}</Text>
               <Pressable
@@ -56,23 +60,26 @@ export function LegalDocModal({ visible, title, body, onClose }: Props) {
                 hitSlop={12}
                 accessibilityRole="button"
                 accessibilityLabel="Close">
-                <FontAwesome name="times" size={22} color="#000000" />
+                <FontAwesome name="times" size={20} color="#000000" />
               </Pressable>
             </View>
+            {/* flex: 1 + minHeight: 0 resolves because card now has an explicit height */}
             <ScrollView
               style={styles.scroll}
               contentContainerStyle={styles.scrollInner}
-              showsVerticalScrollIndicator
+              showsVerticalScrollIndicator={false}
               bounces={false}>
               <Text style={styles.body}>{body}</Text>
             </ScrollView>
-            <AppButton
-              variant="filled"
-              onPress={onClose}
-              accessibilityLabel="Close"
-              textStyle={{ letterSpacing: 0.5, fontFamily: 'Satoshi-Medium' }}>
-              CLOSE
-            </AppButton>
+            <View style={styles.footerBtn}>
+              <AppButton
+                variant="charcoalSoft"
+                onPress={onClose}
+                accessibilityLabel="Close"
+                textStyle={styles.closeBtnLabel}>
+                CLOSE
+              </AppButton>
+            </View>
           </View>
         </View>
       </View>
@@ -87,8 +94,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderRadius: 16,
     paddingHorizontal: 22,
-    paddingTop: 28,
-    paddingBottom: 28,
+    paddingTop: 24,
+    paddingBottom: 20,
     flexDirection: 'column',
   },
   cardHeader: {
@@ -97,6 +104,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     gap: 12,
     marginBottom: 14,
+    flexShrink: 0,
   },
   title: {
     flex: 1,
@@ -106,9 +114,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   scroll: {
-    marginBottom: 18,
-    flexGrow: 0,
-    flexShrink: 1,
+    flex: 1,
     minHeight: 0,
   },
   scrollInner: {
@@ -118,5 +124,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     lineHeight: 22,
     color: 'rgba(26, 26, 26, 0.88)',
+  },
+  footerBtn: {
+    flexShrink: 0,
+    paddingTop: 12,
+  },
+  closeBtnLabel: {
+    textTransform: 'uppercase',
+    color: '#FFFFFF',
   },
 });

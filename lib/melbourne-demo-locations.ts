@@ -8,6 +8,10 @@ export const DEMO_PRIMARY_LOCALITY_LINE = 'Hawthorn · City of Boroondara';
 /** Two-line heading under “PROPERTY ADDRESS” */
 export const DEMO_PRIMARY_ADDRESS_MULTILINE = `${DEMO_PRIMARY_LISTING_TITLE},\nHawthorn East VIC 3123`;
 export const DEMO_PRIMARY_SUBURB_LINE = 'Hawthorn East, Victoria';
+/** Buyer-visible when the seller withholds the street (suburb / region only). */
+export const DEMO_ANONYMOUS_LISTING_ADDRESS_MULTILINE = `${DEMO_PRIMARY_LISTING_TITLE},\n${DEMO_PRIMARY_SUBURB_LINE}`;
+/** Maps query without street — used for approximate-area deep links. */
+export const DEMO_APPROXIMATE_MAPS_QUERY = 'Hawthorn East VIC 3123';
 export const DEMO_PRIMARY_STREET = '142 Orrong Rd, Hawthorn East VIC 3123';
 
 export const DEMO_AGENT_AGENCY = 'Marshall White Boroondara';

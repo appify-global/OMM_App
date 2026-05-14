@@ -85,15 +85,15 @@ export default function YourMatchesScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}>
         <View style={styles.banner}>
-          <Text style={styles.bannerTitle}>New briefs land here automatically</Text>
+          <Text style={styles.bannerTitle}>Listings that fit your brief</Text>
           <Text style={styles.bannerBody}>
-            When a buyer or buyer agent posts a brief that fits your profile, it appears as a private lead — suburbs,
-            budget, and timing come straight from their form.
+            When stock lines up with what you saved, it shows up here. You start the conversation when you’re ready
+            — agents don’t cold-contact you from this list.
           </Text>
         </View>
 
         <View style={styles.sortRow}>
-          <Text style={styles.sortText}>Sort · Newest briefs</Text>
+          <Text style={styles.sortText}>Sort · Newest first</Text>
         </View>
 
         {MATCHES.map((m, i) => (
@@ -117,7 +117,7 @@ export default function YourMatchesScreen() {
           </View>
         ))}
 
-        <Text style={styles.endLabel}>End of briefs</Text>
+        <Text style={styles.endLabel}>End of matches</Text>
       </ScrollView>
     </View>
   );

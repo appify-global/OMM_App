@@ -24,10 +24,11 @@ export function useListingFlowBottomPad() {
   return useTabScreenBottomPad();
 }
 
-/** Solid outline for listing fields, cards, and drop zones. */
-export const dashedShell = {
+/** Solid hairline outline for wizard fields/cards — Apple-like, not dashed. */
+export const fieldShell = {
   borderWidth: FIELD_OUTLINE_WIDTH,
   borderColor: FIELD_OUTLINE_COLOR,
+  borderStyle: 'solid' as const,
   backgroundColor: '#fff',
 };
 
@@ -74,10 +75,23 @@ export function PublishStepHeader({
   );
 }
 
-export function PrimaryCta({ label, onPress }: { label: string; onPress: () => void }) {
+export function PrimaryCta({
+  label,
+  onPress,
+  disabled,
+}: {
+  label: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
   return (
-    <Pressable onPress={onPress} style={styles.cta} accessibilityRole="button">
-      <Text style={styles.ctaLabel}>{label}</Text>
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={[styles.cta, disabled && styles.ctaDisabled]}
+      accessibilityRole="button"
+      accessibilityState={{ disabled: !!disabled }}>
+      <Text style={[styles.ctaLabel, disabled && styles.ctaLabelDisabled]}>{label}</Text>
     </Pressable>
   );
 }
@@ -130,4 +144,6 @@ const styles = StyleSheet.create({
     marginHorizontal: PL_PAD,
   },
   ctaLabel: { color: '#fff', fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: -0.35 },
+  ctaDisabled: { backgroundColor: 'rgba(0, 0, 0, 0.28)' },
+  ctaLabelDisabled: { color: 'rgba(255, 255, 255, 0.75)' },
 });

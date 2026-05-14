@@ -3,9 +3,26 @@ import { BlurView } from 'expo-blur';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { AppButton, APP_BUTTON_HEIGHT } from '@/components/AppButton';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
-import { Alert, Dimensions, FlatList, type ListRenderItemInfo, Keyboard, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Switch, View, type ViewToken } from 'react-native';
+import {
+  Alert,
+  Dimensions,
+  FlatList,
+  type ListRenderItemInfo,
+  Keyboard,
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  useWindowDimensions,
+  View,
+  type ViewToken,
+} from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -171,7 +188,19 @@ function PaginationDots({ count, active }: { count: number; active: number }) {
   );
 }
 
-/** Sheet chrome + blur matches Add card / Invoice delivery flows */
+/** Layout for payment bottom sheets: cap sheet to ~92% of window; scroll area leaves room for pinned footer. */
+function usePaymentSheetLayout() {
+  const { height: wh } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const sheetMaxH = Math.round(wh * 0.92);
+  /** Pinned footer: paddingTop + border + button + paddingBottom (safe area). */
+  const footerReserve = 12 + StyleSheet.hairlineWidth + APP_BUTTON_HEIGHT + Math.max(insets.bottom, 12) + 8;
+  return {
+    sheetMaxH,
+    scrollMaxH: Math.max(160, sheetMaxH - footerReserve),
+  };
+}
+
 type SheetMode = null | 'addCard' | 'invoice' | 'billing' | 'autopay';
 
 type PaymentOtherSettings = {
@@ -234,7 +263,7 @@ function SheetChrome({
   dismissA11yLabel: string;
   children: ReactNode;
 }) {
-  const insets = useSafeAreaInsets();
+  const { sheetMaxH } = usePaymentSheetLayout();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
       <KeyboardAvoidingView
@@ -258,14 +287,8 @@ function SheetChrome({
             }}
             accessibilityLabel={dismissA11yLabel}
           />
-          <View
-            style={[
-              styles.addCardSheet,
-              {
-                paddingBottom: Math.max(insets.bottom, 12) + 8,
-              },
-            ]}>
-            {children}
+          <View style={[styles.addCardSheet, { maxHeight: sheetMaxH }]}>
+            <View style={styles.sheetFlexCol}>{children}</View>
           </View>
         </View>
       </KeyboardAvoidingView>
@@ -327,13 +350,18 @@ function AddCardSheet({
     onClose();
   }, [onClose]);
 
+  const insets = useSafeAreaInsets();
+  const { scrollMaxH } = usePaymentSheetLayout();
+
   return (
     <SheetChrome visible={visible} onClose={onClose} dismissA11yLabel="Dismiss add card">
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-        contentContainerStyle={styles.addCardScrollContent}>
+      <View style={[styles.sheetScrollCap, { maxHeight: scrollMaxH }]}>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          contentContainerStyle={styles.addCardScrollContent}
+          style={styles.sheetScrollInner}>
         <SheetHeader title="Add card" onClose={onClose} />
 
         <View style={styles.addCardFieldGap} />
@@ -447,19 +475,16 @@ function AddCardSheet({
                 </View>
               </OutlineShell>
 
-              <View style={styles.addCardBeforeCta} />
-              <Pressable
-                onPress={submit}
-                style={({ pressed }) => [styles.addCardCta, pressed && { opacity: 0.92 }]}
-                accessibilityRole="button"
-                accessibilityLabel="Add card">
-                <Text style={styles.addCardCtaLabel}>ADD CARD</Text>
-              </Pressable>
-
               <Text style={styles.addCardSheetFooter}>
                 Tokenized by Stripe. OMM never stores full card numbers.
               </Text>
-            </ScrollView>
+        </ScrollView>
+      </View>
+      <View style={[styles.sheetFormFooter, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <AppButton variant="filled" onPress={submit} textStyle={styles.sheetFooterBtnLabel} accessibilityLabel="Add card">
+          Add card
+        </AppButton>
+      </View>
     </SheetChrome>
   );
 }
@@ -486,13 +511,18 @@ function InvoiceDeliverySheet({
     onClose();
   }, [email, onSave, onClose]);
 
+  const insets = useSafeAreaInsets();
+  const { scrollMaxH } = usePaymentSheetLayout();
+
   return (
     <SheetChrome visible={visible} onClose={onClose} dismissA11yLabel="Dismiss invoice delivery">
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-        contentContainerStyle={styles.addCardScrollContent}>
+      <View style={[styles.sheetScrollCap, { maxHeight: scrollMaxH }]}>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          contentContainerStyle={styles.addCardScrollContent}
+          style={styles.sheetScrollInner}>
         <SheetHeader title="Invoice delivery" onClose={onClose} />
         <Text style={styles.sheetIntro}>Invoices will be emailed to this address as PDF.</Text>
         <Text style={styles.addCardFieldKicker}>EMAIL ADDRESS</Text>
@@ -515,15 +545,13 @@ function InvoiceDeliverySheet({
             />
           </View>
         </OutlineShell>
-        <View style={styles.addCardBeforeCta} />
-        <Pressable
-          onPress={save}
-          style={({ pressed }) => [styles.addCardCta, pressed && { opacity: 0.92 }]}
-          accessibilityRole="button"
-          accessibilityLabel="Save invoice delivery">
-          <Text style={styles.addCardCtaLabel}>SAVE</Text>
-        </Pressable>
       </ScrollView>
+      </View>
+      <View style={[styles.sheetFormFooter, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <AppButton variant="filled" onPress={save} textStyle={styles.sheetFooterBtnLabel} accessibilityLabel="Save invoice delivery">
+          Save
+        </AppButton>
+      </View>
     </SheetChrome>
   );
 }
@@ -597,13 +625,18 @@ function BillingAddressSheet({
     onClose();
   }, [form, onSave, onClose]);
 
+  const insets = useSafeAreaInsets();
+  const { scrollMaxH } = usePaymentSheetLayout();
+
   return (
     <SheetChrome visible={visible} onClose={onClose} dismissA11yLabel="Dismiss billing address">
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-        contentContainerStyle={styles.addCardScrollContent}>
+      <View style={[styles.sheetScrollCap, { maxHeight: scrollMaxH }]}>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          contentContainerStyle={styles.addCardScrollContent}
+          style={styles.sheetScrollInner}>
         <SheetHeader title="Billing address" onClose={onClose} />
         <Text style={styles.sheetIntro}>This address appears on your invoices and tax documents.</Text>
 
@@ -650,16 +683,13 @@ function BillingAddressSheet({
           placeholder="Postcode"
           keyboardType="number-pad"
         />
-
-        <View style={styles.addCardBeforeCta} />
-        <Pressable
-          onPress={save}
-          style={({ pressed }) => [styles.addCardCta, pressed && { opacity: 0.92 }]}
-          accessibilityRole="button"
-          accessibilityLabel="Save billing address">
-          <Text style={styles.addCardCtaLabel}>SAVE</Text>
-        </Pressable>
       </ScrollView>
+      </View>
+      <View style={[styles.sheetFormFooter, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <AppButton variant="filled" onPress={save} textStyle={styles.sheetFooterBtnLabel} accessibilityLabel="Save billing address">
+          Save
+        </AppButton>
+      </View>
     </SheetChrome>
   );
 }
@@ -688,13 +718,18 @@ function AutoPaySheet({
     onClose();
   }, [selected, onSave, onClose]);
 
+  const insets = useSafeAreaInsets();
+  const { scrollMaxH } = usePaymentSheetLayout();
+
   return (
     <SheetChrome visible={visible} onClose={onClose} dismissA11yLabel="Dismiss auto-pay">
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}
-        bounces={false}
-        contentContainerStyle={styles.addCardScrollContent}>
+      <View style={[styles.sheetScrollCap, { maxHeight: scrollMaxH }]}>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+          contentContainerStyle={styles.addCardScrollContent}
+          style={styles.sheetScrollInner}>
         <SheetHeader title="Auto-pay" onClose={onClose} />
         <Text style={styles.sheetIntro}>Choose whether referral fees are charged automatically when due.</Text>
         <View style={{ gap: ROW_GAP }}>
@@ -721,15 +756,13 @@ function AutoPaySheet({
             </Pressable>
           ))}
         </View>
-        <View style={styles.addCardBeforeCta} />
-        <Pressable
-          onPress={save}
-          style={({ pressed }) => [styles.addCardCta, pressed && { opacity: 0.92 }]}
-          accessibilityRole="button"
-          accessibilityLabel="Save auto-pay">
-          <Text style={styles.addCardCtaLabel}>SAVE</Text>
-        </Pressable>
       </ScrollView>
+      </View>
+      <View style={[styles.sheetFormFooter, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <AppButton variant="filled" onPress={save} textStyle={styles.sheetFooterBtnLabel} accessibilityLabel="Save auto-pay">
+          Save
+        </AppButton>
+      </View>
     </SheetChrome>
   );
 }
@@ -1128,9 +1161,35 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
     elevation: 16,
   },
+  sheetFlexCol: {
+    flexDirection: 'column',
+    width: '100%',
+  },
+  sheetScrollCap: {
+    width: '100%',
+    alignSelf: 'stretch',
+  },
+  sheetScrollInner: {
+    width: '100%',
+  },
+  sheetFormFooter: {
+    flexShrink: 0,
+    paddingTop: 12,
+    paddingHorizontal: layout.screenGutter,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(0, 0, 0, 0.12)',
+    backgroundColor: '#fff',
+  },
+  sheetFooterBtnLabel: {
+    fontSize: 15,
+    fontFamily: 'Satoshi-Medium',
+    letterSpacing: 0.35,
+    textTransform: 'uppercase',
+  },
   addCardScrollContent: {
     paddingHorizontal: layout.screenGutter,
     paddingTop: 4,
+    paddingBottom: 12,
   },
   sheetHandleWrap: {
     alignItems: 'center',

@@ -1,148 +1,48 @@
 import { Text } from "@/components/OMMText";
 import { TextInput } from "@/components/OMMTextInput";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import { useGlobalSearchParams, useLocalSearchParams, useRouter, type Href } from "expo-router";
+import { useGlobalSearchParams, useRouter, type Href } from "expo-router";
+import { Fragment, useEffect, useRef, useState } from "react";
 import {
-    useCallback,
-    useEffect,
-    useRef,
-    useState,
-    type ComponentProps,
-} from "react";
-import {
-    Image,
-    ImageBackground,
-    Pressable,
-    TextInput as RNTextInput,
-    ScrollView,
-    StyleSheet,
-    Switch,
-    View,
-    type ImageSourcePropType,
-    type StyleProp,
-    type ViewStyle,
+  Image,
+  ImageBackground,
+  Pressable,
+  TextInput as RNTextInput,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  View,
+  type ImageSourcePropType,
+  type StyleProp,
+  type ViewStyle,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { layout } from "@/constants/theme";
 import { AppButton } from "@/components/AppButton";
-import { CompactListingCard } from "@/components/CompactListingCard";
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from "@/lib/field-outline";
 import {
-    DEMO_PRIMARY_LISTING_TITLE,
-    DEMO_SEARCH_SUBURB,
+  DEMO_PRIMARY_LISTING_TITLE,
+  DEMO_SEARCH_SUBURB,
 } from "@/lib/melbourne-demo-locations";
 import {
-    PROPERTY_IMG_1,
-    PROPERTY_IMG_2,
-    propertyImageAtIndex,
+  PROPERTY_IMG_1,
+  PROPERTY_IMG_2,
+  propertyImageAtIndex,
 } from "@/lib/propertyImages";
+import {
+  FALLBACK_AGENT_HOME_METRICS,
+  LEGAL_COPY_PIPELINE_COMMISSION_DISCLAIMER,
+  LEGAL_COPY_PIPELINE_COMMISSION_LABEL,
+  PIPELINE_KPI_LEGALLY_APPROVED,
+  type AgentHomeMetricsPayload,
+  fetchAgentHomeMetrics,
+  formatPipelineCommissionRangeDisplay,
+} from "@/lib/agent-home-metrics";
+import { getAgentQuickLinksForHome } from "@/lib/agent-quick-links";
 import { VIEW_LIVE_LISTING_ID } from "@/lib/saved-listings";
 import { useSavedListings } from "@/lib/saved-listings-context";
 
-import {
-    DEMO_AGENT_HOME_METRICS,
-    loadAgentHomeMetrics,
-    type AgentHomeMetrics,
-    type RecentSoldDemoItem,
-} from "@/lib/agent-home-metrics";
-import { AGENT_QUICK_LINK_FLAGS } from "@/lib/agent-quick-links";
-import { useTabBarOnScroll } from "@/lib/tab-bar-visibility";
-import { dashedShell } from "./add/_shared";
-
-function AgentHomeKpis({ metrics }: { metrics: AgentHomeMetrics }) {
-  return (
-    <View
-      style={styles.kpiWrap}
-      accessibilityHint="Demonstration metrics on this build"
-    >
-      <View style={styles.kpiRow}>
-        <View style={styles.kpiTile}>
-          <Text style={styles.kpiLabel}>Pending listings</Text>
-          <Text style={styles.kpiValue}>{metrics.pendingListingsCount}</Text>
-          <Text style={styles.kpiHint}>Active authority</Text>
-        </View>
-        <View style={styles.kpiDivider} />
-        <View style={[styles.kpiTile, styles.kpiTileGrow]}>
-          <Text style={styles.kpiLabel}>Pipeline fee estimate</Text>
-          <Text style={styles.kpiValue}>{metrics.pipelineEstimateDisplay}</Text>
-          <Text style={styles.kpiHint}>Indicative · GST excluded</Text>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function RecentlySoldCard({ item }: { item: RecentSoldDemoItem }) {
-  return (
-    <View style={styles.soldStripCard}>
-      <Text style={styles.soldStripPrice}>{item.priceDisplay}</Text>
-      <Text style={styles.soldStripTitle} numberOfLines={2}>
-        {item.headline}
-      </Text>
-      <Text style={styles.soldStripMeta} numberOfLines={1}>
-        {item.meta}
-      </Text>
-    </View>
-  );
-}
-
-function QuickLinksRow({ router }: { router: ReturnType<typeof useRouter> }) {
-  type FaName = ComponentProps<typeof FontAwesome>["name"];
-  type LinkDef = { key: string; label: string; icon: FaName; href: Href };
-  const links: LinkDef[] = [];
-  if (AGENT_QUICK_LINK_FLAGS.inspections) {
-    links.push({
-      key: "inspections",
-      label: "Inspections",
-      icon: "calendar-o",
-      href: "/stats?filter=inspections" as Href,
-    });
-  }
-  if (AGENT_QUICK_LINK_FLAGS.enquiries) {
-    links.push({
-      key: "enquiries",
-      label: "Enquiries",
-      icon: "comment-o",
-      href: "/messages" as Href,
-    });
-  }
-  if (AGENT_QUICK_LINK_FLAGS.drafts) {
-    links.push({
-      key: "drafts",
-      label: "Drafts",
-      icon: "file-text-o",
-      href: "/list?segment=draft" as Href,
-    });
-  }
-
-  if (links.length === 0) return null;
-
-  return (
-    <View style={styles.quickLinksWrap}>
-      <Text style={styles.quickLinksSectionTitle}>Quick links</Text>
-      <View style={styles.quickLinksRow}>
-        {links.map((link) => (
-          <Pressable
-            key={link.key}
-            accessibilityRole="button"
-            accessibilityLabel={`Open ${link.label}`}
-            onPress={() => router.push(link.href)}
-            style={({ pressed }) => [
-              styles.quickLinkTile,
-              pressed && { opacity: 0.88 },
-            ]}
-          >
-            <View style={styles.quickLinkIconCircle}>
-              <FontAwesome name={link.icon} size={20} color="#111111" />
-            </View>
-            <Text style={styles.quickLinkLabel}>{link.label}</Text>
-          </Pressable>
-        ))}
-      </View>
-    </View>
-  );
-}
+import { fieldShell } from "./add/_shared";
 
 function SectionHeader({
   title,
@@ -265,6 +165,42 @@ function BuyerEnquiriesCallout({ onViewAll }: { onViewAll: () => void }) {
   );
 }
 
+/** Compact Ignite / REA thumbnail row */
+function ListingThumbRow({
+  imageSource,
+  titleLine,
+  subtitleLine,
+  onPress,
+}: {
+  imageSource: ImageSourcePropType;
+  titleLine: string;
+  subtitleLine: string;
+  onPress?: () => void;
+}) {
+  return (
+    <Pressable
+      style={styles.thumbRow}
+      accessibilityRole="button"
+      accessibilityLabel={`Listing ${titleLine}`}
+      onPress={onPress}
+    >
+      <Image
+        source={imageSource}
+        style={styles.thumbRowImg}
+        resizeMode="cover"
+      />
+      <View style={styles.thumbRowBody}>
+        <Text style={styles.thumbRowTitle} numberOfLines={1}>
+          {titleLine}
+        </Text>
+        <Text style={styles.thumbRowSub} numberOfLines={1}>
+          {subtitleLine}
+        </Text>
+      </View>
+    </Pressable>
+  );
+}
+
 /** Horizontal promo — mirrors Latest enquiries; [see all → Figma 1053:1981](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-1981) */
 function AuthorityExpiringCarouselCard({
   address,
@@ -292,6 +228,105 @@ function AuthorityExpiringCarouselCard({
       </Text>
       <View style={styles.authCarouselPill}>
         <Text style={styles.authCarouselPillText}>{soiPill}</Text>
+      </View>
+    </View>
+  );
+}
+
+/** Selling: stats footer. Buying: [Figma 1053:1680](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-1680) — 168px image, pills, spec chips row. */
+function LargeListingCard(
+  props:
+    | {
+        variant?: "selling";
+        imageSource?: ImageSourcePropType;
+        title: string;
+        price: string;
+        beds: string;
+        badgeLeft: string;
+        badgeRight: string;
+        footerLabels: [string, string, string];
+      }
+    | {
+        variant: "buying";
+        imageSource?: ImageSourcePropType;
+        title: string;
+        price: string;
+        badgeLeft: string;
+        badgeRight: string;
+        specParts: [string, string, string];
+      },
+) {
+  const isBuying = props.variant === "buying";
+  const heroSource =
+    props.imageSource ?? (isBuying ? PROPERTY_IMG_2 : PROPERTY_IMG_1);
+  return (
+    <View
+      style={[styles.largeCardOuter, isBuying && styles.largeCardOuterBuying]}
+    >
+      <View style={[styles.largeCard, isBuying && styles.largeCardBuying]}>
+        <View
+          style={[styles.largeImgWrap, isBuying && styles.largeImgWrapBuying]}
+        >
+          <Image
+            source={heroSource}
+            style={styles.largeImg}
+            resizeMode="cover"
+          />
+          <View style={[styles.badgeLeft, isBuying && styles.badgeLeftBuying]}>
+            <Text style={styles.badgeLeftText}>{props.badgeLeft}</Text>
+          </View>
+          <View
+            style={[styles.badgeRight, isBuying && styles.badgeRightBuying]}
+          >
+            <Text
+              style={[
+                styles.badgeRightText,
+                isBuying && styles.badgeRightTextBuying,
+              ]}
+            >
+              {props.badgeRight}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.largeBody}>
+          <Text style={[styles.propTitle, isBuying && styles.propTitleBuying]}>
+            {props.title}
+          </Text>
+          <Text style={[styles.propPrice, isBuying && styles.propPriceBuying]}>
+            {props.price}
+          </Text>
+          {isBuying ? (
+            <View style={styles.specRowBuying}>
+              {props.specParts.map((s, i) => (
+                <Fragment key={s}>
+                  {i > 0 ? <Text style={styles.specSepBuying}> · </Text> : null}
+                  <Text style={styles.specChipBuying}>{s}</Text>
+                </Fragment>
+              ))}
+            </View>
+          ) : (
+            <>
+              <Text style={styles.propSpecs}>{props.beds}</Text>
+              <View style={styles.propStatsRow}>
+                {props.footerLabels.map((l, i) => (
+                  <Text
+                    key={l}
+                    style={[
+                      styles.propStat,
+                      i === 0
+                        ? styles.propStatFooterStart
+                        : i === 1
+                          ? styles.propStatFooterMid
+                          : styles.propStatFooterEnd,
+                    ]}
+                  >
+                    {l}
+                  </Text>
+                ))}
+              </View>
+            </>
+          )}
+        </View>
       </View>
     </View>
   );
@@ -391,24 +426,155 @@ function SearchMatchRow({
   );
 }
 
-/** Map saved-listing `beds` copy e.g. `3 BED  2 BATH  2 CAR` → numeric chips. */
-function parseBedsLineToCounts(line: string) {
-  const mBed = /(\d+)\s*BED/i.exec(line);
-  const mBath = /(\d+)\s*BATH/i.exec(line);
-  const mCar = /(\d+)\s*CAR/i.exec(line);
-  return {
-    beds: mBed ? Number(mBed[1]) : 3,
-    baths: mBath ? Number(mBath[1]) : 2,
-    cars: mCar ? Number(mCar[1]) : 2,
-  };
+function SellingQuickLinksRow({ router }: { router: ReturnType<typeof useRouter> }) {
+  const items = getAgentQuickLinksForHome();
+  if (items.length === 0) return null;
+  return (
+    <View style={styles.quickLinksBlock}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.quickLinksScrollInner}
+      >
+        {items.map((item) => (
+          <Pressable
+            key={item.id}
+            accessibilityRole="button"
+            accessibilityLabel={`Quick link ${item.label}`}
+            accessibilityHint={
+              item.stub ? "Opens a preview or placeholder screen." : undefined
+            }
+            onPress={() => router.push(item.href as Href)}
+            style={({ pressed }) => [
+              styles.quickLinkChip,
+              pressed && styles.quickLinkChipPressed,
+            ]}
+          >
+            <View style={styles.quickLinkChipIconWrap}>
+              <FontAwesome name={item.iconGlyph} size={18} color="#111111" />
+            </View>
+            <Text style={styles.quickLinkChipLabel}>{item.label}</Text>
+            {item.stub ? (
+              <View style={styles.quickLinkStubPill}>
+                <Text style={styles.quickLinkStubPillText}>stub</Text>
+              </View>
+            ) : null}
+          </Pressable>
+        ))}
+      </ScrollView>
+    </View>
+  );
 }
 
-function navigateSellingListingSearch(
-  router: ReturnType<typeof useRouter>,
-  query: string,
-) {
-  const q = query.trim();
-  router.push((q ? `/list?q=${encodeURIComponent(q)}` : `/list`) as Href);
+function SellingPerformanceSlice({
+  metrics,
+  onOpenSoldSeeAll,
+}: {
+  metrics: AgentHomeMetricsPayload;
+  onOpenSoldSeeAll: () => void;
+}) {
+  const pipelineRange = metrics.pipelineCommissionEstimateAud;
+  const pipelineRangeSafe =
+    PIPELINE_KPI_LEGALLY_APPROVED &&
+    pipelineRange != null &&
+    pipelineRange.highAud >= pipelineRange.lowAud
+      ? pipelineRange
+      : null;
+
+  return (
+    <>
+      <SectionHeader
+        title="Recently sold"
+        onSeeAll={onOpenSoldSeeAll}
+        style={styles.sectionHeaderSoldStrip}
+      />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.hScrollSoldStrip}
+      >
+        {metrics.recentlySold.map((item) => (
+          <Pressable
+            key={item.id}
+            accessibilityRole="button"
+            accessibilityLabel={`Recently sold ${item.addressLine}`}
+            onPress={onOpenSoldSeeAll}
+          >
+            <View style={styles.soldStripCard}>
+              <Image
+                source={propertyImageAtIndex(item.imageIndex)}
+                style={styles.soldStripImg}
+                resizeMode="cover"
+              />
+              <View style={styles.soldStripBody}>
+                <Text style={styles.soldStripAddr} numberOfLines={2}>
+                  {item.addressLine}
+                </Text>
+                <Text style={styles.soldStripSub} numberOfLines={1}>
+                  {item.suburb}
+                </Text>
+                <Text style={styles.soldStripPrice} numberOfLines={1}>
+                  {item.soldPriceDisplay}
+                </Text>
+                <Text style={styles.soldStripMeta} numberOfLines={1}>
+                  {item.soldAtDisplay}
+                </Text>
+              </View>
+            </View>
+          </Pressable>
+        ))}
+      </ScrollView>
+      <View style={styles.kpiStrip}>
+        <View style={styles.kpiStripRow}>
+          <View
+            style={styles.kpiCol}
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel={`Active listings, ${metrics.activeListingsCount}`}
+          >
+            <Text style={styles.kpiLabel}>Active listings</Text>
+            <Text style={styles.kpiValue}>{metrics.activeListingsCount}</Text>
+          </View>
+          <View
+            style={styles.kpiCol}
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel={`Pending listings, ${metrics.pendingListingsCount}`}
+          >
+            <Text style={styles.kpiLabel}>Pending listings</Text>
+            <Text style={styles.kpiValue}>{metrics.pendingListingsCount}</Text>
+          </View>
+        </View>
+        <View style={styles.kpiStripRow}>
+          <View
+            style={styles.kpiCol}
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel={`Inspections booked, ${metrics.inspectionsBookedCount}`}
+          >
+            <Text style={styles.kpiLabel}>Inspections booked</Text>
+            <Text style={styles.kpiValue}>{metrics.inspectionsBookedCount}</Text>
+          </View>
+          {pipelineRangeSafe ? (
+            <View
+              style={styles.kpiCol}
+              accessible
+              accessibilityRole="text"
+              accessibilityLabel={`${LEGAL_COPY_PIPELINE_COMMISSION_LABEL}, ${formatPipelineCommissionRangeDisplay(pipelineRangeSafe)}`}
+            >
+              <Text style={styles.kpiLabel}>{LEGAL_COPY_PIPELINE_COMMISSION_LABEL}</Text>
+              <Text style={styles.kpiValue} numberOfLines={2}>
+                {formatPipelineCommissionRangeDisplay(pipelineRangeSafe)}
+              </Text>
+            </View>
+          ) : null}
+        </View>
+      </View>
+      {pipelineRangeSafe ? (
+        <Text style={styles.kpiDisclaimer}>{LEGAL_COPY_PIPELINE_COMMISSION_DISCLAIMER}</Text>
+      ) : null}
+    </>
+  );
 }
 
 /** Home — OMM [Figma area](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-1046&t=gEfFuYKIwBHVUzXh-4) */
@@ -420,58 +586,30 @@ export default function HomeScreen() {
     homeSegment?: string;
     _ts?: string;
   }>();
-  const homeRouteParams = useLocalSearchParams<{
-    homeMode?: string;
-  }>();
   const [mode, setMode] = useState<"selling" | "buying">("selling");
   const [buyingSearchActive, setBuyingSearchActive] = useState(false);
   const [searchQuery, setSearchQuery] = useState(DEMO_SEARCH_SUBURB);
   const buyingSearchRef = useRef<RNTextInput>(null);
-  const [sellingSearchQuery, setSellingSearchQuery] = useState("");
-  const sellingSearchRef = useRef<RNTextInput>(null);
   const [recentSearchesPinnedOnly, setRecentSearchesPinnedOnly] =
     useState(false);
   const [saveAlerts, setSaveAlerts] = useState(false);
   const { listings: savedProperties } = useSavedListings();
-  const [agentMetrics, setAgentMetrics] = useState<AgentHomeMetrics>(
-    DEMO_AGENT_HOME_METRICS,
-  );
-  const { onScroll } = useTabBarOnScroll();
-
-  const commitHomeMode = useCallback(
-    (next: "selling" | "buying") => {
-      setMode(next);
-      router.setParams(
-        next === "selling"
-          ? { homeMode: "selling", homeSegment: "selling" }
-          : { homeMode: "buying" },
-      );
-    },
-    [router],
+  const [agentMetrics, setAgentMetrics] = useState<AgentHomeMetricsPayload>(
+    FALLBACK_AGENT_HOME_METRICS,
   );
 
-  /** Agent home KPI + sold preview: demo until `GET /agent/home-metrics` is live and Legal signs off on labels. */
   useEffect(() => {
     let alive = true;
-    loadAgentHomeMetrics()
-      .then((m) => {
-        if (alive) setAgentMetrics(m);
-      })
-      .catch(() => {
-        if (alive) setAgentMetrics(DEMO_AGENT_HOME_METRICS);
-      });
+    (async () => {
+      const next = await fetchAgentHomeMetrics(async () => null);
+      if (alive) setAgentMetrics(next);
+    })();
     return () => {
       alive = false;
     };
   }, []);
 
-  /** Keep deep links and segment control in sync with route query (`?homeMode=`). */
-  useEffect(() => {
-    const m = homeRouteParams.homeMode;
-    if (m === "buying") setMode("buying");
-    if (m === "selling") setMode("selling");
-  }, [homeRouteParams.homeMode]);
-
+  /** Return to Home (e.g. listing published) on Selling. Query lives on `/(tabs)?homeSegment=…` — use global params. */
   useEffect(() => {
     if (search.homeSegment !== "selling") return;
     setMode("selling");
@@ -487,157 +625,87 @@ export default function HomeScreen() {
 
   return (
     <View style={[styles.screen, mode === "buying" && styles.screenBuying]}>
-      <View
-        style={[
-          styles.homeHeaderShell,
-          mode === "buying" && styles.homeHeaderShellBuying,
-          { paddingTop: insets.top + 8 },
-        ]}
-      >
-        <View style={styles.homeHeaderInner}>
-          <View style={styles.topRow}>
-            <Text style={styles.homeTitle}>Home</Text>
-            <View style={styles.headerIcons}>
-              <Pressable
-                hitSlop={12}
-                accessibilityRole="button"
-                accessibilityLabel="Messages"
-                onPress={() => router.push("/messages" as Href)}
-              >
-                <FontAwesome name="comment-o" size={22} color="#000000" />
-              </Pressable>
-            </View>
-          </View>
-
-          <View style={styles.segment}>
-            <Pressable
-              onPress={() => {
-                setBuyingSearchActive(false);
-                commitHomeMode("selling");
-              }}
-              style={[
-                styles.segmentItem,
-                mode === "selling" && styles.segmentActive,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  mode === "selling" && styles.segmentTextActive,
-                ]}
-              >
-                SELLING
-              </Text>
-            </Pressable>
-            <Pressable
-              onPress={() => commitHomeMode("buying")}
-              style={[
-                styles.segmentItem,
-                mode === "buying" && styles.segmentActive,
-              ]}
-            >
-              <Text
-                style={[
-                  styles.segmentText,
-                  mode === "buying" && styles.segmentTextActive,
-                ]}
-              >
-                BUYING
-              </Text>
-            </Pressable>
-          </View>
-
-          {mode === "selling" ? (
-            <>
-              <View
-                style={styles.searchRow}
-                accessibilityHint="Search your listings and pipeline"
-              >
-                <View style={styles.searchField}>
-                  <FontAwesome name="search" size={16} color="#000000" />
-                  <TextInput
-                    ref={sellingSearchRef}
-                    style={styles.searchInput}
-                    value={sellingSearchQuery}
-                    onChangeText={setSellingSearchQuery}
-                    placeholder="Search listings, suburb or address"
-                    placeholderTextColor="rgba(0, 0, 0, 0.45)"
-                    returnKeyType="search"
-                    clearButtonMode="while-editing"
-                    onSubmitEditing={() =>
-                      navigateSellingListingSearch(router, sellingSearchQuery)
-                    }
-                    accessibilityLabel="Search listings"
-                  />
-                </View>
-                <AppButton
-                  variant="filled"
-                  shrink
-                  onPress={() =>
-                    navigateSellingListingSearch(router, sellingSearchQuery)
-                  }
-                  textStyle={styles.exploreBtnLabel}
-                  style={styles.exploreBtnWrap}
-                >
-                  SEARCH
-                </AppButton>
-              </View>
-            </>
-          ) : null}
-        </View>
-      </View>
-
       <ScrollView
-        style={styles.homeScrollFlex}
         showsVerticalScrollIndicator={false}
-        onScroll={onScroll}
-        scrollEventThrottle={16}
         contentContainerStyle={[
           styles.scrollContent,
           {
-            paddingTop: 12,
+            paddingTop: insets.top + 8,
             paddingBottom: insets.bottom + 112,
           },
         ]}
       >
+        <View style={styles.topRow}>
+          <Text style={styles.homeTitle}>Home</Text>
+          <View style={styles.headerIcons}>
+            <Pressable
+              hitSlop={12}
+              accessibilityRole="button"
+              accessibilityLabel="Messages"
+              onPress={() => router.push("/messages" as Href)}
+            >
+              <FontAwesome name="comment-o" size={22} color="#000000" />
+            </Pressable>
+          </View>
+        </View>
+
+        <View style={styles.segment}>
+          <Pressable
+            onPress={() => {
+              setMode("selling");
+              setBuyingSearchActive(false);
+            }}
+            style={[
+              styles.segmentItem,
+              mode === "selling" && styles.segmentActive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.segmentText,
+                mode === "selling" && styles.segmentTextActive,
+              ]}
+            >
+              SELLING
+            </Text>
+          </Pressable>
+          <Pressable
+            onPress={() => setMode("buying")}
+            style={[
+              styles.segmentItem,
+              mode === "buying" && styles.segmentActive,
+            ]}
+          >
+            <Text
+              style={[
+                styles.segmentText,
+                mode === "buying" && styles.segmentTextActive,
+              ]}
+            >
+              BUYING
+            </Text>
+          </Pressable>
+        </View>
+
         {mode === "selling" ? (
           <>
             <NotificationsRow
               onPress={() => router.push("/notifications" as Href)}
             />
-            <View style={{ height: 14 }} />
-            <QuickLinksRow router={router} />
-            <View style={{ height: 14 }} />
-            <AgentHomeKpis metrics={agentMetrics} />
-            <View style={{ height: 6 }} />
-            <SectionHeader
-              title="Recently sold"
-              onSeeAll={() => router.push("/view-performance" as Href)}
+            <View style={{ height: 12 }} />
+            <SellingQuickLinksRow router={router} />
+            <View style={{ height: 18 }} />
+            <SellingPerformanceSlice
+              metrics={agentMetrics}
+              onOpenSoldSeeAll={() =>
+                router.push({ pathname: "/recent-listings", params: { mode: "sold" } } as Href)
+              }
             />
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.soldStripScroll}
-            >
-              {agentMetrics.recentlySold.map((item) => (
-                <Pressable
-                  key={item.id}
-                  accessibilityRole="button"
-                  accessibilityLabel={`Recently sold ${item.headline}`}
-                  onPress={() => router.push("/view-performance" as Href)}
-                >
-                  <RecentlySoldCard item={item} />
-                </Pressable>
-              ))}
-            </ScrollView>
-            <Text style={styles.soldStripFoot}>
-              Demonstration results — wire to CRM / settlement data when ready.
-            </Text>
-            <View style={{ height: 16 }} />
+            <View style={{ height: 14 }} />
             <HeroCTA
               kicker="NEW LISTING"
               title="Publish a property"
-              subtitle="Auto-fill from PriceFinder • SOI in 5 steps"
+              subtitle="Auto-fill listing details • SOI in 5 steps"
               onPress={() => router.push("/add" as Href)}
             />
             <SectionHeader
@@ -723,92 +791,49 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.hScrollDense}
             >
-              <CompactListingCard
-                layout="carousel"
+              <ListingThumbRow
                 imageSource={propertyImageAtIndex(2)}
-                title="83A Glen Iris Road"
-                suburb="Glen Iris VIC"
-                price="$2.05M — $2.35M"
-                beds={3}
-                baths={2}
-                cars={1}
-                badgeLeft="ACTIVE"
-                badgeRight="SOI 14d"
+                titleLine="83A Glen Iris Road"
+                subtitleLine="Glen Iris VIC"
                 onPress={() => router.push("/view-live-listing" as Href)}
               />
-              <CompactListingCard
-                layout="carousel"
+              <ListingThumbRow
                 imageSource={propertyImageAtIndex(0)}
-                title="312 Church Street"
-                suburb="Richmond VIC"
-                price="$1.85M — $2.1M"
-                beds={4}
-                baths={3}
-                cars={2}
-                badgeLeft="LIVE"
-                onPress={() => router.push("/recent-listings" as Href)}
+                titleLine="312 Church Street"
+                subtitleLine="Richmond VIC"
+                onPress={() =>
+                  router.push({ pathname: "/recent-listings", params: { mode: "live" } } as Href)
+                }
               />
-              <CompactListingCard
-                layout="carousel"
+              <ListingThumbRow
                 imageSource={PROPERTY_IMG_1}
-                title="18 Marine Parade"
-                suburb="Elwood VIC"
-                price="$2.95M — $3.2M"
-                beds={5}
-                baths={3}
-                cars={2}
-                badgeRight="UNDER OFFER"
-                onPress={() => router.push("/recent-listings" as Href)}
+                titleLine="18 Marine Parade"
+                subtitleLine="Elwood VIC"
+                onPress={() =>
+                  router.push({ pathname: "/recent-listings", params: { mode: "live" } } as Href)
+                }
               />
             </ScrollView>
             <SectionHeader
               title="Your active listings"
               style={styles.sectionHeaderBeforeListingCard}
-              onSeeAll={() => router.push("/recent-listings" as Href)}
+              onSeeAll={() =>
+                router.push({ pathname: "/recent-listings", params: { mode: "live" } } as Href)
+              }
             />
             <View style={styles.activeListingStack}>
-              <CompactListingCard
+              <ListingThumbRow
                 imageSource={PROPERTY_IMG_1}
-                title={DEMO_PRIMARY_LISTING_TITLE}
-                suburb="Brighton East VIC"
-                price="$2.0M — $2.2M"
-                beds={4}
-                baths={3}
-                cars={2}
-                badgeLeft="ACTIVE"
-                badgeRight="AUTH 14D"
+                titleLine={DEMO_PRIMARY_LISTING_TITLE}
+                subtitleLine="Brighton East VIC • Auth 14d left"
                 onPress={() => router.push("/view-live-listing" as Href)}
               />
-              <CompactListingCard
+              <ListingThumbRow
                 imageSource={PROPERTY_IMG_2}
-                title="Carlton Warehouse Conversion"
-                suburb="Carlton VIC"
-                price="$1.6M — $1.75M"
-                beds={3}
-                baths={2}
-                cars={1}
-                badgeLeft="4 LEADS"
-                badgeRight="SOI OK"
+                titleLine="Carlton Warehouse Conversion"
+                subtitleLine="Carlton VIC • 4 leads · SOI OK"
                 onPress={() => router.push("/list" as Href)}
               />
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Open listing insights"
-                onPress={() => router.push("/list" as Href)}
-                style={({ pressed }) => [
-                  styles.dashboardHint,
-                  pressed && { opacity: 0.92 },
-                ]}
-              >
-                <Text style={styles.dashboardHintText}>
-                  Open dashboard for metrics & drafts
-                </Text>
-                <FontAwesome
-                  name="arrow-right"
-                  size={12}
-                  color="rgba(17,17,17,0.45)"
-                />
-              </Pressable>
             </View>
           </>
         ) : buyingSearchActive ? (
@@ -894,39 +919,39 @@ export default function HomeScreen() {
               <ImageBackground
                 source={PROPERTY_IMG_1}
                 style={styles.buyingHeroBg}
-                imageStyle={styles.buyingHeroImgFlat}
+                imageStyle={styles.buyingHeroImgRadius}
               >
                 <View style={styles.buyingHeroDim} pointerEvents="none" />
-                <View style={styles.buyingHeroSearchOverlay}>
-                  <View style={styles.buyingHeroSearchBar}>
-                    <FontAwesome
-                      name="search"
-                      size={16}
-                      color="#000000"
-                      style={styles.buyingHeroSearchIcon}
-                    />
-                    <TextInput
-                      ref={buyingSearchRef}
-                      style={[styles.searchInput, styles.buyingHeroSearchInput]}
-                      value={searchQuery}
-                      onChangeText={setSearchQuery}
-                      placeholder="Suburb or area"
-                      placeholderTextColor="rgba(0, 0, 0, 0.45)"
-                      returnKeyType="search"
-                      onSubmitEditing={() => setBuyingSearchActive(true)}
-                    />
-                    <AppButton
-                      variant="filled"
-                      shrink
-                      onPress={() => setBuyingSearchActive(true)}
-                      textStyle={styles.exploreBtnLabel}
-                      style={styles.exploreBtnWrap}
-                    >
-                      EXPLORE
-                    </AppButton>
-                  </View>
-                </View>
               </ImageBackground>
+              <View style={styles.buyingHeroPillOuter}>
+                <View style={styles.buyingHeroPill}>
+                  <View style={styles.buyingHeroPillIcon}>
+                    <FontAwesome name="home" size={14} color="#ffffff" />
+                  </View>
+                  <TextInput
+                    ref={buyingSearchRef}
+                    style={[styles.searchInput, styles.buyingHeroPillInput]}
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder="Start a search"
+                    placeholderTextColor="rgba(0, 0, 0, 0.45)"
+                    returnKeyType="search"
+                    onSubmitEditing={() => setBuyingSearchActive(true)}
+                  />
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Explore listings"
+                    hitSlop={8}
+                    onPress={() => setBuyingSearchActive(true)}
+                    style={({ pressed }) => [
+                      styles.buyingHeroMiniGo,
+                      pressed && { opacity: 0.9 },
+                    ]}
+                  >
+                    <FontAwesome name="arrow-right" size={16} color="#ffffff" />
+                  </Pressable>
+                </View>
+              </View>
             </View>
             <View style={styles.recentSearchHeader}>
               <Text style={styles.sectionTitle}>Recent searches</Text>
@@ -975,10 +1000,10 @@ export default function HomeScreen() {
             <HeroCTA
               kicker="BUYER BRIEF"
               title="Post a buyer brief"
-              subtitle="Match listing agents within 24 hours"
+              subtitle="Share your criteria; agents reply when their stock fits"
               onPress={() => router.push("/post-buyer-brief" as Href)}
             />
-            <View style={[styles.sellerNetworkCard, dashedShell]}>
+            <View style={[styles.sellerNetworkCard, fieldShell]}>
               <Text style={styles.sellerNetworkTitle}>
                 6 Active Seller Matches
               </Text>
@@ -1052,51 +1077,51 @@ export default function HomeScreen() {
                   title="Saved properties"
                   style={styles.sectionHeaderBeforeListingCard}
                 />
-                {savedProperties.map((item) => {
-                  const spec = parseBedsLineToCounts(item.beds);
-                  return (
-                    <CompactListingCard
-                      key={item.id}
-                      imageSource={propertyImageAtIndex(item.imageIndex)}
-                      title={item.title}
-                      suburb={
-                        item.id === VIEW_LIVE_LISTING_ID
-                          ? "Brighton East VIC"
-                          : "Melbourne VIC"
+                {savedProperties.map((item) => (
+                  <Pressable
+                    key={item.id}
+                    onPress={() => {
+                      if (item.id === VIEW_LIVE_LISTING_ID) {
+                        router.push("/view-live-listing" as Href);
                       }
+                    }}
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open saved listing ${item.title}`}
+                  >
+                    <LargeListingCard
+                      title={item.title}
                       price={item.price}
-                      beds={spec.beds}
-                      baths={spec.baths}
-                      cars={spec.cars}
+                      beds={item.beds}
                       badgeLeft={item.badgeLeft}
                       badgeRight={item.badgeRight}
-                      onPress={
-                        item.id === VIEW_LIVE_LISTING_ID
-                          ? () => router.push("/view-live-listing" as Href)
-                          : undefined
-                      }
+                      footerLabels={item.footerLabels}
+                      imageSource={propertyImageAtIndex(item.imageIndex)}
                     />
-                  );
-                })}
+                  </Pressable>
+                ))}
               </>
             ) : null}
             <SectionHeader
               title="Recently Listed"
               style={styles.sectionHeaderBeforeListingCard}
-              onSeeAll={() => router.push("/recent-listings" as Href)}
+              onSeeAll={() =>
+                router.push({ pathname: "/recent-listings", params: { mode: "listed" } } as Href)
+              }
             />
-            <CompactListingCard
-              imageSource={PROPERTY_IMG_2}
-              title={DEMO_PRIMARY_LISTING_TITLE}
-              suburb="Brighton East VIC"
-              price="$2.0M — $2.2M"
-              beds={4}
-              baths={3}
-              cars={2}
-              badgeLeft="OFF-MARKET"
-              badgeRight="92% MATCH"
+            <Pressable
               onPress={() => router.push("/view-live-listing" as Href)}
-            />
+              accessibilityRole="button"
+              accessibilityLabel={`Open listing ${DEMO_PRIMARY_LISTING_TITLE}`}
+            >
+              <LargeListingCard
+                variant="buying"
+                title={DEMO_PRIMARY_LISTING_TITLE}
+                price="$2.0M — $2.2M"
+                badgeLeft="OFF-MARKET"
+                badgeRight="92% MATCH"
+                specParts={["4 bed", "3 bath", "650m²"]}
+              />
+            </Pressable>
           </>
         )}
       </ScrollView>
@@ -1108,21 +1133,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: "#fff" },
   /** Buying tab: subtle grouped background so listing cards read like App Store tiles */
   screenBuying: { backgroundColor: "#f5f5f7" },
-  scrollContent: { paddingHorizontal: layout.screenGutter },
-  homeHeaderShell: {
-    backgroundColor: "#ffffff",
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: "rgba(0,0,0,0.08)",
-  },
-  homeHeaderShellBuying: {
-    backgroundColor: "#f5f5f7",
-    borderBottomColor: "rgba(0,0,0,0.06)",
-  },
-  homeHeaderInner: {
-    paddingHorizontal: layout.screenGutter,
-    paddingBottom: 4,
-  },
-  homeScrollFlex: { flex: 1 },
+  scrollContent: { paddingHorizontal: 20 },
   topRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -1164,6 +1175,62 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   segmentTextActive: { color: "#000000" },
+  /** Vertical breathing room above/below quick links strip. */
+  quickLinksBlock: {
+    paddingTop: 6,
+    paddingBottom: 8,
+  },
+  quickLinksScrollInner: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "flex-start",
+    gap: 28,
+    paddingRight: 4,
+    paddingVertical: 4,
+    minHeight: 96,
+  },
+  quickLinkChip: {
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "flex-start",
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    minWidth: 88,
+    backgroundColor: "transparent",
+    borderRadius: 12,
+  },
+  quickLinkChipPressed: { opacity: 0.88 },
+  quickLinkChipIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: "rgba(17,17,17,0.065)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  quickLinkChipLabel: {
+    marginTop: 10,
+    fontSize: 13,
+    fontFamily: "Satoshi-Medium",
+    color: "#111111",
+    textAlign: "center",
+    letterSpacing: -0.1,
+    lineHeight: 17,
+  },
+  quickLinkStubPill: {
+    marginTop: 6,
+    paddingHorizontal: 6,
+    paddingVertical: 3,
+    borderRadius: 4,
+    backgroundColor: "rgba(17,17,17,0.07)",
+  },
+  quickLinkStubPillText: {
+    fontSize: 9,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(17,17,17,0.5)",
+    letterSpacing: 0.35,
+    textTransform: "uppercase",
+  },
   notificationsCard: {
     flexDirection: "row",
     alignItems: "center",
@@ -1191,128 +1258,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontFamily: "Satoshi-Medium",
     color: "#111111",
-  },
-  quickLinksWrap: { marginBottom: 2 },
-  quickLinksSectionTitle: {
-    fontSize: 18,
-    fontFamily: "Satoshi-Medium",
-    color: "#111111",
-    marginBottom: 12,
-  },
-  quickLinksRow: {
-    flexDirection: "row",
-    alignItems: "stretch",
-    gap: 10,
-  },
-  quickLinkTile: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    paddingVertical: 14,
-    paddingHorizontal: 6,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(17,17,17,0.08)",
-    minWidth: 0,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  quickLinkIconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: "rgba(17,17,17,0.06)",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 8,
-  },
-  quickLinkLabel: {
-    fontSize: 12,
-    fontFamily: "Satoshi-Medium",
-    color: "#111111",
-    textAlign: "center",
-  },
-  kpiWrap: { marginBottom: 4 },
-  kpiRow: {
-    flexDirection: "row",
-    alignItems: "stretch",
-    backgroundColor: "#fff",
-    borderRadius: 14,
-    paddingVertical: 16,
-    paddingHorizontal: 14,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  kpiTile: { flex: 1, justifyContent: "center" },
-  kpiTileGrow: { flex: 1.25 },
-  kpiDivider: {
-    width: StyleSheet.hairlineWidth,
-    backgroundColor: "rgba(17,17,17,0.12)",
-    marginHorizontal: 10,
-  },
-  kpiLabel: {
-    fontSize: 11,
-    fontFamily: "Satoshi-Medium",
-    color: "rgba(17,17,17,0.5)",
-    letterSpacing: 0.3,
-    textTransform: "uppercase",
-    marginBottom: 4,
-  },
-  kpiValue: {
-    fontSize: 24,
-    fontFamily: "Satoshi-Medium",
-    color: "#111111",
-    letterSpacing: -0.5,
-  },
-  kpiHint: {
-    marginTop: 4,
-    fontSize: 11,
-    fontFamily: "Satoshi-Medium",
-    color: "rgba(17,17,17,0.42)",
-  },
-  soldStripScroll: { gap: 10, paddingBottom: 6 },
-  soldStripCard: {
-    width: 158,
-    borderRadius: 14,
-    padding: 14,
-    backgroundColor: "#fff",
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(17,17,17,0.08)",
-    minHeight: 108,
-    justifyContent: "flex-end",
-  },
-  soldStripPrice: {
-    fontSize: 18,
-    fontFamily: "Satoshi-Medium",
-    color: "#111111",
-    letterSpacing: -0.3,
-    marginBottom: 6,
-  },
-  soldStripTitle: {
-    fontSize: 13,
-    fontFamily: "Satoshi-Medium",
-    color: "#111111",
-    lineHeight: 18,
-    marginBottom: 4,
-  },
-  soldStripMeta: {
-    fontSize: 11,
-    fontFamily: "Satoshi-Medium",
-    color: "rgba(17,17,17,0.45)",
-  },
-  soldStripFoot: {
-    fontSize: 11,
-    fontFamily: "Satoshi-Medium",
-    color: "rgba(17,17,17,0.42)",
-    marginTop: 8,
-    lineHeight: 16,
   },
   hero: {
     flexDirection: "row",
@@ -1357,7 +1302,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     marginBottom: 14,
   },
-  /** Space before compact listing card blocks (Buying + Selling) */
+  /** Space before any `LargeListingCard` block (Buying + Selling): even header↔card and section↔section rhythm */
   sectionHeaderBeforeListingCard: {
     marginTop: 24,
     marginBottom: 12,
@@ -1373,7 +1318,93 @@ const styles = StyleSheet.create({
     color: "rgba(0, 0, 0, 0.45)",
   },
   hScroll: { gap: 12, paddingBottom: 24 },
-  hScrollDense: { gap: 12, paddingBottom: 10, paddingRight: 12 },
+  hScrollDense: { gap: 10, paddingBottom: 8 },
+  /** Tighter footer before the KPI strip (selling metrics). */
+  hScrollSoldStrip: { gap: 10, paddingBottom: 12 },
+  sectionHeaderSoldStrip: {
+    marginTop: 0,
+  },
+  soldStripCard: {
+    width: 208,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    overflow: "hidden",
+    marginRight: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(17,17,17,0.08)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  soldStripImg: { width: "100%", height: 88 },
+  soldStripBody: {
+    paddingHorizontal: 12,
+    paddingTop: 10,
+    paddingBottom: 12,
+  },
+  soldStripAddr: {
+    fontSize: 14,
+    fontFamily: "Satoshi-Medium",
+    color: "#111111",
+    lineHeight: 19,
+  },
+  soldStripSub: {
+    marginTop: 4,
+    fontSize: 12,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(17,17,17,0.48)",
+  },
+  soldStripPrice: {
+    marginTop: 8,
+    fontSize: 15,
+    fontFamily: "Satoshi-Medium",
+    color: "#111111",
+  },
+  soldStripMeta: {
+    marginTop: 4,
+    fontSize: 11,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(17,17,17,0.42)",
+  },
+  kpiStrip: {
+    flexDirection: "column",
+    backgroundColor: "#fff",
+    borderRadius: 14,
+    padding: 16,
+    gap: 14,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(17,17,17,0.08)",
+    marginBottom: 0,
+  },
+  kpiStripRow: {
+    flexDirection: "row",
+    gap: 16,
+  },
+  kpiCol: {
+    flex: 1,
+    minWidth: 0,
+  },
+  kpiLabel: {
+    fontSize: 12,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(17,17,17,0.46)",
+    marginBottom: 6,
+  },
+  kpiValue: {
+    fontSize: 20,
+    fontFamily: "Satoshi-Medium",
+    color: "#111111",
+  },
+  kpiDisclaimer: {
+    marginTop: 10,
+    fontSize: 11,
+    lineHeight: 15,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(17,17,17,0.42)",
+    marginBottom: 2,
+  },
   sellerNetworkCard: {
     borderRadius: 14,
     padding: 20,
@@ -1506,6 +1537,35 @@ const styles = StyleSheet.create({
     fontFamily: "Satoshi-Medium",
     color: "#111111",
   },
+  thumbRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    width: 240,
+    padding: 10,
+    marginRight: 10,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(17,17,17,0.08)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  thumbRowImg: { width: 52, height: 52, borderRadius: 8 },
+  thumbRowBody: { flex: 1, marginLeft: 12, minWidth: 0 },
+  thumbRowTitle: {
+    fontSize: 15,
+    fontFamily: "Satoshi-Medium",
+    color: "#111111",
+  },
+  thumbRowSub: {
+    fontSize: 12,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(17,17,17,0.48)",
+    marginTop: 2,
+  },
   activeListingStack: {
     gap: 10,
     marginBottom: 8,
@@ -1523,52 +1583,66 @@ const styles = StyleSheet.create({
     color: "rgba(17,17,17,0.5)",
   },
   buyingHeroBleed: {
-    marginHorizontal: -layout.screenGutter,
-    marginBottom: 16,
+    marginHorizontal: -20,
+    marginBottom: 8,
     overflow: "hidden",
-    borderRadius: 0,
   },
-  buyingHeroBg: { height: 168, justifyContent: "flex-end" },
-  /** Full-width rectangle — no capsule / “pill” mask on the photo */
-  buyingHeroImgFlat: { borderRadius: 0 },
+  buyingHeroBg: { height: 152, justifyContent: "flex-end" },
+  buyingHeroImgRadius: {},
   buyingHeroDim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(20,26,38,0.2)",
+    backgroundColor: "rgba(20,26,38,0.22)",
   },
-  buyingHeroSearchOverlay: {
-    paddingHorizontal: 16,
-    paddingBottom: 16,
-    paddingTop: 0,
+  buyingHeroPillOuter: {
+    position: "absolute",
+    left: 20,
+    right: 20,
+    bottom: 18,
   },
-  buyingHeroSearchBar: {
+  buyingHeroPill: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#fff",
-    borderRadius: 12,
-    paddingLeft: 14,
-    paddingRight: 8,
-    paddingVertical: 8,
-    minHeight: 50,
-    gap: 8,
+    borderRadius: 28,
+    paddingLeft: 6,
+    paddingRight: 6,
+    paddingVertical: 6,
+    minHeight: 52,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
+    shadowRadius: 12,
+    elevation: 6,
   },
-  buyingHeroSearchIcon: { marginRight: 4 },
-  buyingHeroSearchInput: {
+  buyingHeroPillIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "#111111",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 10,
+  },
+  buyingHeroPillInput: {
     flex: 1,
     marginLeft: 0,
     paddingVertical: 6,
     fontSize: 15,
-    minWidth: 0,
+  },
+  buyingHeroMiniGo: {
+    width: 38,
+    height: 38,
+    borderRadius: 19,
+    backgroundColor: "#111111",
+    alignItems: "center",
+    justifyContent: "center",
+    marginLeft: 8,
   },
   recentSearchHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginTop: 0,
+    marginTop: 8,
     marginBottom: 14,
   },
   recentSearchToggle: { flexDirection: "row", alignItems: "center", gap: 8 },
@@ -1668,6 +1742,138 @@ const styles = StyleSheet.create({
     color: "rgba(0, 0, 0, 0.65)",
     textAlign: "center",
   },
+  largeCardOuter: {
+    borderRadius: 16,
+    marginBottom: 12,
+    backgroundColor: "transparent",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.15,
+    shadowRadius: 24,
+    elevation: 10,
+  },
+  /** Slightly softer on shorter buying hero — same structure */
+  largeCardOuterBuying: {
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.13,
+    shadowRadius: 20,
+    elevation: 9,
+  },
+  largeCard: {
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: "#fff",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(0, 0, 0, 0.09)",
+  },
+  largeCardBuying: {},
+  largeImgWrap: { height: 200, position: "relative" },
+  largeImgWrapBuying: { height: 168 },
+  largeImg: { width: "100%", height: "100%" },
+  badgeLeft: {
+    position: "absolute",
+    top: 12,
+    left: 12,
+    backgroundColor: "#000000",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+  badgeLeftText: {
+    fontSize: 10,
+    fontFamily: "Satoshi-Medium",
+    color: "#fff",
+    letterSpacing: 0.5,
+  },
+  badgeLeftBuying: { backgroundColor: "#212121" },
+  badgeRight: {
+    position: "absolute",
+    top: 12,
+    right: 12,
+    backgroundColor: "rgba(255,255,255,0.92)",
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+  },
+  badgeRightText: {
+    fontSize: 10,
+    fontFamily: "Satoshi-Medium",
+    color: "#000000",
+  },
+  badgeRightBuying: { backgroundColor: "#f2f2f2" },
+  badgeRightTextBuying: { color: "#000" },
+  largeBody: { paddingHorizontal: 16, paddingTop: 16, paddingBottom: 16 },
+  propTitle: {
+    fontSize: 18,
+    fontFamily: "Satoshi-Medium",
+    color: "#000000",
+    lineHeight: 24,
+  },
+  propTitleBuying: {
+    fontSize: 16,
+    fontFamily: "Satoshi-Medium",
+    color: "#000",
+    lineHeight: 21,
+  },
+  propPrice: {
+    fontSize: 16,
+    fontFamily: "Satoshi-Medium",
+    color: "#000000",
+    marginTop: 6,
+    lineHeight: 22,
+  },
+  propPriceBuying: {
+    fontSize: 14,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(0,0,0,0.55)",
+    marginTop: 6,
+    lineHeight: 20,
+  },
+  propSpecs: {
+    fontSize: 12,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(0, 0, 0, 0.45)",
+    marginTop: 6,
+    letterSpacing: 0.4,
+    lineHeight: 16,
+  },
+  specRowBuying: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    alignItems: "center",
+    marginTop: 6,
+  },
+  specChipBuying: {
+    fontSize: 11,
+    fontWeight: "400",
+    color: "rgba(0, 0, 0, 0.55)",
+    textTransform: "lowercase",
+  },
+  specSepBuying: {
+    fontSize: 11,
+    fontWeight: "400",
+    color: "rgba(0, 0, 0, 0.45)",
+  },
+  propStatsRow: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    marginTop: 16,
+    paddingTop: 16,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "rgba(0, 0, 0, 0.12)",
+  },
+  propStat: {
+    fontSize: 10,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(0, 0, 0, 0.55)",
+    letterSpacing: 0.3,
+    lineHeight: 14,
+    flex: 1,
+  },
+  propStatFooterStart: { textAlign: "left", paddingRight: 6 },
+  propStatFooterMid: { textAlign: "center", paddingHorizontal: 4 },
+  propStatFooterEnd: { textAlign: "right", paddingLeft: 6 },
   /** Search + EXPLORE — [Figma: flat beige field, black icon + type, 12px radius to match EXPLORE] */
   searchRow: {
     flexDirection: "row",

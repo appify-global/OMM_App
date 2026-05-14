@@ -5,9 +5,8 @@ import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { Image, LayoutChangeEvent, Pressable, StyleSheet, useWindowDimensions, View } from 'react-native';
 
-import { GlassSurface } from '@/components/GlassSurface';
 import { Text } from '@/components/OMMText';
-import { Fonts, brand, glass, ink, inkMuted, layout, toolbar } from '@/constants/theme';
+import { Fonts, brand, ink, inkMuted, layout, toolbar } from '@/constants/theme';
 import { hapticLight } from '@/lib/haptics';
 
 const LOGO = require('@/assets/images/match-logo.png');
@@ -19,21 +18,21 @@ export type ScreenHeaderProps = {
   /** Appended after the built-in notifications + messages tiles. */
   right?: ReactNode;
   showBrand?: boolean;
-  /** Hairline divider beneath the shell. */
+  /** Hairline divider beneath the header. */
   showDivider?: boolean;
   /** Red badge on notifications (demo / unread hint). Default true. */
   showNotificationBadge?: boolean;
-  /** OMM identity dashed outer outline around the header shell. */
-  dashed?: boolean;
+  /** Optional subtle solid hairline frame around the header shell. */
+  framed?: boolean;
+  /** `large` uses the screen large-title size for the leading title. */
+  variant?: 'default' | 'large';
 };
 
 /**
- * Glass app header. One frosted shell containing:
- *   - leading rail (optional back + subtle title)
- *   - geometrically centred MATCH wordmark
- *   - trailing rail (notifications + messages, both glass tiles)
- *
- * Toggles / segmented controls live OUTSIDE the header pill — see `HeaderToggle`.
+ * Flat app header — no glass pill, no icon-tile circles.
+ *   - Leading rail: optional back chevron + subtle title
+ *   - Centre: geometrically centred MATCH wordmark
+ *   - Trailing rail: bell + message icons (plain, no tile background)
  */
 export function ScreenHeader({
   title,
@@ -43,7 +42,8 @@ export function ScreenHeader({
   showBrand = true,
   showDivider = false,
   showNotificationBadge = true,
-  dashed = false,
+  framed = false,
+  variant = 'default',
 }: ScreenHeaderProps) {
   const router = useRouter();
   const { width: windowWidth } = useWindowDimensions();
@@ -51,17 +51,12 @@ export function ScreenHeader({
 
   const titleMaxWidth = useMemo(() => {
     const backReserve = onBack ? 40 : 0;
-    /** Half the MATCH mark + breathing room — title must not enter this band around center. */
     const logoHalfBand = brand.toolbarMarkMaxWidth / 2 + 10;
     const shellSlack = 24;
-    const rowFallback = Math.max(
-      200,
-      windowWidth - 2 * layout.screenGutter - shellSlack,
-    );
+    const rowFallback = Math.max(200, windowWidth - 2 * layout.screenGutter - shellSlack);
     const row = toolbarWidth > 0 ? toolbarWidth : rowFallback;
 
     if (showBrand) {
-      /** Left flex column is ~half the row; reserve the inner half of the logo so text never overlaps the mark. */
       return Math.max(48, Math.floor(row / 2 - logoHalfBand - backReserve));
     }
     return Math.max(
@@ -86,119 +81,88 @@ export function ScreenHeader({
   };
 
   return (
-    <View style={[styles.outerLift, dashed && styles.dashedFrame]}>
-      <GlassSurface style={styles.shell} noShadow lightSheen>
-        <View style={styles.toolbarRow} onLayout={onToolbarLayout}>
-          <View style={styles.leadingRail}>
-            <View style={styles.leadingCluster}>
-              {onBack ? (
-                <Pressable
-                  onPress={onBack}
-                  onPressIn={() => hapticLight()}
-                  hitSlop={10}
-                  accessibilityRole="button"
-                  accessibilityLabel={backLabel}
-                  style={({ pressed }) => [styles.backHit, pressed && styles.hitPressed]}>
-                  <FontAwesome name="chevron-left" size={17} color={ink} />
-                </Pressable>
-              ) : null}
-              <Text
-                style={[styles.toolbarTitle, { maxWidth: titleMaxWidth }]}
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                accessibilityRole="header">
-                {title}
-              </Text>
-            </View>
-          </View>
-
-          {showBrand ? (
-            <View style={styles.logoLayer} pointerEvents="none">
-              <View pointerEvents="none">
-                <Image
-                  source={LOGO}
-                  style={styles.brandImage}
-                  resizeMode="contain"
-                  accessibilityRole="image"
-                  accessibilityLabel="MATCH"
-                />
-              </View>
-            </View>
-          ) : null}
-
-          <View style={styles.trailingRail}>
-            <View style={styles.inboxGroup}>
-              <GlassIconTile
-                onPress={goNotifications}
-                label="Notifications"
-                icon="bell-o"
-                badge={showNotificationBadge}
-              />
-              <GlassIconTile onPress={goMessages} label="Messages" icon="envelope-o" />
-              {right}
-            </View>
+    <View style={[styles.header, framed && styles.headerFrame]}>
+      <View style={styles.toolbarRow} onLayout={onToolbarLayout}>
+        {/* Leading rail */}
+        <View style={styles.leadingRail}>
+          <View style={styles.leadingCluster}>
+            {onBack ? (
+              <Pressable
+                onPress={onBack}
+                onPressIn={() => hapticLight()}
+                hitSlop={10}
+                accessibilityRole="button"
+                accessibilityLabel={backLabel}
+                style={styles.backHit}>
+                <FontAwesome name="chevron-left" size={17} color={ink} />
+              </Pressable>
+            ) : null}
+            <Text
+              style={[
+                styles.toolbarTitle,
+                variant === 'large' && styles.toolbarTitleLarge,
+                { maxWidth: titleMaxWidth },
+              ]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+              accessibilityRole="header">
+              {title}
+            </Text>
           </View>
         </View>
-      </GlassSurface>
+
+        {/* Centred MATCH wordmark */}
+        {showBrand ? (
+          <View style={styles.logoLayer} pointerEvents="none">
+            <Image
+              source={LOGO}
+              style={styles.brandImage}
+              resizeMode="contain"
+              accessibilityRole="image"
+              accessibilityLabel="MATCH"
+            />
+          </View>
+        ) : null}
+
+        {/* Trailing rail — plain icon buttons, no tile backgrounds */}
+        <View style={styles.trailingRail}>
+          <View style={styles.inboxGroup}>
+            <Pressable
+              onPress={goNotifications}
+              onPressIn={() => hapticLight()}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel="Notifications"
+              style={styles.iconBtn}>
+              <FontAwesome name="bell-o" size={18} color={ink} />
+              {showNotificationBadge ? <View style={styles.notifBadge} /> : null}
+            </Pressable>
+            <Pressable
+              onPress={goMessages}
+              onPressIn={() => hapticLight()}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel="Messages"
+              style={styles.iconBtn}>
+              <FontAwesome name="envelope-o" size={17} color={ink} />
+            </Pressable>
+            {right}
+          </View>
+        </View>
+      </View>
+
       {showDivider ? <View style={styles.dividerBelow} /> : null}
     </View>
   );
 }
 
-/** Mirrors the floating tab bar shadow language so header + nav read as a pair. */
-
-function GlassIconTile({
-  onPress,
-  label,
-  icon,
-  badge,
-}: {
-  onPress: () => void;
-  label: string;
-  icon: React.ComponentProps<typeof FontAwesome>['name'];
-  badge?: boolean;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      onPressIn={() => hapticLight()}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      style={({ pressed }) => [styles.iconTileWrap, pressed && styles.hitPressed]}>
-      <GlassSurface style={styles.iconTile} noShadow>
-        <View style={styles.iconTileInner}>
-          <FontAwesome name={icon} size={14} color={ink} />
-          {badge ? <View style={styles.notifBadge} /> : null}
-        </View>
-      </GlassSurface>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
-  /**
-   * Mirror the floating tab bar exactly: 64px tall, 50px pill radius, 10/12 padding,
-   * y4/blur20/0.1 shadow, transparent backing — the GlassSurface inside delivers the
-   * blurred material so content reads through as it scrolls under.
-   */
-  outerLift: {
-    height: 64,
-    borderRadius: 50,
+  header: {
+    height: 52,
     backgroundColor: 'transparent',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 4 },
-    shadowRadius: 20,
-    elevation: 14,
-  },
-  shell: {
-    flex: 1,
-    borderRadius: 50,
-    paddingVertical: 12,
-    paddingHorizontal: 10,
   },
   toolbarRow: {
-    minHeight: toolbar.rowMinHeight,
+    flex: 1,
     position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
@@ -209,7 +173,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
     maxWidth: '50%',
     zIndex: 1,
-    paddingLeft: 8,
+    paddingLeft: 4,
     paddingRight: 8,
     justifyContent: 'center',
     overflow: 'hidden',
@@ -236,6 +200,13 @@ const styles = StyleSheet.create({
     color: inkMuted,
     letterSpacing: -0.15,
   },
+  toolbarTitleLarge: {
+    fontSize: layout.largeTitleSize,
+    lineHeight: 30,
+    fontFamily: Fonts.medium,
+    color: ink,
+    letterSpacing: -0.6,
+  },
   logoLayer: {
     ...StyleSheet.absoluteFillObject,
     alignItems: 'center',
@@ -260,28 +231,19 @@ const styles = StyleSheet.create({
   inboxGroup: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 20,
+    paddingRight: 4,
   },
-  iconTileWrap: {
-    width: 32,
-    height: 32,
-  },
-  iconTile: {
-    width: 32,
-    height: 32,
-    borderRadius: 10,
-  },
-  iconTileInner: {
+  iconBtn: {
     width: 32,
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
   },
   notifBadge: {
     position: 'absolute',
-    top: 5,
-    right: 6,
+    top: 4,
+    right: 4,
     width: 7,
     height: 7,
     borderRadius: 3.5,
@@ -289,19 +251,16 @@ const styles = StyleSheet.create({
     borderWidth: 1.5,
     borderColor: '#fff',
   },
-  dashedFrame: {
+  headerFrame: {
     borderRadius: 56,
-    borderWidth: 1.25,
-    borderStyle: 'dashed',
-    borderColor: 'rgba(60, 60, 67, 0.32)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderStyle: 'solid',
+    borderColor: 'rgba(60, 60, 67, 0.22)',
     padding: 4,
   },
   dividerBelow: {
     height: StyleSheet.hairlineWidth,
-    backgroundColor: glass.edge,
-    marginTop: 8,
-  },
-  hitPressed: {
-    opacity: 0.55,
+    backgroundColor: 'rgba(0,0,0,0.08)',
+    marginTop: 4,
   },
 });

@@ -13,6 +13,7 @@ import { layout } from '@/constants/theme';
 
 import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
 import { DEMO_AGENT_AGENCY } from '@/lib/melbourne-demo-locations';
+import { PUBLISHED_AGENT_REVIEWS, publishedReviewContextLine } from '@/lib/agent-published-reviews';
 
 const CARD_R = 14;
 const GOLD = '#c9a227';
@@ -33,38 +34,15 @@ const CHIPS: { key: 'all' | '5' | '4' | '3' | 'photos'; label: string; showChevr
   { key: 'photos', label: 'WITH PHOTOS' },
 ];
 
-const ALL_REVIEWS = [
-  {
-    name: 'Sarah Chen',
-    role: 'Buyers Agent • BR Realty',
-    rating: '5.0',
-    quote: 'Quick replies, SOI was always on hand. Settlement ran smooth.',
-    date: '14 APR 2026',
-  },
-  {
-    name: 'Tom Reid',
-    role: 'Listing Agent • Marshall White',
-    rating: '4.8',
-    quote: 'Clear authority docs, fair commission split. Would work with again.',
-    date: '02 APR 2026',
-  },
-  {
-    name: 'Anita Wong',
-    role: 'Buyers Agent · Eastside',
-    rating: '5.0',
-    quote:
-      "Great comms around the vendor's expectations. Helped my client land the place $40k under asking.",
-    date: '28 MAR 2026',
-  },
-  {
-    name: 'Marcus Lee',
-    role: 'Vendor · Auction',
-    rating: '4.6',
-    quote:
-      'On-time SOI, responsive on weekends. Minor delay on the contract draft but otherwise solid.',
-    date: '19 MAR 2026',
-  },
-] as const;
+const ALL_REVIEWS = PUBLISHED_AGENT_REVIEWS.map((r) => ({
+  id: r.id,
+  name: r.reviewerName,
+  role: r.reviewerRole,
+  rating: r.rating,
+  quote: r.quote,
+  date: r.date,
+  context: publishedReviewContextLine(r),
+}));
 
 type ChipKey = (typeof CHIPS)[number]['key'];
 
@@ -173,7 +151,7 @@ export default function AgentReviewsScreen() {
         </View>
 
         {filteredReviews.map((r) => (
-          <View key={`${r.name}-${r.date}`} style={styles.reviewCard}>
+          <View key={r.id} style={styles.reviewCard}>
             <View style={styles.reviewTop}>
               <Image source={PROPERTY_IMG_1} style={styles.reviewAvatar} resizeMode="cover" />
               <View style={styles.reviewMeta}>
@@ -184,6 +162,7 @@ export default function AgentReviewsScreen() {
             </View>
             <View style={styles.reviewBodyDivider} />
             <Text style={styles.reviewQuote}>{r.quote}</Text>
+            <Text style={styles.reviewContext}>{r.context}</Text>
             <Text style={styles.reviewDate}>{r.date}</Text>
           </View>
         ))}
@@ -303,5 +282,12 @@ const styles = StyleSheet.create({
   reviewRole: { fontSize: 12, fontWeight: '400', color: 'rgba(0, 0, 0, 0.5)', marginTop: 2 },
   reviewStars: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: '#000000' },
   reviewQuote: { fontSize: 14, fontWeight: '400', color: '#000000', lineHeight: 21 },
-  reviewDate: { marginTop: 12, fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)' },
+  reviewContext: {
+    marginTop: 8,
+    fontSize: 11,
+    fontWeight: '400',
+    color: 'rgba(0, 0, 0, 0.5)',
+    lineHeight: 16.5,
+  },
+  reviewDate: { marginTop: 8, fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)' },
 });

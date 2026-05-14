@@ -289,7 +289,7 @@ export default function ActivitiesScreen() {
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={[styles.headBlock, hPad]}>
-        <ScreenHeader title="Activities" />
+        <ScreenHeader title="Activities" variant="large" />
       </View>
 
       <ScrollView

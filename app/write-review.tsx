@@ -1,26 +1,30 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
-import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { layout } from '@/constants/theme';
-import { DEMO_AGENT_AGENCY, DEMO_PRIMARY_STREET } from '@/lib/melbourne-demo-locations';
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
+import {
+  canWriteReviewForDeal,
+  getDealAcknowledgement,
+  listDealsEligibleToWriteReview,
+  type DealAcknowledgementRecord,
+} from '@/lib/deal-acknowledgement';
 
 /**
- * Write a review — pending carousel (same as Reviews) + dashed form + publish.
+ * Write a review — pending carousel (same as Reviews) + hairline-bordered form + publish.
  * [Figma 1053:2603](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-2603&t=2eZigRM0BwNtC5wd-4)
  */
 
 const BLOCK_GAP = 24;
 const LABEL_FIELD_GAP = 8;
-const STROKE = 'rgba(0, 0, 0, 0.55)';
-const STROKE_W = 1.5;
 const MUTED = 'rgba(0, 0, 0, 0.55)';
 const CARD_R = 8;
 const PENDING_CARD_W = 180;
@@ -35,62 +39,32 @@ const STAR_CAT = 16;
 const STAR_CAT_GAP = 6;
 const LIGHT_STAR = 'rgba(0, 0, 0, 0.35)';
 
-const PENDING = [
-  {
-    id: '1',
-    name: 'Sarah Chen',
-    agency: DEMO_AGENT_AGENCY,
-    address: DEMO_PRIMARY_STREET,
-    badge: 'WRITING' as string | null,
-    active: true,
-  },
-  {
-    id: '2',
-    name: 'Tom Reid',
-    agency: 'Marshall White',
-    address: '19 Dickens St, Elwood VIC 3184',
-    badge: null,
-    active: false,
-  },
-  {
-    id: '3',
-    name: 'Priya N.',
-    agency: 'Jellis Craig',
-    address: '8 Davis St, Malvern',
-    badge: null,
-    active: false,
-  },
-] as const;
+type PendingReviewCard = {
+  id: string;
+  propertyRef: string;
+  name: string;
+  agency: string;
+  address: string;
+  badge: string | null;
+  active: boolean;
+};
 
-function DashedFrame({
-  width,
-  height,
-  borderRadius,
-}: {
-  width: number;
-  height: number;
-  borderRadius: number;
-}) {
-  if (width <= 0 || height <= 0) return null;
-  const inset = STROKE_W / 2;
-  return (
-    <Svg pointerEvents="none" width={width} height={height} style={StyleSheet.absoluteFill}>
-      <Rect
-        x={inset}
-        y={inset}
-        width={Math.max(0, width - STROKE_W)}
-        height={Math.max(0, height - STROKE_W)}
-        rx={borderRadius}
-        ry={borderRadius}
-        fill="none"
-        stroke={STROKE}
-        strokeWidth={STROKE_W}
-      />
-    </Svg>
-  );
+function mapEligibleDealToPendingCard(
+  deal: DealAcknowledgementRecord,
+  activePropertyRef: string | null,
+): PendingReviewCard {
+  return {
+    id: deal.propertyRef,
+    propertyRef: deal.propertyRef,
+    name: deal.counterpartyName,
+    agency: deal.counterpartyAgency,
+    address: `${deal.suburb} · ${deal.propertyType}`,
+    badge: activePropertyRef === deal.propertyRef ? 'WRITING' : null,
+    active: activePropertyRef === deal.propertyRef,
+  };
 }
 
-function DashedSurface({
+function HairlineCard({
   borderRadius,
   children,
   style,
@@ -99,21 +73,24 @@ function DashedSurface({
   children: ReactNode;
   style?: object;
 }) {
-  const [size, setSize] = useState({ w: 0, h: 0 });
   return (
     <View
-      style={[{ position: 'relative', backgroundColor: '#fff' }, style]}
-      onLayout={(e) => {
-        const { width, height } = e.nativeEvent.layout;
-        setSize({ w: Math.ceil(width), h: Math.ceil(height) });
-      }}>
-      <DashedFrame width={size.w} height={size.h} borderRadius={borderRadius} />
+      style={[
+        {
+          backgroundColor: '#fff',
+          borderRadius,
+          borderWidth: FIELD_OUTLINE_WIDTH,
+          borderColor: FIELD_OUTLINE_COLOR,
+          borderStyle: 'solid',
+        },
+        style,
+      ]}>
       {children}
     </View>
   );
 }
 
-function DashedFieldShell({
+function FieldShell({
   height,
   borderRadius,
   children,
@@ -124,13 +101,16 @@ function DashedFieldShell({
   children: ReactNode;
   innerStyle?: StyleProp<ViewStyle>;
 }) {
-  const [w, setW] = useState(0);
   return (
     <View
-      style={[styles.dashShell, { minHeight: height }]}
-      onLayout={(e) => setW(Math.ceil(e.nativeEvent.layout.width))}>
-      <DashedFrame width={w} height={height} borderRadius={borderRadius} />
-      <View style={[styles.dashInner, { minHeight: height, height }, innerStyle]}>{children}</View>
+      style={[
+        styles.fieldOutline,
+        {
+          minHeight: height,
+          borderRadius,
+        },
+      ]}>
+      <View style={[styles.fieldOutlineInner, { minHeight: height, height }, innerStyle]}>{children}</View>
     </View>
   );
 }
@@ -181,9 +161,11 @@ function CategoryRow({
 function PendingCard({
   item,
   isLast,
+  onPress,
 }: {
-  item: (typeof PENDING)[number];
+  item: PendingReviewCard;
   isLast: boolean;
+  onPress?: () => void;
 }) {
   const content = (
     <>
@@ -220,23 +202,36 @@ function PendingCard({
 
   if (item.active) {
     return (
-      <View style={[styles.pendingCardActive, { width: PENDING_CARD_W, minHeight: PENDING_CARD_H }, tail]}>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        style={[styles.pendingCardActive, { width: PENDING_CARD_W, minHeight: PENDING_CARD_H }, tail]}>
         {content}
-      </View>
+      </Pressable>
     );
   }
 
   return (
-    <DashedSurface borderRadius={CARD_R} style={[{ width: PENDING_CARD_W, minHeight: PENDING_CARD_H }, tail]}>
-      <View style={styles.pendingCardInner}>{content}</View>
-    </DashedSurface>
+    <Pressable onPress={onPress} accessibilityRole="button">
+      <HairlineCard borderRadius={CARD_R} style={[{ width: PENDING_CARD_W, minHeight: PENDING_CARD_H }, tail]}>
+        <View style={styles.pendingCardInner}>{content}</View>
+      </HairlineCard>
+    </Pressable>
   );
+}
+
+function applyDealToForm(deal: DealAcknowledgementRecord, setAgent: (v: string) => void, setDeal: (v: string) => void) {
+  setAgent(`${deal.counterpartyName} · ${deal.counterpartyAgency}`);
+  setDeal(`${deal.propertyRef} · ${deal.suburb}`);
 }
 
 export default function WriteReviewScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { propertyRef: propertyRefParam } = useLocalSearchParams<{ propertyRef?: string }>();
 
+  const [eligibleDeals, setEligibleDeals] = useState<DealAcknowledgementRecord[]>([]);
+  const [activePropertyRef, setActivePropertyRef] = useState<string | null>(null);
   const [agent, setAgent] = useState('');
   const [deal, setDeal] = useState('');
   const [overall, setOverall] = useState(0);
@@ -244,6 +239,66 @@ export default function WriteReviewScreen() {
   const [time, setTime] = useState(0);
   const [prof, setProf] = useState(0);
   const [details, setDetails] = useState('');
+
+  const loadEligibleDeal = useCallback(
+    async (requestedRef?: string) => {
+      const eligible = await listDealsEligibleToWriteReview();
+      setEligibleDeals(eligible);
+
+      const requested =
+        typeof requestedRef === 'string' && requestedRef.trim().length > 0 ? requestedRef.trim() : null;
+      const picked =
+        requested && eligible.some((row) => row.propertyRef === requested)
+          ? requested
+          : eligible[0]?.propertyRef ?? null;
+
+      if (!picked) {
+        Alert.alert(
+          'Acknowledgement required',
+          'Acknowledge the transaction in Messages before you can write a review.',
+          [{ text: 'OK', onPress: () => router.back() }],
+        );
+        return;
+      }
+
+      const row = eligible.find((entry) => entry.propertyRef === picked) ?? (await getDealAcknowledgement(picked));
+      if (!row || !canWriteReviewForDeal(row)) {
+        Alert.alert(
+          'Review not available',
+          'This transaction is not eligible for a review yet.',
+          [{ text: 'OK', onPress: () => router.replace('/reviews' as Href) }],
+        );
+        return;
+      }
+
+      setActivePropertyRef(picked);
+      applyDealToForm(row, setAgent, setDeal);
+    },
+    [router],
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      const ref =
+        typeof propertyRefParam === 'string' && propertyRefParam.trim().length > 0
+          ? propertyRefParam.trim()
+          : undefined;
+      void loadEligibleDeal(ref);
+    }, [loadEligibleDeal, propertyRefParam]),
+  );
+
+  const pending = eligibleDeals.map((row) => mapEligibleDealToPendingCard(row, activePropertyRef));
+
+  const onPendingPress = useCallback(
+    (item: PendingReviewCard) => {
+      const row = eligibleDeals.find((entry) => entry.propertyRef === item.propertyRef);
+      if (!row) return;
+      setActivePropertyRef(item.propertyRef);
+      applyDealToForm(row, setAgent, setDeal);
+      router.setParams({ propertyRef: item.propertyRef });
+    },
+    [eligibleDeals, router],
+  );
 
   const onPublish = () => {
     if (!agent.trim() || !deal.trim()) {
@@ -288,57 +343,66 @@ export default function WriteReviewScreen() {
           <View style={styles.pendingBlock}>
             <View style={styles.pendingHeader}>
               <Text style={styles.pendingKickerLeft}>Pending Reviews</Text>
-              <Text style={styles.pendingCount}>3 pending</Text>
+              <Text style={styles.pendingCount}>
+                {pending.length > 0 ? `${pending.length} pending` : 'None ready'}
+              </Text>
             </View>
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.pendingCarousel}
-              decelerationRate="fast"
-              snapToInterval={PENDING_CARD_W + 12}
-              snapToAlignment="start">
-              {PENDING.map((p, index) => (
-                <PendingCard key={p.id} item={p} isLast={index === PENDING.length - 1} />
-              ))}
-            </ScrollView>
+            {pending.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.pendingCarousel}
+                decelerationRate="fast"
+                snapToInterval={PENDING_CARD_W + 12}
+                snapToAlignment="start">
+                {pending.map((p, index) => (
+                  <PendingCard
+                    key={p.id}
+                    item={p}
+                    isLast={index === pending.length - 1}
+                    onPress={() => onPendingPress(p)}
+                  />
+                ))}
+              </ScrollView>
+            ) : null}
           </View>
 
           <View style={styles.fieldBlock}>
             <FieldLabel>Agent</FieldLabel>
-            <DashedFieldShell height={FIELD_H} borderRadius={4}>
+            <FieldShell height={FIELD_H} borderRadius={8}>
               <TextInput
                 value={agent}
-                onChangeText={setAgent}
+                editable={false}
                 style={styles.textInput}
                 placeholder="Agent · agency"
                 placeholderTextColor="rgba(0, 0, 0, 0.45)"
                 autoCorrect={false}
               />
-            </DashedFieldShell>
+            </FieldShell>
           </View>
 
           <View style={styles.fieldBlock}>
             <FieldLabel>Deal</FieldLabel>
-            <DashedFieldShell height={FIELD_H} borderRadius={4}>
+            <FieldShell height={FIELD_H} borderRadius={8}>
               <TextInput
                 value={deal}
-                onChangeText={setDeal}
+                editable={false}
                 style={styles.textInput}
-                placeholder="Deal reference · address"
+                placeholder="Deal reference · suburb"
                 placeholderTextColor="rgba(0, 0, 0, 0.45)"
                 autoCorrect={false}
               />
-            </DashedFieldShell>
+            </FieldShell>
           </View>
 
           <View style={styles.fieldBlock}>
             <FieldLabel>Overall Rating</FieldLabel>
-            <DashedFieldShell height={OVERALL_ROW_H} borderRadius={4}>
+            <FieldShell height={OVERALL_ROW_H} borderRadius={8}>
               <View style={styles.overallInner}>
                 <TapStars value={overall} onChange={setOverall} size={STAR_OVERALL} gap={STAR_OVERALL_GAP} />
                 <Text style={styles.tapToRate}>Tap to rate</Text>
               </View>
-            </DashedFieldShell>
+            </FieldShell>
           </View>
 
           <View style={styles.fieldBlock}>
@@ -352,7 +416,7 @@ export default function WriteReviewScreen() {
 
           <View style={styles.fieldBlock}>
             <FieldLabel>Details</FieldLabel>
-            <DashedFieldShell height={DETAILS_H} borderRadius={4} innerStyle={styles.detailsShellInner}>
+            <FieldShell height={DETAILS_H} borderRadius={8} innerStyle={styles.detailsShellInner}>
               <TextInput
                 value={details}
                 onChangeText={setDetails}
@@ -362,7 +426,7 @@ export default function WriteReviewScreen() {
                 multiline
                 textAlignVertical="top"
               />
-            </DashedFieldShell>
+            </FieldShell>
           </View>
 
           <View style={styles.fieldBlock}>
@@ -370,8 +434,13 @@ export default function WriteReviewScreen() {
             <AttachRow />
           </View>
 
-          <Pressable style={({ pressed }) => [styles.publishBtn, pressed && { opacity: 0.92 }]} onPress={onPublish} accessibilityRole="button" accessibilityLabel="Publish review">
-            <Text style={styles.publishText}>PUBLISH REVIEW</Text>
+          <Pressable style={styles.publishBtn} onPress={onPublish} accessibilityRole="button" accessibilityLabel="Publish review">
+            {({ pressed }) => (
+              <>
+                <Text style={styles.publishText}>PUBLISH REVIEW</Text>
+                {pressed && <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12 }]} />}
+              </>
+            )}
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -380,11 +449,9 @@ export default function WriteReviewScreen() {
 }
 
 function AttachRow() {
-  const [w, setW] = useState(0);
   const H = 74;
   return (
-    <View style={[styles.dashShell, { minHeight: H }]} onLayout={(e) => setW(Math.ceil(e.nativeEvent.layout.width))}>
-      {w > 0 ? <DashedFrame width={w} height={H} borderRadius={8} /> : null}
+    <View style={[styles.fieldOutline, { minHeight: H, borderRadius: 8 }]}>
       <Pressable
         onPress={() => Alert.alert('Attachments', 'File picker would open here.')}
         style={[styles.attachInner, { minHeight: H }]}
@@ -568,12 +635,15 @@ const styles = StyleSheet.create({
     lineHeight: 15,
     marginBottom: LABEL_FIELD_GAP,
   },
-  dashShell: {
-    position: 'relative',
+  fieldOutline: {
     width: '100%',
     backgroundColor: '#fff',
+    borderWidth: FIELD_OUTLINE_WIDTH,
+    borderColor: FIELD_OUTLINE_COLOR,
+    borderStyle: 'solid',
+    overflow: 'hidden',
   },
-  dashInner: {
+  fieldOutlineInner: {
     justifyContent: 'center',
     paddingHorizontal: 10,
     width: '100%',
@@ -655,11 +725,12 @@ const styles = StyleSheet.create({
     lineHeight: 16.5,
   },
   publishBtn: {
-    height: 48,
-    borderRadius: 4,
+    height: 52,
+    borderRadius: 12,
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   publishText: {
     fontSize: 14,

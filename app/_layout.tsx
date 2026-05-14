@@ -85,8 +85,6 @@ function RootLayoutNav() {
         <Stack.Screen name="agent-reviews" options={{ headerShown: false }} />
         <Stack.Screen name="your-matches" options={{ headerShown: false }} />
         <Stack.Screen name="seller-match-detail" options={{ headerShown: false }} />
-        <Stack.Screen name="potential-buyers" options={{ headerShown: false }} />
-        <Stack.Screen name="buyer-lead-detail" options={{ headerShown: false }} />
         <Stack.Screen name="edit-listing" options={{ headerShown: false }} />
         <Stack.Screen name="photos-floorplan" options={{ headerShown: false }} />
         <Stack.Screen name="view-performance" options={{ headerShown: false }} />

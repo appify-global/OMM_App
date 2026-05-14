@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { layout } from '@/constants/theme';
@@ -17,9 +16,9 @@ import { getDisputeDetail } from '@/lib/disputes-mock';
 const BLOCK_GAP = 24;
 const LABEL_FIELD_GAP = 8;
 const FIELD_MIN_H = 140;
-const STROKE = 'rgba(0, 0, 0, 0.55)';
-const STROKE_W = 1.5;
 const MUTED = 'rgba(0, 0, 0, 0.55)';
+const OUTLINE = 'rgba(0, 0, 0, 0.08)';
+const BOX_R = 10;
 
 export default function AddDisputeResponseScreen() {
   const router = useRouter();
@@ -66,12 +65,17 @@ export default function AddDisputeResponseScreen() {
           <Text style={styles.label}>YOUR RESPONSE</Text>
           <View style={{ height: LABEL_FIELD_GAP }} />
 
-          <ResponseDashedField minHeight={FIELD_MIN_H} value={message} onChangeText={setMessage} />
+          <ResponseField minHeight={FIELD_MIN_H} value={message} onChangeText={setMessage} />
 
           <View style={{ height: BLOCK_GAP }} />
 
-          <Pressable style={({ pressed }) => [styles.cta, pressed && { opacity: 0.92 }]} onPress={submit} accessibilityRole="button">
-            <Text style={styles.ctaText}>SEND RESPONSE</Text>
+          <Pressable style={styles.cta} onPress={submit} accessibilityRole="button">
+            {({ pressed }) => (
+              <>
+                <Text style={styles.ctaText}>SEND RESPONSE</Text>
+                {pressed && <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12 }]} />}
+              </>
+            )}
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -79,7 +83,7 @@ export default function AddDisputeResponseScreen() {
   );
 }
 
-function ResponseDashedField({
+function ResponseField({
   minHeight,
   value,
   onChangeText,
@@ -88,28 +92,8 @@ function ResponseDashedField({
   value: string;
   onChangeText: (t: string) => void;
 }) {
-  const [w, setW] = useState(0);
-  const [h, setH] = useState(minHeight);
   return (
-    <View
-      style={[styles.shell, { minHeight }]}
-      onLayout={(e) => {
-        setW(Math.ceil(e.nativeEvent.layout.width));
-        setH(Math.max(minHeight, Math.ceil(e.nativeEvent.layout.height)));
-      }}>
-      <Svg pointerEvents="none" width={w} height={h} style={StyleSheet.absoluteFill}>
-        <Rect
-          x={STROKE_W / 2}
-          y={STROKE_W / 2}
-          width={Math.max(0, w - STROKE_W)}
-          height={Math.max(0, h - STROKE_W)}
-          rx={8}
-          ry={8}
-          fill="none"
-          stroke={STROKE}
-          strokeWidth={STROKE_W}
-        />
-      </Svg>
+    <View style={[styles.shell, { minHeight }]}>
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -154,8 +138,10 @@ const styles = StyleSheet.create({
   shell: {
     position: 'relative',
     width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 8,
+    backgroundColor: '#fafafa',
+    borderRadius: BOX_R,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: OUTLINE,
     overflow: 'hidden',
   },
   input: {
@@ -168,11 +154,12 @@ const styles = StyleSheet.create({
     margin: 0,
   },
   cta: {
-    height: 48,
-    borderRadius: 4,
+    height: 52,
+    borderRadius: 12,
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   ctaText: {
     fontSize: 14,

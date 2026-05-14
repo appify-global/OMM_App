@@ -1,8 +1,9 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useFocusEffect } from '@react-navigation/native';
 import { SheetHeader } from '@/components/SheetHeader';
 import { type Href, useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -14,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  */
 
 import { borderHairline, fillMisty, ink, inkSubtle, palette } from '@/constants/theme';
+import { countDealsAwaitingViewerAcknowledgement, DEMO_CHAT_PROPERTY_REF } from '@/lib/deal-acknowledgement';
 import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { AGENT_IMG } from '@/lib/propertyImages';
 
@@ -61,6 +63,7 @@ type Thread = {
   preview: string;
   time: string;
   unread: boolean;
+  propertyRef: string;
 };
 
 const THREADS: Thread[] = [
@@ -70,6 +73,7 @@ const THREADS: Thread[] = [
     preview: 'SOI + floorplan sent — review by 5pm?',
     time: '2M',
     unread: true,
+    propertyRef: DEMO_CHAT_PROPERTY_REF,
   },
   {
     id: '2',
@@ -77,6 +81,7 @@ const THREADS: Thread[] = [
     preview: 'SOI + floorplan sent — review by 5pm?',
     time: '2M',
     unread: true,
+    propertyRef: DEMO_CHAT_PROPERTY_REF,
   },
   {
     id: '3',
@@ -84,6 +89,7 @@ const THREADS: Thread[] = [
     preview: 'SOI + floorplan sent — review by 5pm?',
     time: '2M',
     unread: true,
+    propertyRef: DEMO_CHAT_PROPERTY_REF,
   },
 ];
 
@@ -115,14 +121,37 @@ export default function MessagesScreen() {
   const hPad = useScreenHorizontalPadding();
   const [filter, setFilter] = useState<FilterKey>('all');
   const [query, setQuery] = useState('');
+  const [awaitingAckCount, setAwaitingAckCount] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true;
+      countDealsAwaitingViewerAcknowledgement().then((count) => {
+        if (alive) setAwaitingAckCount(count);
+      });
+      return () => {
+        alive = false;
+      };
+    }, []),
+  );
 
   const filtered = useMemo(() => {
     if (filter === 'unread') return THREADS.filter((t) => t.unread);
     return THREADS;
   }, [filter]);
 
+  const openThread = useCallback(
+    (row: Thread) => {
+      router.push({
+        pathname: '/contact-seller-chat',
+        params: { propertyRef: row.propertyRef },
+      } as Href);
+    },
+    [router],
+  );
+
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={[styles.headerChrome, hPad]}>
         <SheetHeader title="Messages" onClose={() => router.back()} />
       </View>
@@ -164,12 +193,32 @@ export default function MessagesScreen() {
         <View style={[styles.listBody, hPad]}>
           <ShortcutBanner icon="bolt" text="3 new enquiries" />
           <View style={{ height: 10 }} />
+          {awaitingAckCount > 0 ? (
+            <>
+              <Pressable
+                style={styles.shortcut}
+                accessibilityRole="button"
+                onPress={() =>
+                  router.push({
+                    pathname: '/contact-seller-chat',
+                    params: { propertyRef: DEMO_CHAT_PROPERTY_REF },
+                  } as Href)
+                }>
+                <FontAwesome name="check-circle" size={16} color="#000000" style={styles.shortcutIcon} />
+                <Text style={styles.shortcutText}>
+                  {awaitingAckCount} transaction awaiting your acknowledgement
+                </Text>
+                <FontAwesome name="chevron-right" size={12} color="rgba(0, 0, 0, 0.35)" />
+              </Pressable>
+              <View style={{ height: 10 }} />
+            </>
+          ) : null}
           <ShortcutBanner icon="star" text="2 transactions awaiting review" />
           <View style={{ height: 18 }} />
 
           {filtered.map((row) => (
             <View key={row.id}>
-              <ThreadRow row={row} onPress={() => router.push('/contact-seller-chat' as Href)} />
+              <ThreadRow row={row} onPress={() => openThread(row)} />
               <View style={styles.threadRule} />
             </View>
           ))}

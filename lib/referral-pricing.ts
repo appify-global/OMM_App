@@ -17,6 +17,29 @@ export function parseFormattedAudWholeDollars(display: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+const MAX_SUGGESTION_AUD = 99_000_000;
+const MIN_DIGITS_FOR_PRICE_SUGGEST = 4;
+
+/**
+ * Whole-dollar completions while typing (e.g. digits `123042` → `$1,230,420` via ×10).
+ * Returns sorted unique values, capped for UI (typical listing prices).
+ */
+export function suggestAudCompletionsFromDisplay(display: string): number[] {
+  const digits = display.replace(/\D/g, '');
+  if (digits.length < MIN_DIGITS_FOR_PRICE_SUGGEST) return [];
+  const n = Number.parseInt(digits, 10);
+  if (!Number.isFinite(n) || n <= 0) return [];
+
+  const raw: number[] = [];
+  const current = parseFormattedAudWholeDollars(display);
+  for (const m of [10, 100, 1000] as const) {
+    const v = n * m;
+    if (v > 0 && v <= MAX_SUGGESTION_AUD && v !== n && v !== current) raw.push(v);
+  }
+
+  return [...new Set(raw)].sort((a, b) => a - b).slice(0, 4);
+}
+
 export type PriceGuideRange = { lowAud: number; highAud: number };
 
 export function resolvePriceGuideRange(
@@ -74,4 +97,28 @@ export function formatReferralEstimateLine(
   const { lowFeeAud, highFeeAud } = referralFeeFromCommissionPool(pool, referralPct);
   if (lowFeeAud === highFeeAud) return formatAudWhole(lowFeeAud);
   return `${formatAudWhole(lowFeeAud)} — ${formatAudWhole(highFeeAud)}`;
+}
+
+/** Illustrative gross commission pool from the guide (AUD range). */
+export function formatCommissionPoolLine(
+  guide: PriceGuideRange | null,
+  commissionPctOfSale: number = ILLUSTRATIVE_COMMISSION_OF_SALE_PCT,
+): string {
+  if (!guide) return '—';
+  const pool = commissionPoolRangeFromGuide(guide, commissionPctOfSale);
+  if (pool.lowAud === pool.highAud) return formatAudWhole(pool.lowAud);
+  return `${formatAudWhole(pool.lowAud)} — ${formatAudWhole(pool.highAud)}`;
+}
+
+/**
+ * Single whole‑dollar referral estimate at the sale price midpoint (for compact slider tick labels).
+ */
+export function referralFeeMidEstimateAud(
+  guide: PriceGuideRange,
+  referralPct: number,
+  commissionPctOfSale: number,
+): number {
+  const midSale = Math.round((guide.lowAud + guide.highAud) / 2);
+  const poolMid = Math.round((midSale * Math.max(0, Math.min(100, commissionPctOfSale))) / 100);
+  return Math.round((poolMid * Math.max(0, Math.min(100, referralPct))) / 100);
 }

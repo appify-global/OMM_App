@@ -2,13 +2,12 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Pressable, StyleSheet, View } from 'react-native';
 
 import { Text } from '@/components/OMMText';
-import { Fonts, ink, inkMuted } from '@/constants/theme';
+import { Fonts, ink } from '@/constants/theme';
 import { hapticLight } from '@/lib/haptics';
 
 /**
- * Header for screens presented as bottom sheets / modals (e.g. Notifications, Messages).
- * Pure title row with a close glyph on the right — the sheet's own grabber sits above it,
- * so we deliberately skip safe-area top padding.
+ * Standard push-screen header: back chevron on the left, page title beside it.
+ * Layout: [←]  [Title]
  */
 export function SheetHeader({
   title,
@@ -19,20 +18,20 @@ export function SheetHeader({
 }) {
   return (
     <View style={styles.row}>
-      <Text style={styles.title} accessibilityRole="header" numberOfLines={1}>
-        {title}
-      </Text>
       <Pressable
         onPress={() => {
           hapticLight();
           onClose();
         }}
-        hitSlop={10}
+        hitSlop={12}
         accessibilityRole="button"
-        accessibilityLabel="Close"
-        style={({ pressed }) => [styles.closeBtn, pressed && styles.closePressed]}>
-        <FontAwesome name="times" size={16} color={ink} />
+        accessibilityLabel="Back"
+        style={styles.backBtn}>
+        <FontAwesome name="chevron-left" size={17} color={ink} />
       </Pressable>
+      <Text style={styles.title} accessibilityRole="header" numberOfLines={1}>
+        {title}
+      </Text>
     </View>
   );
 }
@@ -42,29 +41,26 @@ const styles = StyleSheet.create({
     minHeight: 44,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     paddingTop: 12,
     paddingBottom: 8,
   },
-  title: {
-    flex: 1,
-    fontSize: 22,
-    lineHeight: 28,
-    fontFamily: Fonts.medium,
-    color: ink,
-    letterSpacing: -0.4,
-  },
-  closeBtn: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
+  /** Anchored to the left so it never pushes the centred title. */
+  backBtn: {
+    position: 'absolute',
+    left: 0,
+    width: 36,
+    height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(120, 120, 128, 0.16)',
-    marginLeft: 12,
   },
-  closePressed: {
-    opacity: 0.55,
+  /** Centred across full row width. */
+  title: {
+    fontSize: 17,
+    lineHeight: 22,
+    fontFamily: Fonts.medium,
+    color: ink,
+    letterSpacing: -0.3,
+    textAlign: 'center',
   },
-  _muted: { color: inkMuted },
 });

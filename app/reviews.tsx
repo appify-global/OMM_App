@@ -1,14 +1,18 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { type Href, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Text } from '@/components/OMMText';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Svg, { Rect } from 'react-native-svg';
+import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { layout } from '@/constants/theme';
-import { DEMO_AGENT_AGENCY, DEMO_PRIMARY_STREET } from '@/lib/melbourne-demo-locations';
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
+import {
+  listDealsEligibleToWriteReview,
+  type DealAcknowledgementRecord,
+} from '@/lib/deal-acknowledgement';
 
 /**
  * My reviews — summary, pending carousel, filters, list, CTA.
@@ -17,10 +21,8 @@ import { DEMO_AGENT_AGENCY, DEMO_PRIMARY_STREET } from '@/lib/melbourne-demo-loc
 
 /** Vertical gap between major blocks — aligns with design rhythm */
 const SECTION_GAP = 24;
-/** Review list: gap between dashed cards (Figma gap-[16px]) */
+/** Review list: gap between bordered cards (Figma gap-[16px]) */
 const LIST_CARD_GAP = 16;
-const STROKE = 'rgba(0, 0, 0, 0.55)';
-const STROKE_W = 1.5;
 const STAR_FILLED = '#6b5344';
 const STAR_EMPTY = 'rgba(0, 0, 0, 0.22)';
 const MUTED = 'rgba(0, 0, 0, 0.55)';
@@ -32,32 +34,30 @@ const PENDING_CHIP_R = 4;
 
 type FilterKey = 'all' | 'buyer' | 'seller';
 
-const PENDING = [
-  {
-    id: '1',
-    name: 'Sarah Chen',
-    agency: DEMO_AGENT_AGENCY,
-    address: DEMO_PRIMARY_STREET,
-    badge: 'WRITING' as string | null,
-    active: true,
-  },
-  {
-    id: '2',
-    name: 'Tom Reid',
-    agency: 'Marshall White',
-    address: '19 Dickens St, Elwood VIC 3184',
-    badge: null,
-    active: false,
-  },
-  {
-    id: '3',
-    name: 'Priya N.',
-    agency: 'Jellis Craig',
-    address: '8 Davis St, Malvern',
-    badge: null,
-    active: false,
-  },
-] as const;
+type PendingReviewCard = {
+  id: string;
+  propertyRef: string;
+  name: string;
+  agency: string;
+  address: string;
+  badge: string | null;
+  active: boolean;
+};
+
+function mapEligibleDealToPendingCard(
+  deal: DealAcknowledgementRecord,
+  activePropertyRef: string | null,
+): PendingReviewCard {
+  return {
+    id: deal.propertyRef,
+    propertyRef: deal.propertyRef,
+    name: deal.counterpartyName,
+    agency: deal.counterpartyAgency,
+    address: `${deal.suburb} · ${deal.propertyType}`,
+    badge: activePropertyRef === deal.propertyRef ? 'WRITING' : null,
+    active: activePropertyRef === deal.propertyRef,
+  };
+}
 
 const REVIEW_ROWS = [
   {
@@ -89,35 +89,8 @@ const REVIEW_ROWS = [
   },
 ] as const;
 
-function DashedFrame({
-  width,
-  height,
-  borderRadius,
-}: {
-  width: number;
-  height: number;
-  borderRadius: number;
-}) {
-  if (width <= 0 || height <= 0) return null;
-  const inset = STROKE_W / 2;
-  return (
-    <Svg pointerEvents="none" width={width} height={height} style={StyleSheet.absoluteFill}>
-      <Rect
-        x={inset}
-        y={inset}
-        width={Math.max(0, width - STROKE_W)}
-        height={Math.max(0, height - STROKE_W)}
-        rx={borderRadius}
-        ry={borderRadius}
-        fill="none"
-        stroke={STROKE}
-        strokeWidth={STROKE_W}
-      />
-    </Svg>
-  );
-}
-
-function DashedSurface({
+/** Solid hairline card shell — matches review row reference (rounded rect, subtle grey stroke). */
+function HairlineCard({
   borderRadius,
   children,
   style,
@@ -126,15 +99,18 @@ function DashedSurface({
   children: ReactNode;
   style?: object;
 }) {
-  const [size, setSize] = useState({ w: 0, h: 0 });
   return (
     <View
-      style={[{ position: 'relative', backgroundColor: '#fff' }, style]}
-      onLayout={(e) => {
-        const { width, height } = e.nativeEvent.layout;
-        setSize({ w: Math.ceil(width), h: Math.ceil(height) });
-      }}>
-      <DashedFrame width={size.w} height={size.h} borderRadius={borderRadius} />
+      style={[
+        {
+          backgroundColor: '#fff',
+          borderRadius,
+          borderWidth: FIELD_OUTLINE_WIDTH,
+          borderColor: FIELD_OUTLINE_COLOR,
+          borderStyle: 'solid',
+        },
+        style,
+      ]}>
       {children}
     </View>
   );
@@ -169,8 +145,53 @@ export default function ReviewsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<FilterKey>('all');
+  const [eligibleDeals, setEligibleDeals] = useState<DealAcknowledgementRecord[]>([]);
+  const [activePropertyRef, setActivePropertyRef] = useState<string | null>(null);
 
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true;
+      listDealsEligibleToWriteReview().then((deals) => {
+        if (!alive) return;
+        const nextActive = deals[0]?.propertyRef ?? null;
+        setEligibleDeals(deals);
+        setActivePropertyRef(nextActive);
+      });
+      return () => {
+        alive = false;
+      };
+    }, []),
+  );
+
+  const pending = eligibleDeals.map((deal) => mapEligibleDealToPendingCard(deal, activePropertyRef));
   const filtered = REVIEW_ROWS.filter((r) => filter === 'all' || r.filter === filter);
+  const canWriteReview = pending.length > 0;
+
+  const openWriteReview = useCallback(
+    (propertyRef?: string) => {
+      const ref = propertyRef ?? activePropertyRef;
+      if (!ref) {
+        Alert.alert(
+          'Acknowledgement required',
+          'Acknowledge the transaction in Messages before you can write a review.',
+        );
+        return;
+      }
+      router.push({
+        pathname: '/write-review',
+        params: { propertyRef: ref },
+      } as Href);
+    },
+    [activePropertyRef, router],
+  );
+
+  const onPendingPress = useCallback(
+    (item: PendingReviewCard) => {
+      setActivePropertyRef(item.propertyRef);
+      openWriteReview(item.propertyRef);
+    },
+    [openWriteReview],
+  );
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -192,7 +213,7 @@ export default function ReviewsScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}>
-        <DashedSurface borderRadius={CARD_R} style={styles.summaryShell}>
+        <HairlineCard borderRadius={CARD_R} style={styles.summaryShell}>
           <View style={styles.summaryInner}>
             <View style={styles.summaryLeft}>
               <Text style={styles.summaryScore}>4.8</Text>
@@ -204,26 +225,39 @@ export default function ReviewsScreen() {
               <Text style={styles.summaryMetaSmall}>Verified by closed deals</Text>
             </View>
           </View>
-        </DashedSurface>
+        </HairlineCard>
 
         <View style={{ height: SECTION_GAP }} />
 
         <View style={styles.pendingBlock}>
           <View style={styles.pendingHeader}>
             <Text style={styles.pendingKickerLeft}>Pending Reviews</Text>
-            <Text style={styles.pendingCount}>3 pending</Text>
+            <Text style={styles.pendingCount}>
+              {pending.length > 0 ? `${pending.length} pending` : 'None ready'}
+            </Text>
           </View>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.pendingCarousel}
-            decelerationRate="fast"
-            snapToInterval={PENDING_CARD_W + 12}
-            snapToAlignment="start">
-            {PENDING.map((p, index) => (
-              <PendingCard key={p.id} item={p} isLast={index === PENDING.length - 1} />
-            ))}
-          </ScrollView>
+          {pending.length > 0 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.pendingCarousel}
+              decelerationRate="fast"
+              snapToInterval={PENDING_CARD_W + 12}
+              snapToAlignment="start">
+              {pending.map((p, index) => (
+                <PendingCard
+                  key={p.id}
+                  item={p}
+                  isLast={index === pending.length - 1}
+                  onPress={() => onPendingPress(p)}
+                />
+              ))}
+            </ScrollView>
+          ) : (
+            <Text style={styles.pendingEmpty}>
+              Acknowledge a closed transaction in Messages to unlock reviews.
+            </Text>
+          )}
         </View>
 
         <View style={{ height: SECTION_GAP }} />
@@ -231,40 +265,34 @@ export default function ReviewsScreen() {
         <View style={styles.filterRow}>
           <Pressable
             onPress={() => setFilter('all')}
-            style={({ pressed }) => [
-              styles.filterSeg,
-              filter === 'all' ? styles.filterSegActive : styles.filterSegIdle,
-              pressed && { opacity: 0.88 },
-            ]}
+            style={[styles.filterSeg, filter === 'all' ? styles.filterSegActive : styles.filterSegIdle]}
             accessibilityRole="button"
             accessibilityState={{ selected: filter === 'all' }}>
-            <Text style={[styles.filterAllLabel, filter === 'all' && styles.filterAllLabelOn]}>All</Text>
+            {({ pressed }) => (
+              <Text style={[styles.filterLabel, filter === 'all' ? styles.filterLabelOn : styles.filterLabelOff, pressed && { opacity: 0.7 }]}>All</Text>
+            )}
           </Pressable>
           <Pressable
             onPress={() => setFilter('buyer')}
-            style={({ pressed }) => [
-              styles.filterSegWide,
-              filter === 'buyer' ? styles.filterSegActiveWide : styles.filterSegIdle,
-              pressed && { opacity: 0.88 },
-            ]}
+            style={[styles.filterSeg, filter === 'buyer' ? styles.filterSegActive : styles.filterSegIdle]}
             accessibilityRole="button"
             accessibilityState={{ selected: filter === 'buyer' }}>
-            <Text style={[styles.filterCapsLabel, filter === 'buyer' && styles.filterCapsLabelOn]} numberOfLines={1}>
-              AS BUYER AGENT
-            </Text>
+            {({ pressed }) => (
+              <Text style={[styles.filterLabel, filter === 'buyer' ? styles.filterLabelOn : styles.filterLabelOff, pressed && { opacity: 0.7 }]} numberOfLines={1}>
+                AS BUYER AGENT
+              </Text>
+            )}
           </Pressable>
           <Pressable
             onPress={() => setFilter('seller')}
-            style={({ pressed }) => [
-              styles.filterSegWide,
-              filter === 'seller' ? styles.filterSegActiveWide : styles.filterSegIdle,
-              pressed && { opacity: 0.88 },
-            ]}
+            style={[styles.filterSeg, filter === 'seller' ? styles.filterSegActive : styles.filterSegIdle]}
             accessibilityRole="button"
             accessibilityState={{ selected: filter === 'seller' }}>
-            <Text style={[styles.filterCapsLabel, filter === 'seller' && styles.filterCapsLabelOn]} numberOfLines={1}>
-              AS SELLER AGENT
-            </Text>
+            {({ pressed }) => (
+              <Text style={[styles.filterLabel, filter === 'seller' ? styles.filterLabelOn : styles.filterLabelOff, pressed && { opacity: 0.7 }]} numberOfLines={1}>
+                AS SELLER AGENT
+              </Text>
+            )}
           </Pressable>
         </View>
 
@@ -272,7 +300,7 @@ export default function ReviewsScreen() {
 
         <View style={styles.reviewList}>
           {filtered.map((r) => (
-            <DashedSurface key={r.id} borderRadius={CARD_R}>
+            <HairlineCard key={r.id} borderRadius={CARD_R}>
               <View style={styles.reviewCardInner}>
                 <View style={styles.reviewHeaderRow}>
                   <View style={styles.reviewHeaderLeft}>
@@ -286,16 +314,23 @@ export default function ReviewsScreen() {
                 <StarRow rating={r.rating} size={12} gap={4} />
                 <Text style={styles.reviewBody}>{r.body}</Text>
               </View>
-            </DashedSurface>
+            </HairlineCard>
           ))}
         </View>
 
         <Pressable
-          style={({ pressed }) => [styles.cta, pressed && { opacity: 0.92 }]}
-          onPress={() => router.push('/write-review')}
+          style={[styles.cta, !canWriteReview && styles.ctaDisabled]}
+          onPress={() => openWriteReview()}
+          disabled={!canWriteReview}
           accessibilityRole="button"
-          accessibilityLabel="Write a review">
-          <Text style={styles.ctaText}>WRITE A REVIEW</Text>
+          accessibilityLabel="Write a review"
+          accessibilityState={{ disabled: !canWriteReview }}>
+          {({ pressed }) => (
+            <>
+              <Text style={[styles.ctaText, pressed && { opacity: 0.85 }]}>WRITE A REVIEW</Text>
+              {pressed && <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12 }]} />}
+            </>
+          )}
         </Pressable>
       </ScrollView>
     </View>
@@ -305,9 +340,11 @@ export default function ReviewsScreen() {
 function PendingCard({
   item,
   isLast,
+  onPress,
 }: {
-  item: (typeof PENDING)[number];
+  item: PendingReviewCard;
   isLast: boolean;
+  onPress?: () => void;
 }) {
   const content = (
     <>
@@ -344,18 +381,21 @@ function PendingCard({
 
   if (item.active) {
     return (
-      <View style={[styles.pendingCardActive, { width: PENDING_CARD_W, minHeight: PENDING_CARD_H }, tail]}>
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        style={[styles.pendingCardActive, { width: PENDING_CARD_W, minHeight: PENDING_CARD_H }, tail]}>
         {content}
-      </View>
+      </Pressable>
     );
   }
 
   return (
-    <DashedSurface
-      borderRadius={CARD_R}
-      style={[{ width: PENDING_CARD_W, minHeight: PENDING_CARD_H }, tail]}>
-      <View style={styles.pendingCardInner}>{content}</View>
-    </DashedSurface>
+    <Pressable onPress={onPress} accessibilityRole="button">
+      <HairlineCard borderRadius={CARD_R} style={[{ width: PENDING_CARD_W, minHeight: PENDING_CARD_H }, tail]}>
+        <View style={styles.pendingCardInner}>{content}</View>
+      </HairlineCard>
+    </Pressable>
   );
 }
 
@@ -443,6 +483,12 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: MUTED,
     lineHeight: 16.5,
+  },
+  pendingEmpty: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: MUTED,
+    lineHeight: 18,
   },
   pendingCarousel: {
     flexDirection: 'row',
@@ -565,49 +611,28 @@ const styles = StyleSheet.create({
   },
   filterSeg: {
     borderRadius: 18,
-    paddingHorizontal: 12,
+    paddingHorizontal: 14,
     paddingVertical: 7,
     minHeight: 31,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  filterSegWide: {
-    borderRadius: 18,
-    paddingHorizontal: 13,
-    paddingVertical: 7,
-    minHeight: 30,
-    justifyContent: 'center',
-    alignItems: 'center',
-    maxWidth: '100%',
-  },
   filterSegActive: {
     backgroundColor: '#000000',
   },
-  filterSegActiveWide: {
-    backgroundColor: '#000000',
-  },
   filterSegIdle: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.14)',
+    backgroundColor: 'transparent',
   },
-  filterAllLabel: {
+  filterLabel: {
     fontSize: 12,
-    fontWeight: '400',
-    color: '#2e2e2e',
-  },
-  filterAllLabelOn: {
-    color: '#fff',
-  },
-  filterCapsLabel: {
-    fontSize: 11,
-    fontWeight: '400',
-    color: '#2e2e2e',
+    fontFamily: 'Satoshi-Medium',
     letterSpacing: 0.2,
   },
-  filterCapsLabelOn: {
+  filterLabelOn: {
     color: '#fff',
-    fontSize: 11,
+  },
+  filterLabelOff: {
+    color: 'rgba(0,0,0,0.45)',
   },
   reviewList: {
     gap: LIST_CARD_GAP,
@@ -656,12 +681,15 @@ const styles = StyleSheet.create({
     lineHeight: 19.5,
   },
   cta: {
-    height: 48,
-    borderRadius: 4,
+    height: 52,
+    borderRadius: 12,
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: SECTION_GAP,
+  },
+  ctaDisabled: {
+    opacity: 0.45,
   },
   ctaText: {
     fontSize: 14,

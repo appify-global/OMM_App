@@ -8,7 +8,6 @@ import {
   TabProfileGlyph,
 } from "@/components/TabBarGlyphs";
 import { isAuthenticated } from "@/lib/auth-session";
-import { TabBarVisibilityProvider } from "@/lib/tab-bar-visibility";
 import type { BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
 import { PlatformPressable } from "@react-navigation/elements";
 import { Redirect, Tabs } from "expo-router";
@@ -61,8 +60,6 @@ function TabBarButton({ style, ...rest }: BottomTabBarButtonProps) {
 export default function TabLayout() {
   const [gate, setGate] = useState<"loading" | "authed" | "guest">("loading");
 
-  const [tabBarHidden, setTabBarHidden] = useState(false);
-
   useEffect(() => {
     let alive = true;
     (async () => {
@@ -96,21 +93,20 @@ export default function TabLayout() {
   }
 
   return (
-    <TabBarVisibilityProvider onHiddenChange={setTabBarHidden}>
-      <Tabs
-        safeAreaInsets={{ top: 0, bottom: 0, left: 0, right: 0 }}
-        screenOptions={{
-          headerShown: false,
-          tabBarShowLabel: true,
-          tabBarActiveTintColor: "#111111",
-          tabBarInactiveTintColor: TAB_ICON_INACTIVE,
-          tabBarLabelStyle: styles.tabBarLabel,
-          tabBarButton: (p) => <TabBarButton {...p} />,
-          tabBarStyle: [styles.tabBar, tabBarHidden && styles.tabBarHidden],
-          tabBarItemStyle: styles.tabItem,
-          tabBarIconStyle: styles.tabIconPosition,
-        }}
-      >
+    <Tabs
+      safeAreaInsets={{ top: 0, bottom: 0, left: 0, right: 0 }}
+      screenOptions={{
+        headerShown: false,
+        tabBarShowLabel: true,
+        tabBarActiveTintColor: "#111111",
+        tabBarInactiveTintColor: TAB_ICON_INACTIVE,
+        tabBarLabelStyle: styles.tabBarLabel,
+        tabBarButton: (p) => <TabBarButton {...p} />,
+        tabBarStyle: styles.tabBar,
+        tabBarItemStyle: styles.tabItem,
+        tabBarIconStyle: styles.tabIconPosition,
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
@@ -157,7 +153,6 @@ export default function TabLayout() {
         }}
       />
     </Tabs>
-    </TabBarVisibilityProvider>
   );
 }
 
@@ -179,11 +174,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 20,
     elevation: 14,
-  },
-  tabBarHidden: {
-    opacity: 0,
-    transform: [{ translateY: 100 }],
-    pointerEvents: "none",
   },
   tabItem: {
     flex: 1,

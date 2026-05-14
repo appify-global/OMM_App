@@ -1,12 +1,13 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { type Href, useRouter } from 'expo-router';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { Image, Linking, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ApproximateAreaMap } from '@/components/ApproximateAreaMap';
 import { AppButton } from '@/components/AppButton';
 import { PlayTourModal } from '@/components/PlayTourModal';
 import { SoiBottomSheet } from '@/components/SoiBottomSheet';
@@ -20,7 +21,18 @@ import { VIEW_LIVE_LISTING_CARD } from '@/lib/saved-listings';
  */
 
 import { AGENT_IMG, PROPERTY_IMG_1 } from '@/lib/propertyImages';
-import { DEMO_AGENT_AGENCY, DEMO_PRIMARY_ADDRESS_MULTILINE } from '@/lib/melbourne-demo-locations';
+import {
+  DEMO_AGENT_AGENCY,
+  DEMO_ANONYMOUS_LISTING_ADDRESS_MULTILINE,
+  DEMO_APPROXIMATE_MAPS_QUERY,
+  DEMO_PRIMARY_ADDRESS_MULTILINE,
+  DEMO_PRIMARY_STREET,
+} from '@/lib/melbourne-demo-locations';
+import {
+  parseAddressDisclosureParam,
+  readDemoLiveListingDisclosure,
+  type LiveListingAddressDisclosure,
+} from '@/lib/demo-live-listing-disclosure';
 import { layout } from '@/constants/theme';
 
 /** Demo seller contact for "Contact" — replace with API data when wired. */
@@ -58,6 +70,21 @@ function FeatureCell({
 export default function ViewLiveListingScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { addressDisclosure: addressDisclosureParam } = useLocalSearchParams<{ addressDisclosure?: string }>();
+  const [storedDisclosure, setStoredDisclosure] = useState<LiveListingAddressDisclosure | null>(null);
+
+  useEffect(() => {
+    if (addressDisclosureParam !== undefined) {
+      return;
+    }
+    void readDemoLiveListingDisclosure().then(setStoredDisclosure);
+  }, [addressDisclosureParam]);
+
+  const addressDisclosure: LiveListingAddressDisclosure =
+    addressDisclosureParam !== undefined
+      ? parseAddressDisclosureParam(addressDisclosureParam)
+      : (storedDisclosure ?? 'disclose');
+  const addressAnonymousToBuyers = addressDisclosure === 'not_disclose';
   const { isSaved, toggleSaved } = useSavedListings();
   const saved = isSaved(VIEW_LIVE_LISTING_CARD.id);
   const [soiOpen, setSoiOpen] = useState(false);
@@ -103,7 +130,14 @@ export default function ViewLiveListingScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 112 }]}>
         <Kicker>PROPERTY ADDRESS</Kicker>
-        <Text style={styles.addressTitle}>{DEMO_PRIMARY_ADDRESS_MULTILINE}</Text>
+        {addressAnonymousToBuyers ? (
+          <>
+            <Text style={styles.addressTitle}>The street address is not disclosed publicly on this listing.</Text>
+            <Text style={styles.addressSubMuted}>{DEMO_ANONYMOUS_LISTING_ADDRESS_MULTILINE}</Text>
+          </>
+        ) : (
+          <Text style={styles.addressTitle}>{DEMO_PRIMARY_ADDRESS_MULTILINE}</Text>
+        )}
 
         <View style={styles.priceBlock}>
           <Text style={[styles.kicker, styles.kickerNoTop]}>LISTING PRICE</Text>
@@ -158,7 +192,13 @@ export default function ViewLiveListingScreen() {
         </View>
 
         <Text style={[styles.locKicker, styles.sectionPadTop]}>LOCATION</Text>
-        <Image source={PROPERTY_IMG_1} style={styles.locImage} resizeMode="cover" />
+        <View style={styles.locMapBlock}>
+          <ApproximateAreaMap
+            variant={addressAnonymousToBuyers ? 'anonymous' : 'disclosed'}
+            mapsQuery={addressAnonymousToBuyers ? DEMO_APPROXIMATE_MAPS_QUERY : DEMO_PRIMARY_STREET}
+            radiusMeters={500}
+          />
+        </View>
 
         <View style={styles.amenities}>
           <View style={styles.featureRow}>
@@ -368,6 +408,13 @@ const styles = StyleSheet.create({
     letterSpacing: -0.6,
     lineHeight: 32,
   },
+  addressSubMuted: {
+    marginTop: 14,
+    fontSize: 17,
+    lineHeight: 24,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.5)',
+  },
   priceBlock: { marginTop: SECTION },
   priceValue: {
     marginTop: 10,
@@ -457,13 +504,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1.6,
     textTransform: 'uppercase',
   },
-  locImage: {
-    width: '100%',
-    height: 220,
-    borderRadius: 10,
-    marginTop: 10,
-    backgroundColor: 'rgba(0,0,0,0.06)',
-  },
+  locMapBlock: { marginTop: 10 },
   amenities: { marginTop: SECTION },
   agentSectionKicker: {
     marginTop: SECTION,

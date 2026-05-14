@@ -1,127 +1,166 @@
 import { apiFetch } from '@/lib/api';
 
-export type RecentSoldDemoItem = {
+/**
+ * When false, the home KPI row hides the pipeline commission estimate (even if data exists).
+ * Default: **shown** in dev/builds where the env var is unset. Set
+ * `EXPO_PUBLIC_AGENT_HOME_PIPELINE_KPI_LEGALLY_APPROVED=false` to hide after Legal/product asks to turn it off.
+ */
+export const PIPELINE_KPI_LEGALLY_APPROVED =
+  process.env.EXPO_PUBLIC_AGENT_HOME_PIPELINE_KPI_LEGALLY_APPROVED !== 'false';
+
+/** Label for the pipeline commission KPI (legal-gated). */
+export const LEGAL_COPY_PIPELINE_COMMISSION_LABEL = 'Est. pipeline commission';
+
+/**
+ * Footnote under the pipeline commission KPI (legal-gated).
+ * Do not change without Legal sign-off.
+ */
+export const LEGAL_COPY_PIPELINE_COMMISSION_DISCLAIMER =
+  'Illustrative gross commission on your active pipeline only. Not tax, GST, or financial advice. Not a guarantee of remuneration—final numbers follow your authority and settlement.';
+
+export type RecentlySoldItem = {
   id: string;
-  headline: string;
-  meta: string;
-  priceDisplay: string;
+  addressLine: string;
+  suburb: string;
+  soldPriceDisplay: string;
+  soldAtDisplay: string;
+  /** Index into `propertyImageAtIndex` on the client. */
+  imageIndex: number;
 };
 
-/** Shown on agent home · replace via GET /agent/home-metrics when Legal approves copy + backend exists. */
-export type AgentHomeMetrics = {
+export type AgentHomeMetricsPayload = {
+  recentlySold: RecentlySoldItem[];
+  /** Live / published listings attributed to the agent (MVP: integer from API). */
+  activeListingsCount: number;
   pendingListingsCount: number;
-  /** Human-readable indicative pipeline figure (GST position set in label). */
-  pipelineEstimateDisplay: string;
-  recentlySold: RecentSoldDemoItem[];
+  /** Scheduled inspections in the agreed window (e.g. next 7d) — MVP count only. */
+  inspectionsBookedCount: number;
+  /** When null, no range to show (even if legal flag is on). */
+  pipelineCommissionEstimateAud: { lowAud: number; highAud: number } | null;
 };
 
-export const DEMO_AGENT_HOME_METRICS: AgentHomeMetrics = {
-  pendingListingsCount: 6,
-  pipelineEstimateDisplay: '$48.5k',
+export const FALLBACK_AGENT_HOME_METRICS: AgentHomeMetricsPayload = {
   recentlySold: [
     {
-      id: '1',
-      headline: '14 Bowen St',
-      meta: 'Hawthorn East · Sold',
-      priceDisplay: '$2.35M',
+      id: 'demo-1',
+      addressLine: '12 Hartington St',
+      suburb: 'Elsternwick',
+      soldPriceDisplay: '$1.85M',
+      soldAtDisplay: 'Sold 3d ago',
+      imageIndex: 0,
     },
     {
-      id: '2',
-      headline: 'Unit 2 / 112 Victoria Pde',
-      meta: 'Collingwood · Sold',
-      priceDisplay: '$965k',
+      id: 'demo-2',
+      addressLine: '9 Pasley St',
+      suburb: 'St Kilda',
+      soldPriceDisplay: '$1.42M',
+      soldAtDisplay: 'Sold 1w ago',
+      imageIndex: 1,
     },
     {
-      id: '3',
-      headline: '45 Marine Parade',
-      meta: 'Elwood · Sold',
-      priceDisplay: '$3.05M',
+      id: 'demo-3',
+      addressLine: '44 Orrong Rd',
+      suburb: 'Armadale',
+      soldPriceDisplay: '$2.10M',
+      soldAtDisplay: 'Sold 2w ago',
+      imageIndex: 2,
     },
   ],
+  activeListingsCount: 4,
+  pendingListingsCount: 2,
+  inspectionsBookedCount: 3,
+  pipelineCommissionEstimateAud: { lowAud: 41250, highAud: 51500 },
 };
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === 'object' && value !== null && !Array.isArray(value);
+function isRecord(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
 }
 
-function coerceAgentHomeMetrics(raw: unknown): AgentHomeMetrics | null {
-  if (!isRecord(raw)) return null;
-  const pending =
-    typeof raw.pendingListingsCount === 'number'
-      ? raw.pendingListingsCount
-      : typeof raw.pendingListingCount === 'number'
-        ? raw.pendingListingCount
-        : null;
-  const pipelineRaw =
-    typeof raw.pipelineCommissionEstimateDisplay === 'string'
-      ? raw.pipelineCommissionEstimateDisplay
-      : typeof raw.pipelineEstimateDisplay === 'string'
-        ? raw.pipelineEstimateDisplay
-        : typeof raw.estimatedPipelineFeesDisplay === 'string'
-          ? raw.estimatedPipelineFeesDisplay
-          : null;
-
-  let recentlySold: RecentSoldDemoItem[] = [];
-  if (Array.isArray(raw.recentlySold)) {
-    recentlySold = raw.recentlySold
-      .map((item, idx): RecentSoldDemoItem | null => {
-        if (!isRecord(item)) return null;
-        const id = typeof item.id === 'string' ? item.id : `sold-${idx}`;
-        const headline =
-          typeof item.headline === 'string'
-            ? item.headline
-            : typeof item.addressLine === 'string'
-              ? item.addressLine
-              : null;
-        const meta =
-          typeof item.meta === 'string'
-            ? item.meta
-            : typeof item.subtitle === 'string'
-              ? item.subtitle
-              : typeof item.suburb === 'string'
-                ? item.suburb
-                : '';
-        const priceDisplay =
-          typeof item.priceDisplay === 'string'
-            ? item.priceDisplay
-            : typeof item.soldPriceDisplay === 'string'
-              ? item.soldPriceDisplay
-              : null;
-        if (!headline || !priceDisplay) return null;
-        return { id, headline, meta, priceDisplay };
-      })
-      .filter((x): x is RecentSoldDemoItem => x !== null);
+function parseRecentlySold(raw: unknown): RecentlySoldItem[] {
+  if (!Array.isArray(raw)) return FALLBACK_AGENT_HOME_METRICS.recentlySold;
+  const out: RecentlySoldItem[] = [];
+  for (const row of raw) {
+    if (!isRecord(row)) continue;
+    const id = typeof row.id === 'string' ? row.id : '';
+    const addressLine = typeof row.addressLine === 'string' ? row.addressLine : '';
+    const suburb = typeof row.suburb === 'string' ? row.suburb : '';
+    const soldPriceDisplay = typeof row.soldPriceDisplay === 'string' ? row.soldPriceDisplay : '';
+    const soldAtDisplay = typeof row.soldAtDisplay === 'string' ? row.soldAtDisplay : '';
+    const imageIndex = typeof row.imageIndex === 'number' && Number.isFinite(row.imageIndex) ? row.imageIndex : 0;
+    if (!id || !addressLine) continue;
+    out.push({ id, addressLine, suburb, soldPriceDisplay, soldAtDisplay, imageIndex });
   }
+  return out.length > 0 ? out : FALLBACK_AGENT_HOME_METRICS.recentlySold;
+}
 
-  if (pending === null || pipelineRaw === null) return null;
+function parsePipeline(raw: unknown): { lowAud: number; highAud: number } | null {
+  if (raw == null) return null;
+  if (!isRecord(raw)) return null;
+  const lowAud = typeof raw.lowAud === 'number' && Number.isFinite(raw.lowAud) ? raw.lowAud : null;
+  const highAud = typeof raw.highAud === 'number' && Number.isFinite(raw.highAud) ? raw.highAud : null;
+  if (lowAud == null || highAud == null) return null;
+  return { lowAud: Math.max(0, lowAud), highAud: Math.max(0, highAud) };
+}
 
+function parseNonNegativeInt(raw: unknown, fallback: number): number {
+  if (typeof raw !== 'number' || !Number.isFinite(raw)) return fallback;
+  return Math.max(0, Math.floor(raw));
+}
+
+export function parseAgentHomeMetrics(data: unknown): AgentHomeMetricsPayload {
+  if (!isRecord(data)) return FALLBACK_AGENT_HOME_METRICS;
+  const pending = parseNonNegativeInt(
+    data.pendingListingsCount,
+    FALLBACK_AGENT_HOME_METRICS.pendingListingsCount,
+  );
+  const active = parseNonNegativeInt(
+    data.activeListingsCount,
+    FALLBACK_AGENT_HOME_METRICS.activeListingsCount,
+  );
+  const inspections = parseNonNegativeInt(
+    data.inspectionsBookedCount,
+    FALLBACK_AGENT_HOME_METRICS.inspectionsBookedCount,
+  );
   return {
+    recentlySold: parseRecentlySold(data.recentlySold),
+    activeListingsCount: active,
     pendingListingsCount: pending,
-    pipelineEstimateDisplay: pipelineRaw,
-    recentlySold: recentlySold.length > 0 ? recentlySold : DEMO_AGENT_HOME_METRICS.recentlySold,
+    inspectionsBookedCount: inspections,
+    pipelineCommissionEstimateAud: parsePipeline(data.pipelineCommissionEstimateAud),
   };
 }
 
-/**
- * Loads home KPI / recently-sold preview.
- * Calls `GET /agent/home-metrics` when `EXPO_PUBLIC_API_URL` is set (falls back silently to demo on error).
- */
-export async function loadAgentHomeMetrics(
-  getToken?: () => Promise<string | null>,
-): Promise<AgentHomeMetrics> {
-  const base = process.env.EXPO_PUBLIC_API_URL?.trim();
-  if (!base) {
-    return DEMO_AGENT_HOME_METRICS;
-  }
+export function formatPipelineCommissionRangeDisplay(
+  range: { lowAud: number; highAud: number },
+): string {
+  const f = (n: number) =>
+    n.toLocaleString('en-AU', {
+      style: 'currency',
+      currency: 'AUD',
+      maximumFractionDigits: 0,
+    });
+  return `${f(range.lowAud)}–${f(range.highAud)}`;
+}
 
+/**
+ * Loads agent home metrics from the API when configured and a Clerk JWT is available;
+ * otherwise returns the same-shaped fallback payload.
+ */
+export async function fetchAgentHomeMetrics(
+  getToken: () => Promise<string | null>,
+): Promise<AgentHomeMetricsPayload> {
+  const base = process.env.EXPO_PUBLIC_API_URL;
+  if (!base) {
+    return FALLBACK_AGENT_HOME_METRICS;
+  }
   try {
-    const res = await apiFetch('/agent/home-metrics', getToken ?? (async () => null), { method: 'GET' });
+    const res = await apiFetch('/api/agent-home-metrics', getToken, { method: 'GET' });
     if (!res.ok) {
-      return DEMO_AGENT_HOME_METRICS;
+      return FALLBACK_AGENT_HOME_METRICS;
     }
-    const json: unknown = await res.json().catch(() => null);
-    return coerceAgentHomeMetrics(json) ?? DEMO_AGENT_HOME_METRICS;
+    const json: unknown = await res.json();
+    return parseAgentHomeMetrics(json);
   } catch {
-    return DEMO_AGENT_HOME_METRICS;
+    return FALLBACK_AGENT_HOME_METRICS;
   }
 }

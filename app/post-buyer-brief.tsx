@@ -115,8 +115,8 @@ export default function PostBuyerBriefScreen() {
           { paddingBottom: insets.bottom + 28 },
         ]}>
         <Text style={styles.intro}>
-          Be specific on suburbs, budget, and timing. Matches are private, only agents with relevant off-market stock
-          will see your brief.
+          Be specific on suburbs, budget, and timing. Your brief is shared only with agents who hold relevant stock;
+          you initiate contact from property pages, the same pattern as major listing portals.
         </Text>
 
         <BriefField label="Preferred suburbs or areas" value={suburbs} onChangeText={setSuburbs} showPin />

@@ -11,7 +11,9 @@ import { getUserRole } from '@/lib/auth-session';
 import {
   ILLUSTRATIVE_COMMISSION_OF_SALE_PCT,
   formatAudWhole,
+  formatCommissionPoolLine,
   formatReferralEstimateLine,
+  referralFeeMidEstimateAud,
   resolvePriceGuideRange,
 } from '@/lib/referral-pricing';
 
@@ -21,7 +23,7 @@ import {
   PL_CARD,
   PrimaryCta,
   PublishStepHeader,
-  dashedShell,
+  fieldShell,
   useListingFlowBottomPad,
 } from './_shared';
 import { useListingDraft } from './listing-draft-context';
@@ -30,6 +32,7 @@ const COMMISSION_ASSUMPTION_PRESETS = [2.0, 2.2, 2.5, 2.75, 3.0] as const;
 
 const SLIDER_MIN_ELIGIBLE = 10;
 const SLIDER_MAX = 100;
+const SLIDER_TICK_PCTS = [10, 25, 50, 75, 100] as const;
 
 export default function PublishListingReferral() {
   const router = useRouter();
@@ -81,24 +84,30 @@ export default function PublishListingReferral() {
 
   const earnSub = useMemo(() => {
     if (!eligibleReferral) {
-      return "Buyer's agents don't receive listing-agent referral fees on OMM, so this step stays at 0%. This avoids double‑dipping with buyer-side arrangements.";
+      return "Buyer's agents don't receive listing-agent referral fees on OMM ($0). This avoids double‑dipping with buyer-side arrangements.";
     }
     if (!guide) {
-      return `Estimates: price guide × ${assumedCommissionPct}% illustrative commission on sale → referral % of that commission pool. Not % of the sale price. Replace the ${assumedCommissionPct}% figure with your authority when linked.`;
+      return 'Set a listing price on step 1 to see dollar estimates. Amounts update from your guide and an illustrative gross commission until your authority is linked (GST per your agreement).';
     }
+    const poolLine = formatCommissionPoolLine(guide, assumedCommissionPct);
     if (guide.lowAud === guide.highAud) {
-      return `Guide ${formatAudWhole(guide.lowAud)} · pool uses ${assumedCommissionPct}% of sale as illustrative total commission · referral is ${pct}% of that pool · whole dollars (GST per agreement).`;
+      return `Sale guide ${formatAudWhole(guide.lowAud)} · illustrative commission pool about ${poolLine} · referral share you set below applies to that pool · whole dollars (GST per agreement).`;
     }
-    return `Guide ${formatAudWhole(guide.lowAud)} — ${formatAudWhole(guide.highAud)} · illustrative commission ${assumedCommissionPct}% of sale · referral ${pct}% of that pool · whole dollars (GST per agreement).`;
-  }, [eligibleReferral, guide, assumedCommissionPct, pct]);
+    return `Sale guide ${formatAudWhole(guide.lowAud)} — ${formatAudWhole(guide.highAud)} · illustrative commission pool about ${poolLine} · figures update as you move the slider · GST per agreement.`;
+  }, [eligibleReferral, guide, assumedCommissionPct]);
 
   const heroFoot = useMemo(() => {
     if (isBuyerAgent) return 'Referral offers are disabled for buyer agent accounts.';
-    if (role === 'Vendor Agent') {
-      return 'Vendor advocates may earn referral fees when referring buyers. Typical referral share is 25–30% of the listing agent’s commission pool — not 25–30% of the sale price.';
+    if (role === 'Vendor advocate') {
+      return 'Vendor advocates: typical introductory referral sits around the mid‑range of the slider; final dollars follow your authority and settlement.';
     }
-    return 'Typical referral share: 25–30% of commission pool · Slider is % of your commission (max 100% of that pool), not % of sale price.';
+    return 'Use the slider to change your share of the illustrative commission pool. Dollar outcomes above update immediately from your listing guide.';
   }, [isBuyerAgent, role]);
+
+  const recDollarBadge = useMemo(() => {
+    if (!eligibleReferral || !guide) return null;
+    return formatAudWhole(referralFeeMidEstimateAud(guide, 25, assumedCommissionPct));
+  }, [eligibleReferral, guide, assumedCommissionPct]);
 
   const saveDraft = useCallback(() => {
     Alert.alert('Draft saved', 'Your listing draft has been saved.');
@@ -115,35 +124,38 @@ export default function PublishListingReferral() {
           <View style={styles.policyCallout}>
             <FontAwesome name="info-circle" size={16} color="rgba(0,0,0,0.55)" style={styles.policyIcon} />
             <Text style={styles.policyText}>
-              Platform rule: listing referral fees are not paid to buyer&apos;s agents. Continue with 0% or go back if
-              you reached this flow in error.
+              Platform rule: listing referral fees are not paid to buyer&apos;s agents ($0). Go back if you reached
+              this flow in error.
             </Text>
           </View>
         ) : null}
 
         <View style={styles.heroCard}>
           <View style={styles.heroTop}>
-            <Text style={styles.heroLabel}>REFERRAL FEE</Text>
-            {eligibleReferral ? (
+            <Text style={styles.heroLabel}>ESTIMATED REFERRAL (AUD)</Text>
+            {eligibleReferral && recDollarBadge ? (
               <View style={styles.recBadge}>
-                <Text style={styles.recBadgeText}>REC: 25% OF POOL</Text>
+                <Text style={styles.recBadgeText}>REC · {recDollarBadge}</Text>
               </View>
             ) : null}
           </View>
-          <View style={styles.heroPctRow}>
-            <Text style={styles.heroPct}>{pct}</Text>
-            <Text style={styles.heroPctSuffix}>%</Text>
-          </View>
-          {eligibleReferral ? (
-            <Text style={styles.heroPctCaption}>of listing agent commission pool</Text>
-          ) : null}
+          <Text style={styles.heroAud} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.65}>
+            {eligibleReferral ? earnLine : '$0'}
+          </Text>
+          <Text style={styles.heroAudCaption}>Whole dollars · illustrative until authority is linked</Text>
           <View style={styles.heroRule} />
+          {eligibleReferral && guide ? (
+            <Text style={styles.heroPool}>
+              Illustrative commission pool: {formatCommissionPoolLine(guide, assumedCommissionPct)}
+            </Text>
+          ) : null}
           <Text style={styles.heroFoot}>{heroFoot}</Text>
         </View>
 
         {eligibleReferral ? (
           <>
             <View style={styles.sliderBlock}>
+              <Text style={styles.sliderLabel}>Your share of the commission pool — dollar markers at your price guide</Text>
               <Slider
                 style={styles.slider}
                 minimumValue={SLIDER_MIN_ELIGIBLE}
@@ -156,11 +168,17 @@ export default function PublishListingReferral() {
                 thumbTintColor="#fff"
               />
               <View style={styles.tickRow}>
-                {['10%', '25%', '50%', '75%', '100%'].map((t) => (
-                  <Text key={t} style={styles.tick}>
-                    {t}
-                  </Text>
-                ))}
+                {SLIDER_TICK_PCTS.map((tickPct) => {
+                  const label =
+                    guide != null
+                      ? formatAudWhole(referralFeeMidEstimateAud(guide, tickPct, assumedCommissionPct))
+                      : '—';
+                  return (
+                    <Text key={tickPct} style={styles.tick} numberOfLines={1}>
+                      {label}
+                    </Text>
+                  );
+                })}
               </View>
             </View>
 
@@ -170,30 +188,26 @@ export default function PublishListingReferral() {
             </Text>
 
             <Pressable
-              style={[styles.assumptionRow, dashedShell]}
+              style={[styles.assumptionRow, fieldShell]}
               onPress={() => setCommissionModalOpen(true)}
               accessibilityRole="button"
-              accessibilityLabel="Change illustrative commission percent">
+              accessibilityLabel="Change illustrative gross commission basis">
               <Text style={styles.assumptionText}>
-                Illustrative commission on sale: {assumedCommissionPct}% (until authority is linked){' '}
-                <Text style={styles.assumptionChange}>Change</Text>
+                Illustrative gross commission:{' '}
+                {guide != null ? formatCommissionPoolLine(guide, assumedCommissionPct) : 'set price on step 1'} ·{' '}
+                <Text style={styles.assumptionChange}>Change basis</Text>
               </Text>
             </Pressable>
           </>
         ) : (
           <View style={styles.sliderDisabledHint}>
-            <Text style={styles.sliderDisabledText}>Slider disabled — referral set to 0% for buyer agents.</Text>
+            <Text style={styles.sliderDisabledText}>Referral fee is $0 for buyer agent accounts.</Text>
           </View>
         )}
 
-        <View style={styles.earnCard}>
-          <Text style={styles.earnKicker}>
-            {eligibleReferral ? 'ESTIMATED REFERRAL (AUD)' : 'REFERRAL (AUD)'}
-          </Text>
-          <Text style={styles.earnBig} numberOfLines={2}>
-            {earnLine}
-          </Text>
-          <Text style={styles.earnSub}>{earnSub}</Text>
+        <View style={styles.detailCard}>
+          <Text style={styles.detailKicker}>DETAIL</Text>
+          <Text style={styles.detailBody}>{earnSub}</Text>
         </View>
 
         <View style={{ height: 24 }} />
@@ -206,10 +220,10 @@ export default function PublishListingReferral() {
       <Modal visible={commissionModalOpen} transparent animationType="fade">
         <Pressable style={styles.modalScrim} onPress={() => setCommissionModalOpen(false)}>
           <Pressable style={styles.modalSheet} onPress={(e) => e.stopPropagation()}>
-            <Text style={styles.modalTitle}>Illustrative commission (% of sale)</Text>
+            <Text style={styles.modalTitle}>Illustrative gross commission (AUD)</Text>
             <Text style={styles.modalHint}>
-              Used only until your authority supplies gross commission. Referral % always applies to that commission
-              pool — never directly to the sale price.
+              Choose a basis until your authority supplies gross commission. Dollar pool below is computed from your
+              listing guide; referral estimates use that pool — not the sale price directly.
             </Text>
             {COMMISSION_ASSUMPTION_PRESETS.map((c) => (
               <Pressable
@@ -220,7 +234,8 @@ export default function PublishListingReferral() {
                   setCommissionModalOpen(false);
                 }}>
                 <Text style={styles.modalOptText}>
-                  {c}% {c === assumedCommissionPct ? '· current' : ''}
+                  {guide != null ? formatCommissionPoolLine(guide, c) : '—'}
+                  {c === assumedCommissionPct ? ' · current' : ''}
                 </Text>
               </Pressable>
             ))}
@@ -273,29 +288,28 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 7,
   },
-  recBadgeText: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: '#fff', letterSpacing: 0.35 },
-  heroPctRow: { flexDirection: 'row', alignItems: 'flex-end', marginTop: 16 },
-  heroPct: {
-    fontSize: 72,
+  recBadgeText: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: '#fff', letterSpacing: 0.2 },
+  heroAud: {
+    fontSize: 40,
     fontFamily: 'Satoshi-Medium',
     color: '#fff',
-    letterSpacing: -2,
-    lineHeight: 80,
+    letterSpacing: -0.8,
+    lineHeight: 46,
+    marginTop: 12,
   },
-  heroPctSuffix: {
-    fontSize: 36,
+  heroAudCaption: {
+    fontSize: 12,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
-    marginBottom: 14,
-    marginLeft: 2,
+    color: 'rgba(255,255,255,0.82)',
+    marginTop: 8,
+    lineHeight: 17,
   },
-  heroPctCaption: {
+  heroPool: {
     fontSize: 13,
     fontFamily: 'Satoshi-Medium',
-    color: 'rgba(255,255,255,0.88)',
-    marginTop: -6,
-    marginBottom: 6,
-    lineHeight: 18,
+    color: 'rgba(255,255,255,0.92)',
+    marginTop: 14,
+    lineHeight: 19,
   },
   heroRule: {
     borderTopWidth: 1,
@@ -312,9 +326,16 @@ const styles = StyleSheet.create({
   },
 
   sliderBlock: { marginBottom: 12 },
+  sliderLabel: {
+    fontSize: 12,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0,0,0,0.55)',
+    marginBottom: 10,
+    lineHeight: 17,
+  },
   slider: { width: '100%', height: 36 },
-  tickRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8 },
-  tick: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: PL_BORDER },
+  tickRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, gap: 4 },
+  tick: { flex: 1, fontSize: 9, fontFamily: 'Satoshi-Medium', color: PL_BORDER, textAlign: 'center' },
 
   rulesNote: {
     fontSize: 12,
@@ -340,34 +361,25 @@ const styles = StyleSheet.create({
   },
   sliderDisabledText: { fontSize: 13, color: 'rgba(0,0,0,0.45)', fontFamily: 'Satoshi-Medium' },
 
-  earnCard: {
-    backgroundColor: PL_CARD,
-    borderRadius: 8,
-    paddingHorizontal: 18,
-    paddingTop: 28,
-    paddingBottom: 22,
+  detailCard: {
+    backgroundColor: '#f5f5f7',
+    borderRadius: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 18,
     marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.1,
-    shadowRadius: 15,
-    elevation: 6,
   },
-  earnKicker: {
-    fontSize: 12,
+  detailKicker: {
+    fontSize: 10,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
-    letterSpacing: 0.55,
-    marginBottom: 10,
-    lineHeight: 16,
+    color: 'rgba(0,0,0,0.5)',
+    letterSpacing: 0.8,
+    marginBottom: 8,
   },
-  earnBig: { fontSize: 28, fontFamily: 'Satoshi-Medium', color: '#fff', lineHeight: 38 },
-  earnSub: {
-    fontSize: 15,
-    color: '#fff',
-    opacity: 0.96,
-    marginTop: 10,
-    lineHeight: 22,
+  detailBody: {
+    fontSize: 14,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0,0,0,0.72)',
+    lineHeight: 21,
   },
 
   modalScrim: { flex: 1, backgroundColor: 'rgba(0,0,0,0.35)', justifyContent: 'flex-end' },

@@ -13,7 +13,7 @@ import {
   PL_TITLE,
   PrimaryCta,
   PublishStepHeader,
-  dashedShell,
+  fieldShell,
   useListingFlowBottomPad,
 } from './_shared';
 import { DEMO_SOI_SUBURB_POSTCODE } from '@/lib/melbourne-demo-locations';
@@ -44,10 +44,10 @@ function GeneratingSoiModal({
         <Pressable style={genStyles.sheet} onPress={(e) => e.stopPropagation()}>
           <Text style={genStyles.genTitle}>Generating your SOI</Text>
           <Text style={genStyles.genLede}>
-            Pulling comparable sales from PriceFinder for {suburbLine}. Usually takes 10—15 seconds.
+            Pulling comparable sales for {suburbLine}. Usually takes 10—15 seconds.
           </Text>
 
-          <View style={[genStyles.progressCard, dashedShell]}>
+          <View style={[genStyles.progressCard, fieldShell]}>
             <View style={genStyles.genStep}>
               <View style={genStyles.iconDone}>
                 <FontAwesome name="check" size={12} color="#fff" />
@@ -95,7 +95,7 @@ function UploadingSoiModal({ visible, onCancel }: { visible: boolean; onCancel: 
           <Text style={upStyles.upTitle}>Uploading SOI</Text>
           <Text style={upStyles.upSub}>Verifying signatures and required fields...</Text>
 
-          <View style={[upStyles.fileCard, dashedShell]}>
+          <View style={[upStyles.fileCard, fieldShell]}>
             <View style={upStyles.pdfBadge}>
               <Text style={upStyles.pdfBadgeText}>PDF</Text>
             </View>
@@ -350,7 +350,7 @@ export default function PublishListingSoi() {
 
         <Pressable
           onPress={selectAuto}
-          style={[styles.choiceCard, dashedShell, choice === 'auto' && styles.choiceCardSelected]}>
+          style={[styles.choiceCard, fieldShell, choice === 'auto' && styles.choiceCardSelected]}>
           <View style={styles.choiceRow}>
             <View
               style={[
@@ -369,7 +369,7 @@ export default function PublishListingSoi() {
                 </View>
               </View>
               <Text style={styles.choiceBody}>
-                Pulls from PriceFinder comparable sales for the listing's suburb. Editable before publish.
+                Pulls comparable sales for the listing's suburb. Editable before publish.
               </Text>
             </View>
           </View>
@@ -377,7 +377,7 @@ export default function PublishListingSoi() {
 
         <Pressable
           onPress={selectUpload}
-          style={[styles.choiceCard, dashedShell, choice === 'upload' && styles.choiceCardSelected]}>
+          style={[styles.choiceCard, fieldShell, choice === 'upload' && styles.choiceCardSelected]}>
           <View style={styles.choiceRow}>
             <View
               style={[
@@ -400,7 +400,7 @@ export default function PublishListingSoi() {
         </Pressable>
 
         {uploadAttached && choice === 'upload' ? (
-          <View style={[styles.attachedCard, dashedShell]}>
+          <View style={[styles.attachedCard, fieldShell]}>
             <View style={styles.attachedRow}>
               <View style={styles.docIcon}>
                 <FontAwesome name="file-text-o" size={18} color="#000000" />
@@ -434,7 +434,7 @@ export default function PublishListingSoi() {
             </View>
           </View>
         ) : (
-          <View style={[styles.statusCard, dashedShell]}>
+          <View style={[styles.statusCard, fieldShell]}>
             <View style={styles.statusRow}>
               <View style={styles.docIcon}>
                 <FontAwesome name="file-text-o" size={18} color="#000000" />

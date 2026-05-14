@@ -7,7 +7,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { borderHairline, inkSubtle, layout } from '@/constants/theme';
 import {
   type InvoiceFilterKey,
   type InvoiceRow,
@@ -32,7 +32,6 @@ const ROW_CARD_MIN_H = 168;
 const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
 const MUTED = 'rgba(0, 0, 0, 0.55)';
-const CHIP_INACTIVE_BG = '#efefef';
 const EXPORT_BG = '#000000';
 
 const FILTERS: { key: InvoiceFilterKey; label: string }[] = [
@@ -202,28 +201,33 @@ export default function InvoicesScreen() {
 
         <View style={{ height: AFTER_SUMMARY }} />
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipScroll}>
-          {FILTERS.map((f, i) => {
-            const on = filter === f.key;
-            return (
-              <Pressable
-                key={f.key}
-                onPress={() => setFilter(f.key)}
-                style={({ pressed }) => [
-                  styles.chip,
-                  i < FILTERS.length - 1 ? styles.chipSpacing : null,
-                  on ? styles.chipOn : styles.chipOff,
-                  pressed && { opacity: 0.9 },
-                ]}
-                accessibilityRole="button"
-                accessibilityState={{ selected: on }}>
-                <Text style={[styles.chipText, on ? styles.chipTextOn : styles.chipTextOff]} numberOfLines={1}>
-                  {f.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        <View style={styles.filterBar}>
+          <View style={styles.chipStrip}>
+            {FILTERS.map((f) => {
+              const on = filter === f.key;
+              return (
+                <Pressable
+                  key={f.key}
+                  onPress={() => setFilter(f.key)}
+                  style={[styles.chip, on ? styles.chipOn : styles.chipOff]}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}>
+                  {({ pressed }) => (
+                    <Text
+                      style={[
+                        styles.chipLabel,
+                        on ? styles.chipLabelOn : styles.chipLabelOff,
+                        pressed && !on && { opacity: 0.7 },
+                      ]}
+                      numberOfLines={1}>
+                      {f.label}
+                    </Text>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
 
         <View style={{ height: AFTER_CHIPS }} />
 
@@ -327,37 +331,45 @@ const styles = StyleSheet.create({
     color: MUTED,
     lineHeight: 21,
   },
-  chipScroll: {
+  /** Idle: gray labels; selected: solid black pill (same pattern as Payout history). */
+  filterBar: {
+    paddingTop: 4,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: borderHairline,
+  },
+  chipStrip: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
-    paddingRight: 4,
+    gap: 8,
+    minHeight: 31,
   },
   chip: {
+    flexShrink: 0,
+    borderRadius: 18,
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 20,
+    paddingVertical: 7,
+    minHeight: 31,
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: 40,
   },
-  chipSpacing: { marginRight: 8 },
   chipOn: {
     backgroundColor: '#000000',
   },
   chipOff: {
-    backgroundColor: CHIP_INACTIVE_BG,
+    backgroundColor: 'transparent',
   },
-  chipText: {
+  chipLabel: {
     fontSize: 12,
     fontFamily: 'Satoshi-Medium',
-    letterSpacing: 0.15,
+    letterSpacing: 0.2,
   },
-  chipTextOn: {
-    color: '#fff',
-    fontFamily: 'Satoshi-Medium',
+  chipLabelOn: {
+    color: '#FFFFFF',
   },
-  chipTextOff: {
-    color: '#000000',
+  chipLabelOff: {
+    color: inkSubtle,
   },
   invoiceInner: {
     paddingHorizontal: 16,

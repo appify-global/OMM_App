@@ -1,12 +1,11 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { LegalDocModal } from '@/components/LegalDocModal';
 import { SheetHeader } from '@/components/SheetHeader';
 import { useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useState } from 'react';
 import { Text } from '@/components/OMMText';
 import type { ImageSourcePropType } from 'react-native';
-import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 /**
@@ -71,8 +70,8 @@ type NotifRow = {
 const RECENT_ITEMS: NotifRow[] = [
   {
     id: 'r1',
-    title: 'New match for Brutal House 01',
-    body: 'Buyer brief “Hawthorn / Camberwell” matches 142 Orrong Rd, Hawthorn East, score 92.',
+    title: 'Buyer activity near your listing',
+    body: 'Search signals overlapped 142 Orrong Rd, Hawthorn East. Buyers and their agents start the thread when they’re ready.',
     time: '2m',
     unread: true,
     image: PROPERTY_IMG_1,
@@ -92,8 +91,8 @@ const RECENT_ITEMS: NotifRow[] = [
 const EARLIER_ITEMS: NotifRow[] = [
   {
     id: 'e1',
-    title: 'New match for Brutal House 01',
-    body: 'Buyer brief “Hawthorn / Camberwell” matches 142 Orrong Rd, Hawthorn East, score 92.',
+    title: 'Buyer activity near your listing',
+    body: 'Search signals overlapped 142 Orrong Rd, Hawthorn East. Buyers and their agents start the thread when they’re ready.',
     time: '2m',
     unread: true,
     image: PROPERTY_IMG_2,
@@ -109,6 +108,71 @@ const EARLIER_ITEMS: NotifRow[] = [
     rowIcon: 'file-text-o',
   },
 ];
+
+function NotifDetailModal({ row, onClose }: { row: NotifRow | null; onClose: () => void }) {
+  if (!row) return null;
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={notifModalStyles.scrim} onPress={onClose} />
+      <View style={notifModalStyles.card}>
+        <Text style={notifModalStyles.title}>{row.title}</Text>
+        <Text style={notifModalStyles.time}>{row.time}</Text>
+        <Text style={notifModalStyles.body}>{row.body}</Text>
+        <Pressable style={notifModalStyles.closeBtn} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
+          <Text style={notifModalStyles.closeBtnLabel}>CLOSE</Text>
+        </Pressable>
+      </View>
+    </Modal>
+  );
+}
+
+const notifModalStyles = StyleSheet.create({
+  scrim: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  card: {
+    position: 'absolute',
+    bottom: 32,
+    left: 20,
+    right: 20,
+    backgroundColor: '#fff',
+    borderRadius: 16,
+    padding: 20,
+    paddingBottom: 16,
+  },
+  title: {
+    fontSize: 16,
+    fontFamily: 'Satoshi-Medium',
+    color: '#000',
+    marginBottom: 4,
+  },
+  time: {
+    fontSize: 12,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0,0,0,0.45)',
+    marginBottom: 12,
+  },
+  body: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: 'rgba(0,0,0,0.65)',
+    marginBottom: 20,
+  },
+  closeBtn: {
+    height: 44,
+    backgroundColor: '#1C1C1E',
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  closeBtnLabel: {
+    fontSize: 13,
+    fontFamily: 'Satoshi-Medium',
+    color: '#fff',
+    letterSpacing: 0.5,
+  },
+});
 
 function NotificationRow({ row, onPress }: { row: NotifRow; onPress: () => void }) {
   return (
@@ -148,7 +212,7 @@ export default function NotificationsScreen() {
   const [detailNotif, setDetailNotif] = useState<NotifRow | null>(null);
 
   return (
-    <View style={styles.screen}>
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={[styles.headerChrome, hPad]}>
         <SheetHeader title="Notifications" onClose={() => router.back()} />
       </View>
@@ -192,9 +256,9 @@ export default function NotificationsScreen() {
                 <FontAwesome name="times-circle" size={22} color="rgba(0,0,0,0.55)" />
               </Pressable>
               <View style={styles.featuredText}>
-                <Text style={styles.featuredTitle}>New match for Brutal House 01</Text>
+                <Text style={styles.featuredTitle}>Buyer activity near your listing</Text>
                 <Text style={styles.featuredSub}>
-                  Buyer brief &quot;Hawthorn / Camberwell&quot; matches 142 Orrong Rd, Hawthorn East, score 92.
+                  Search signals overlapped 142 Orrong Rd, Hawthorn East. Buyers and their agents start the thread when they’re ready.
                 </Text>
               </View>
             </View>
@@ -218,16 +282,7 @@ export default function NotificationsScreen() {
         </View>
       </ScrollView>
 
-      <LegalDocModal
-        visible={detailNotif != null}
-        title={detailNotif?.title ?? ''}
-        body={
-          detailNotif
-            ? `${detailNotif.time}\n\n${detailNotif.body}`
-            : ''
-        }
-        onClose={() => setDetailNotif(null)}
-      />
+      <NotifDetailModal row={detailNotif} onClose={() => setDetailNotif(null)} />
     </View>
   );
 }

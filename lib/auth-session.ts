@@ -7,7 +7,7 @@ const SESSION_VALUE = '1';
 /** Persists sign-up role for client-side UX rules (e.g. referral eligibility). Replace with server profile when available. */
 const USER_ROLE_KEY = 'omm_user_role_v1';
 
-export type StoredUserRole = 'Real Estate Agent' | 'Buyer Agent' | 'Vendor Agent';
+export type StoredUserRole = 'Real Estate Agent' | 'Buyer Agent' | 'Vendor advocate';
 
 function webSet(key: string, value: string): void {
   try {
@@ -78,7 +78,8 @@ export async function getUserRole(): Promise<StoredUserRole | null> {
       raw = null;
     }
   }
-  if (raw === 'Real Estate Agent' || raw === 'Buyer Agent' || raw === 'Vendor Agent') return raw;
+  if (raw === 'Real Estate Agent' || raw === 'Buyer Agent' || raw === 'Vendor advocate') return raw;
+  if (raw === 'Vendor Agent') return 'Vendor advocate';
   return null;
 }
 

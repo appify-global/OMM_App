@@ -1,86 +1,134 @@
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Link, useRouter } from 'expo-router';
-import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Text } from '@/components/OMMText';
-import { TextInput } from '@/components/OMMTextInput';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Text } from "@/components/OMMText";
+import { TextInput } from "@/components/OMMTextInput";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { Link, useRouter } from "expo-router";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import {
+  KeyboardAvoidingView,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { AppButton } from '@/components/AppButton';
-import { LegalDocModal } from '@/components/LegalDocModal';
-import { setAuthenticated, setUserRole, type StoredUserRole } from '@/lib/auth-session';
-import { FIELD_OUTLINE_COLOR } from '@/lib/field-outline';
-import { LEGAL_PRIVACY_BODY, LEGAL_TERMS_SIGNUP_MODAL_BODY } from '@/lib/legal-docs';
+import { AppButton } from "@/components/AppButton";
+import { LegalDocModal } from "@/components/LegalDocModal";
+import {
+  setAuthenticated,
+  setUserRole,
+  type StoredUserRole,
+} from "@/lib/auth-session";
+import {
+  LEGAL_PRIVACY_BODY,
+  LEGAL_TERMS_SIGNUP_MODAL_BODY,
+} from "@/lib/legal-docs";
+import { fieldShell } from "@/app/(tabs)/add/_shared";
+import { isPermittedWorkEmail, workEmailValidationMessage } from "@/lib/work-email";
 
 const REFERRAL_BODY = `Draft for counsel. This Agency Referral Agreement covers referral or co-agency fees, GST treatment, disclosure expectations, and your obligation to record fees, confirmations, and trail items within OMM to support a Victorian compliance record.`;
 
-const ROLE_OPTIONS = ['Real Estate Agent', 'Buyer Agent', 'Vendor Agent'] as const;
-const STATE_OPTIONS = ['Victoria', 'New South Wales', 'Queensland', 'South Australia', 'Western Australia', 'Tasmania', 'Australian Capital Territory', 'Northern Territory'] as const;
+/** iOS-like filled controls (system gray 6) */
+const FIELD_FILL = "#F2F2F7";
+const SEPARATOR = "rgba(60, 60, 67, 0.29)";
+const IOS_BLUE = "#007AFF";
+
+const ROLE_OPTIONS = [
+  "Real Estate Agent",
+  "Buyer Agent",
+  "Vendor advocate",
+] as const;
+const STATE_OPTIONS = [
+  "Victoria",
+  "New South Wales",
+  "Queensland",
+  "South Australia",
+  "Western Australia",
+  "Tasmania",
+  "Australian Capital Territory",
+  "Northern Territory",
+] as const;
 const MUNICIPALITY_OPTIONS = [
-  'Boroondara',
-  'Stonnington',
-  'Melbourne',
-  'Yarra',
-  'Port Phillip',
-  'Bayside',
-  'Glen Eira',
-  'Monash',
-  'Whitehorse',
-  'Manningham',
-  'Maribyrnong',
-  'Moonee Valley',
-  'Merri-bek',
-  'Darebin',
-  'Kingston',
-  'Frankston',
-  'Casey',
-  'Cardinia',
-  'Mornington Peninsula',
-  'Hobsons Bay',
-  'Wyndham',
-  'Melton',
-  'Hume',
-  'Whittlesea',
-  'Nillumbik',
-  'Knox',
-  'Maroondah',
-  'Greater Dandenong',
-  'Yarra Ranges',
-  'Brimbank',
-  'Greater Geelong',
-  'Ballarat',
-  'Bendigo',
+  "Boroondara",
+  "Stonnington",
+  "Melbourne",
+  "Yarra",
+  "Port Phillip",
+  "Bayside",
+  "Glen Eira",
+  "Monash",
+  "Whitehorse",
+  "Manningham",
+  "Maribyrnong",
+  "Moonee Valley",
+  "Merri-bek",
+  "Darebin",
+  "Kingston",
+  "Frankston",
+  "Casey",
+  "Cardinia",
+  "Mornington Peninsula",
+  "Hobsons Bay",
+  "Wyndham",
+  "Melton",
+  "Hume",
+  "Whittlesea",
+  "Nillumbik",
+  "Knox",
+  "Maroondah",
+  "Greater Dandenong",
+  "Yarra Ranges",
+  "Brimbank",
+  "Greater Geelong",
+  "Ballarat",
+  "Bendigo",
 ] as const;
 
-type LegalKey = 'terms' | 'privacy' | 'referral' | null;
+type LegalKey = "terms" | "privacy" | "referral" | null;
 
 function FormField({
   label,
   value,
   onChangeText,
-  keyboardType = 'default',
+  keyboardType = "default",
   secureTextEntry,
-  autoCapitalize = 'sentences',
+  autoCapitalize = "sentences",
   autoComplete,
   right,
   placeholder,
+  errorMessage,
+  maxLength,
 }: {
   label: string;
   value: string;
   onChangeText: (t: string) => void;
-  keyboardType?: 'default' | 'email-address' | 'phone-pad';
+  keyboardType?: "default" | "email-address" | "phone-pad";
   secureTextEntry?: boolean;
-  autoCapitalize?: 'none' | 'sentences';
-  autoComplete?: 'email' | 'tel' | 'password' | 'name-given' | 'name-family' | 'password-new';
+  autoCapitalize?: "none" | "sentences";
+  autoComplete?:
+    | "email"
+    | "tel"
+    | "password"
+    | "name-given"
+    | "name-family"
+    | "password-new";
   right?: ReactNode;
   placeholder?: string;
+  errorMessage?: string;
+  maxLength?: number;
 }) {
   return (
     <View style={styles.fieldBlock}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <View style={styles.inputShell}>
         <TextInput
-          style={[styles.input, right ? styles.inputWithRight : undefined]}
+          style={[
+            styles.input,
+            right ? styles.inputWithRight : undefined,
+            errorMessage ? styles.inputInvalid : undefined,
+          ]}
           value={value}
           onChangeText={onChangeText}
           keyboardType={keyboardType}
@@ -90,9 +138,13 @@ function FormField({
           autoComplete={autoComplete}
           placeholder={placeholder}
           placeholderTextColor="rgba(0, 0, 0, 0.45)"
+          maxLength={maxLength}
         />
         {right}
       </View>
+      {errorMessage ? (
+        <Text style={styles.fieldError}>{errorMessage}</Text>
+      ) : null}
     </View>
   );
 }
@@ -102,7 +154,8 @@ function SelectField<T extends string>({
   value,
   options,
   onSelect,
-  placeholder = 'Select',
+  placeholder = "Select",
+  sheetTitle,
   formatDisplay,
 }: {
   label: string;
@@ -110,40 +163,97 @@ function SelectField<T extends string>({
   options: readonly T[];
   onSelect: (v: T) => void;
   placeholder?: string;
+  sheetTitle?: string;
   formatDisplay?: (v: T) => string;
 }) {
+  const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
-  const display = (value ? formatDisplay?.(value as T) ?? value : '') || '';
+  const displayFn = formatDisplay ?? ((v: T) => String(v));
+  const display = value ? displayFn(value as T) : "";
 
   return (
     <View style={styles.fieldBlock}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <Pressable
         onPress={() => setOpen(true)}
-        style={styles.selectPressable}
+        style={[styles.listingSelectRow, fieldShell]}
         accessibilityRole="button"
-        accessibilityHint="Opens list of options">
-        <Text style={[styles.selectValue, !value && styles.selectPlaceholder]} numberOfLines={1}>
+        accessibilityHint="Opens list of options"
+      >
+        <Text
+          style={[styles.selectValue, !value && styles.selectPlaceholder]}
+          numberOfLines={1}
+        >
           {display || placeholder}
         </Text>
-        <FontAwesome name="chevron-down" size={14} color="#000000" />
+        <FontAwesome name="chevron-down" size={12} color="rgba(0, 0, 0, 0.55)" />
       </Pressable>
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+      <Modal
+        visible={open}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setOpen(false)}
+      >
         <View style={styles.selectModalRoot}>
-          <Pressable style={styles.selectModalBackdrop} onPress={() => setOpen(false)} />
-          <View style={styles.selectSheet}>
-            <ScrollView keyboardShouldPersistTaps="handled" style={styles.selectSheetScroll}>
-              {options.map((opt) => (
-                <Pressable
-                  key={opt}
-                  style={({ pressed }) => [styles.selectOption, pressed && styles.pressed]}
-                  onPress={() => {
-                    onSelect(opt);
-                    setOpen(false);
-                  }}>
-                  <Text style={styles.selectOptionText}>{formatDisplay?.(opt) ?? opt}</Text>
-                </Pressable>
-              ))}
+          <Pressable
+            style={styles.selectModalBackdrop}
+            onPress={() => setOpen(false)}
+          />
+          <View
+            style={[
+              styles.selectSheet,
+              { paddingBottom: Math.max(insets.bottom, 12) },
+            ]}
+          >
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeaderRow}>
+              <Text style={styles.sheetTitle}>
+                {sheetTitle ?? label.replace(/\s*\*?\s*$/, "")}
+              </Text>
+              <Pressable
+                onPress={() => setOpen(false)}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel="Done"
+              >
+                <Text style={styles.sheetDone}>Done</Text>
+              </Pressable>
+            </View>
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              style={styles.selectSheetScroll}
+              bounces
+            >
+              {options.map((opt, idx) => {
+                const isSel = value === opt;
+                return (
+                  <Pressable
+                    key={opt}
+                    style={[
+                      styles.selectOption,
+                      idx === options.length - 1 && styles.selectOptionLast,
+                    ]}
+                    onPress={() => {
+                      onSelect(opt);
+                      setOpen(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.selectOptionText,
+                        isSel && styles.selectOptionTextSelected,
+                      ]}
+                    >
+                      {displayFn(opt)}
+                    </Text>
+                    {isSel ? (
+                      <FontAwesome name="check" size={16} color="#007AFF" />
+                    ) : (
+                      <View style={styles.selectCheckSpacer} />
+                    )}
+                  </Pressable>
+                );
+              })}
             </ScrollView>
           </View>
         </View>
@@ -152,25 +262,33 @@ function SelectField<T extends string>({
   );
 }
 
-function MunicipalityMultiSelectField({
+function SearchableMultiSelectField({
   label,
   selected,
   options,
   onChangeSelected,
-  placeholder = 'COUNCIL',
+  placeholder,
+  sheetTitle,
+  searchPlaceholder,
+  emptySearchMessage,
+  accessibilityHint,
 }: {
   label: string;
   selected: readonly string[];
   options: readonly string[];
   onChangeSelected: (next: string[]) => void;
-  placeholder?: string;
+  placeholder: string;
+  sheetTitle: string;
+  searchPlaceholder: string;
+  emptySearchMessage: string;
+  accessibilityHint: string;
 }) {
   const insets = useSafeAreaInsets();
   const [open, setOpen] = useState(false);
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
 
   useEffect(() => {
-    if (open) setQuery('');
+    if (open) setQuery("");
   }, [open]);
 
   const filtered = useMemo(() => {
@@ -187,52 +305,92 @@ function MunicipalityMultiSelectField({
     }
   };
 
-  const summary =
-    selected.length === 0 ? '' : selected.map((s) => s.toUpperCase()).join(', ');
+  const summary = selected.length === 0 ? "" : selected.join(", ");
 
   return (
     <View style={styles.fieldBlock}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <Pressable
         onPress={() => setOpen(true)}
-        style={styles.selectPressable}
+        style={[styles.listingSelectRow, fieldShell]}
         accessibilityRole="button"
-        accessibilityHint="Opens searchable list. You can select multiple councils.">
+        accessibilityHint={accessibilityHint}
+      >
         <Text
-          style={[styles.selectValue, selected.length === 0 && styles.selectPlaceholder]}
-          numberOfLines={3}>
+          style={[
+            styles.selectValue,
+            selected.length === 0 && styles.selectPlaceholder,
+          ]}
+          numberOfLines={3}
+        >
           {summary || placeholder}
         </Text>
-        <FontAwesome name="chevron-down" size={14} color="#000000" />
+        <FontAwesome name="chevron-down" size={12} color="rgba(0, 0, 0, 0.55)" />
       </Pressable>
-      <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
+      <Modal
+        visible={open}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setOpen(false)}
+      >
         <View style={styles.selectModalRoot}>
-          <Pressable style={styles.selectModalBackdrop} onPress={() => setOpen(false)} />
-          <View style={[styles.multiSheet, { paddingBottom: Math.max(insets.bottom, 16) }]}>
-            <Text style={styles.multiSheetTitle}>Municipalities</Text>
-            <View style={styles.searchShell}>
-              <FontAwesome name="search" size={14} color="rgba(0,0,0,0.45)" />
+          <Pressable
+            style={styles.selectModalBackdrop}
+            onPress={() => setOpen(false)}
+          />
+          <View
+            style={[
+              styles.multiSheet,
+              { paddingBottom: Math.max(insets.bottom, 12) },
+            ]}
+          >
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeaderRow}>
+              <Text style={styles.sheetTitle}>{sheetTitle}</Text>
+              <Pressable
+                onPress={() => setOpen(false)}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel="Done"
+              >
+                <Text style={styles.sheetDone}>Done</Text>
+              </Pressable>
+            </View>
+            <View style={[styles.searchShell, fieldShell]}>
+              <FontAwesome
+                name="search"
+                size={15}
+                color="rgba(60,60,67,0.45)"
+              />
               <TextInput
                 style={styles.searchInput}
                 value={query}
                 onChangeText={setQuery}
-                placeholder="Search e.g. Boroondara"
-                placeholderTextColor="rgba(0, 0, 0, 0.45)"
+                placeholder={searchPlaceholder}
+                placeholderTextColor="rgba(60, 60, 67, 0.45)"
                 autoCorrect={false}
                 autoCapitalize="words"
               />
             </View>
-            <ScrollView keyboardShouldPersistTaps="handled" style={styles.multiSheetScroll}>
-              {filtered.map((opt) => {
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              style={styles.multiSheetScroll}
+              bounces
+            >
+              {filtered.map((opt, idx) => {
                 const isOn = selected.includes(opt);
                 return (
                   <Pressable
                     key={opt}
-                    style={({ pressed }) => [styles.multiOptionRow, pressed && styles.pressed]}
-                    onPress={() => toggle(opt)}>
-                    <Text style={styles.multiOptionText}>{opt.toUpperCase()}</Text>
+                    style={[
+                      styles.multiOptionRow,
+                      idx === filtered.length - 1 && styles.selectOptionLast,
+                    ]}
+                    onPress={() => toggle(opt)}
+                  >
+                    <Text style={styles.multiOptionText}>{opt}</Text>
                     {isOn ? (
-                      <FontAwesome name="check" size={18} color="#000000" />
+                      <FontAwesome name="check" size={16} color="#007AFF" />
                     ) : (
                       <View style={styles.multiOptionCheckSpacer} />
                     )}
@@ -240,16 +398,9 @@ function MunicipalityMultiSelectField({
                 );
               })}
               {filtered.length === 0 ? (
-                <Text style={styles.multiEmpty}>No councils match your search.</Text>
+                <Text style={styles.multiEmpty}>{emptySearchMessage}</Text>
               ) : null}
             </ScrollView>
-            <Pressable
-              style={({ pressed }) => [styles.multiDoneBtn, pressed && styles.pressed]}
-              onPress={() => setOpen(false)}
-              accessibilityRole="button"
-              accessibilityLabel="Done selecting municipalities">
-              <Text style={styles.multiDoneBtnText}>Done</Text>
-            </Pressable>
           </View>
         </View>
       </Modal>
@@ -269,67 +420,81 @@ export default function SignUpScreen() {
 
   const [step, setStep] = useState<1 | 2>(1);
 
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
-  const [password, setPassword] = useState('');
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [agreeLegal, setAgreeLegal] = useState(false);
   const [agreeReferral, setAgreeReferral] = useState(false);
   const [legalOpen, setLegalOpen] = useState<LegalKey>(null);
 
-  const [role, setRole] = useState<(typeof ROLE_OPTIONS)[number] | ''>('');
-  const [stateAus, setStateAus] = useState<(typeof STATE_OPTIONS)[number] | ''>('');
+  const [role, setRole] = useState<(typeof ROLE_OPTIONS)[number] | "">("");
+  const [statesAus, setStatesAus] = useState<string[]>([]);
   const [municipalities, setMunicipalities] = useState<string[]>([]);
-  const [agencyName, setAgencyName] = useState('');
+  const [agencyName, setAgencyName] = useState("");
+
+  const workEmailError =
+    email.trim().length > 0 ? workEmailValidationMessage(email) : null;
 
   const canStep1 =
     !!firstName &&
     !!lastName &&
-    !!email &&
+    !!email.trim() &&
+    isPermittedWorkEmail(email) &&
     !!phone &&
     !!password &&
     agreeLegal &&
     agreeReferral;
-  const canStep2 = !!role && !!stateAus && municipalities.length > 0 && !!agencyName.trim();
+  const canStep2 =
+    !!role &&
+    statesAus.length > 0 &&
+    municipalities.length > 0 &&
+    !!agencyName.trim();
 
   const goNext = async () => {
     if (step === 1 && canStep1) setStep(2);
     else if (step === 2 && canStep2) {
       await setUserRole(role as StoredUserRole);
       await setAuthenticated();
-      router.replace('/(tabs)');
+      router.replace("/(tabs)");
     }
   };
 
   const primaryDisabled = step === 1 ? !canStep1 : !canStep2;
 
-  const primaryLabel = step === 1 ? 'Continue' : 'Sign Up';
+  const primaryLabel = "Sign Up";
 
   return (
     <KeyboardAvoidingView
       style={[styles.root, { paddingTop: insets.top }]}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    >
       <ScrollView
-        contentContainerStyle={[styles.scrollPad, { paddingBottom: insets.bottom + 28 }]}
+        contentContainerStyle={[
+          styles.scrollPad,
+          { paddingBottom: insets.bottom + 100 },
+        ]}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
+        showsVerticalScrollIndicator={false}
+      >
         {step === 2 ? (
           <Pressable
             style={styles.backRow}
             onPress={() => setStep(1)}
             hitSlop={8}
             accessibilityRole="button"
-            accessibilityLabel="Go back">
+            accessibilityLabel="Go back"
+          >
             <FontAwesome name="chevron-left" size={16} color="#000000" />
             <Text style={styles.backText}>Back</Text>
           </Pressable>
         ) : null}
 
-        <Text style={styles.step}>{step === 1 ? 'STEP 01' : 'STEP 02'}</Text>
+        <Text style={styles.step}>{step === 1 ? "STEP 01" : "STEP 02"}</Text>
         <Text style={styles.screenTitle}>
-          {step === 1 ? 'Create your account' : 'Your role & location'}
+          {step === 1 ? "Create your account" : "Your role & location"}
         </Text>
 
         {step === 1 ? (
@@ -339,14 +504,14 @@ export default function SignUpScreen() {
               value={firstName}
               onChangeText={setFirstName}
               autoComplete="name-given"
-              placeholder="Sam"
+              placeholder="John"
             />
             <FormField
               label="LAST NAME *"
               value={lastName}
               onChangeText={setLastName}
               autoComplete="name-family"
-              placeholder="Taylor"
+              placeholder="Lim"
             />
             <FormField
               label="WORK EMAIL *"
@@ -355,15 +520,22 @@ export default function SignUpScreen() {
               keyboardType="email-address"
               autoCapitalize="none"
               autoComplete="email"
-              placeholder="you@company.com"
+              placeholder="john.lim@azrealestate.com.au"
+              errorMessage={workEmailError ?? undefined}
+              maxLength={254}
             />
+            {!workEmailError && email.trim().length === 0 ? (
+              <Text style={styles.workEmailHint}>
+                Use your agency or corporate inbox — not Gmail, Outlook personal, or ISP webmail.
+              </Text>
+            ) : null}
             <FormField
               label="PHONE NUMBER *"
               value={phone}
               onChangeText={setPhone}
               keyboardType="phone-pad"
               autoComplete="tel"
-              placeholder="0412 345 678"
+              placeholder="+61 436 815 589"
             />
             <FormField
               label="PASSWORD *"
@@ -374,8 +546,16 @@ export default function SignUpScreen() {
               autoComplete="password-new"
               placeholder="StrongPass123"
               right={
-                <Pressable style={styles.eyeBtn} onPress={() => setShowPassword((s) => !s)} hitSlop={8}>
-                  <FontAwesome name={showPassword ? 'eye' : 'eye-slash'} size={18} color="#000000" />
+                <Pressable
+                  style={styles.eyeBtn}
+                  onPress={() => setShowPassword((s) => !s)}
+                  hitSlop={8}
+                >
+                  <FontAwesome
+                    name={showPassword ? "eye" : "eye-slash"}
+                    size={18}
+                    color="#000000"
+                  />
                 </Pressable>
               }
             />
@@ -385,16 +565,22 @@ export default function SignUpScreen() {
                 onPress={() => setAgreeLegal((v) => !v)}
                 style={[styles.checkbox, agreeLegal && styles.checkboxOn]}
                 accessibilityRole="checkbox"
-                accessibilityState={{ checked: agreeLegal }}>
-                {agreeLegal ? <FontAwesome name="check" size={11} color="#000000" /> : null}
+                accessibilityState={{ checked: agreeLegal }}
+              >
+                {agreeLegal ? (
+                  <FontAwesome name="check" size={11} color="#000000" />
+                ) : null}
               </Pressable>
               <Text style={styles.checkboxText}>
-                I agree to the{' '}
-                <Text style={styles.link} onPress={() => setLegalOpen('terms')}>
+                I agree to the{" "}
+                <Text style={styles.link} onPress={() => setLegalOpen("terms")}>
                   Terms of Service
-                </Text>{' '}
-                and{' '}
-                <Text style={styles.link} onPress={() => setLegalOpen('privacy')}>
+                </Text>{" "}
+                and{" "}
+                <Text
+                  style={styles.link}
+                  onPress={() => setLegalOpen("privacy")}
+                >
                   Privacy Policy
                 </Text>
               </Text>
@@ -405,12 +591,18 @@ export default function SignUpScreen() {
                 onPress={() => setAgreeReferral((v) => !v)}
                 style={[styles.checkbox, agreeReferral && styles.checkboxOn]}
                 accessibilityRole="checkbox"
-                accessibilityState={{ checked: agreeReferral }}>
-                {agreeReferral ? <FontAwesome name="check" size={11} color="#000000" /> : null}
+                accessibilityState={{ checked: agreeReferral }}
+              >
+                {agreeReferral ? (
+                  <FontAwesome name="check" size={11} color="#000000" />
+                ) : null}
               </Pressable>
               <Text style={styles.checkboxText}>
-                I have read and accepted the{' '}
-                <Text style={styles.link} onPress={() => setLegalOpen('referral')}>
+                I have read and accepted the{" "}
+                <Text
+                  style={styles.link}
+                  onPress={() => setLegalOpen("referral")}
+                >
                   Agency Referral Agreement
                 </Text>
               </Text>
@@ -425,33 +617,42 @@ export default function SignUpScreen() {
               value={role}
               options={ROLE_OPTIONS}
               onSelect={setRole}
-              placeholder="REAL ESTATE AGENT"
-              formatDisplay={(r) =>
-                r
-                  .split(' ')
-                  .map((w) => w.toUpperCase())
-                  .join(' ')
-              }
+              placeholder="Select your role"
+              sheetTitle="Your role"
             />
-            <Text style={styles.helper}>Pick Real Estate Agent, Buyer Agent, or Vendor Agent.</Text>
+            <Text style={styles.helper}>
+              Pick Real Estate Agent, Buyer Agent, or Vendor advocate.
+            </Text>
 
             <SectionLabel>LOCATION</SectionLabel>
-            <SelectField
+            <SearchableMultiSelectField
               label="STATE *"
-              value={stateAus}
+              selected={statesAus}
               options={STATE_OPTIONS}
-              onSelect={setStateAus}
-              placeholder="VICTORIA"
-              formatDisplay={(s) => s.toUpperCase()}
+              onChangeSelected={setStatesAus}
+              placeholder="Select one or more states or territories"
+              sheetTitle="State / territory"
+              searchPlaceholder="Search states"
+              emptySearchMessage="No states match your search."
+              accessibilityHint="Opens searchable list. You can select multiple states or territories."
             />
-            <MunicipalityMultiSelectField
+            <Text style={styles.helper}>
+              Search and select one or more states or territories you operate in.
+            </Text>
+            <SearchableMultiSelectField
               label="MUNICIPALITIES *"
               selected={municipalities}
               options={MUNICIPALITY_OPTIONS}
               onChangeSelected={setMunicipalities}
-              placeholder="BOROONDARA, STONNINGTON"
+              placeholder="Select one or more councils"
+              sheetTitle="Municipalities"
+              searchPlaceholder="Search councils"
+              emptySearchMessage="No councils match your search."
+              accessibilityHint="Opens searchable list. You can select multiple councils."
             />
-            <Text style={styles.helper}>Search councils and select one or more municipalities.</Text>
+            <Text style={styles.helper}>
+              Search councils and select one or more municipalities.
+            </Text>
 
             <FormField
               label="AGENCY NAME *"
@@ -462,7 +663,13 @@ export default function SignUpScreen() {
           </>
         ) : null}
 
-        <AppButton variant="filled" style={{ marginTop: 16 }} disabled={primaryDisabled} onPress={goNext}>
+        <AppButton
+          variant="charcoal"
+          style={styles.signUpPrimary}
+          disabled={primaryDisabled}
+          onPress={goNext}
+          textStyle={styles.signUpPrimaryLabel}
+        >
           {primaryLabel}
         </AppButton>
 
@@ -479,26 +686,29 @@ export default function SignUpScreen() {
 
         <View style={styles.supportRow}>
           <Text style={styles.supportMuted}>Need help? </Text>
-          <Text style={styles.link} onPress={() => router.push('/(auth)/contact-support')}>
-            Contact support
-          </Text>
+          <Pressable
+            onPress={() => router.push("/(auth)/contact-support")}
+            hitSlop={8}
+          >
+            <Text style={styles.supportLink}>Contact support</Text>
+          </Pressable>
         </View>
       </ScrollView>
 
       <LegalDocModal
-        visible={legalOpen === 'terms'}
+        visible={legalOpen === "terms"}
         title="Terms of Service"
         body={LEGAL_TERMS_SIGNUP_MODAL_BODY}
         onClose={() => setLegalOpen(null)}
       />
       <LegalDocModal
-        visible={legalOpen === 'privacy'}
+        visible={legalOpen === "privacy"}
         title="Privacy Policy"
         body={LEGAL_PRIVACY_BODY}
         onClose={() => setLegalOpen(null)}
       />
       <LegalDocModal
-        visible={legalOpen === 'referral'}
+        visible={legalOpen === "referral"}
         title="Agency Referral Agreement"
         body={REFERRAL_BODY}
         onClose={() => setLegalOpen(null)}
@@ -508,22 +718,38 @@ export default function SignUpScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#fff' },
-  scrollPad: { paddingHorizontal: AUTH_PAD_H, paddingTop: 8 },
+  root: { flex: 1, backgroundColor: "#fff" },
+  scrollPad: {
+    paddingHorizontal: AUTH_PAD_H,
+    paddingTop: 8,
+    /** Ensure children (e.g. AppButton) receive a real width inside ScrollView on iOS. */
+    alignItems: "stretch",
+  },
   backRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     gap: 6,
     marginBottom: 12,
-    alignSelf: 'flex-start',
+    alignSelf: "flex-start",
   },
-  backText: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000' },
-  step: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: 'rgba(26,26,26,0.96)', marginBottom: 6 },
-  screenTitle: { fontSize: 24, fontFamily: 'Satoshi-Medium', color: 'rgba(26,26,26,0.96)', marginBottom: 20, lineHeight: 30 },
+  backText: { fontSize: 15, fontFamily: "Satoshi-Medium", color: "#000000" },
+  step: {
+    fontSize: 14,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(26,26,26,0.96)",
+    marginBottom: 6,
+  },
+  screenTitle: {
+    fontSize: 24,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(26,26,26,0.96)",
+    marginBottom: 20,
+    lineHeight: 30,
+  },
   sectionLabel: {
     fontSize: 10,
-    fontFamily: 'Satoshi-Medium',
-    color: '#636366',
+    fontFamily: "Satoshi-Medium",
+    color: "#636366",
     letterSpacing: 1.2,
     marginTop: 4,
     marginBottom: 10,
@@ -531,8 +757,8 @@ const styles = StyleSheet.create({
   },
   helper: {
     fontSize: 12,
-    fontFamily: 'Satoshi-Medium',
-    color: 'rgba(0, 0, 0, 0.75)',
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(0, 0, 0, 0.75)",
     marginTop: -10,
     marginBottom: 18,
     marginLeft: 2,
@@ -540,174 +766,262 @@ const styles = StyleSheet.create({
   fieldBlock: { marginBottom: 18 },
   fieldLabel: {
     fontSize: 10,
-    fontFamily: 'Satoshi-Medium',
-    color: '#636366',
+    fontFamily: "Satoshi-Medium",
+    color: "#636366",
     letterSpacing: 0.1,
     marginBottom: 8,
     marginLeft: 2,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
-  inputShell: { position: 'relative' },
+  fieldError: {
+    marginTop: 6,
+    marginLeft: 2,
+    fontSize: 12,
+    fontFamily: "Satoshi-Medium",
+    color: "#C62828",
+    lineHeight: 17,
+  },
+  workEmailHint: {
+    marginTop: -10,
+    marginBottom: 18,
+    marginLeft: 2,
+    fontSize: 12,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(0, 0, 0, 0.55)",
+    lineHeight: 17,
+  },
+  inputShell: { position: "relative" },
   input: {
     minHeight: 54,
-    borderWidth: 1,
-    borderColor: FIELD_OUTLINE_COLOR,
-    borderRadius: 12,
+    borderRadius: 10,
     paddingHorizontal: 14,
     paddingVertical: 14,
-    fontSize: 14,
-    fontFamily: 'Satoshi-Medium',
-    color: 'rgba(26,26,26,0.96)',
-    backgroundColor: 'rgba(255,255,255,0.96)',
+    fontSize: 17,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(26,26,26,0.96)",
+    backgroundColor: FIELD_FILL,
   },
   inputWithRight: { paddingRight: 44 },
-  selectPressable: {
-    minHeight: 54,
+  inputInvalid: {
     borderWidth: 1,
-    borderColor: FIELD_OUTLINE_COLOR,
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 8,
-    backgroundColor: 'rgba(255,255,255,0.96)',
+    borderColor: "rgba(198, 40, 40, 0.85)",
   },
-  selectValue: { flex: 1, fontSize: 14, fontFamily: 'Satoshi-Medium', color: 'rgba(26,26,26,0.96)' },
-  selectPlaceholder: { color: 'rgba(0, 0, 0, 0.45)' },
+  listingSelectRow: {
+    minHeight: 54,
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 8,
+  },
+  selectValue: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: "Satoshi-Medium",
+    color: "#000000",
+  },
+  selectPlaceholder: { color: "rgba(0, 0, 0, 0.35)" },
   selectModalRoot: {
     flex: 1,
-    justifyContent: 'flex-end',
+    justifyContent: "flex-end",
   },
   selectModalBackdrop: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: "rgba(0,0,0,0.35)",
   },
   selectSheet: {
-    marginHorizontal: 16,
-    marginBottom: 24,
-    maxHeight: '56%',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  selectSheetScroll: { maxHeight: 360 },
-  multiSheet: {
-    marginHorizontal: 16,
-    marginBottom: 24,
-    maxHeight: '72%',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    overflow: 'hidden',
-    paddingTop: 16,
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingTop: 10,
     paddingHorizontal: 16,
+    maxHeight: "78%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 12,
   },
-  multiSheetTitle: {
-    fontSize: 16,
-    fontFamily: 'Satoshi-Medium',
-    color: '#000000',
+  sheetHandle: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: "rgba(60, 60, 67, 0.3)",
+    alignSelf: "center",
     marginBottom: 12,
   },
-  searchShell: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    borderWidth: 1,
-    borderColor: FIELD_OUTLINE_COLOR,
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    marginBottom: 12,
+  sheetHeaderRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingBottom: 12,
+    marginBottom: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: SEPARATOR,
   },
-  searchInput: {
-    flex: 1,
-    fontSize: 15,
-    fontFamily: 'Satoshi-Medium',
-    color: 'rgba(26,26,26,0.96)',
-    padding: 0,
-    minHeight: 22,
+  sheetTitle: {
+    fontSize: 17,
+    fontFamily: "Satoshi-Medium",
+    color: "#000000",
   },
-  multiSheetScroll: { maxHeight: 300 },
-  multiOptionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  sheetDone: {
+    fontSize: 17,
+    fontFamily: "Satoshi-Medium",
+    color: IOS_BLUE,
+  },
+  selectSheetScroll: {
+    flexGrow: 0,
+    maxHeight: 360,
+  },
+  selectCheckSpacer: { width: 22 },
+  selectOption: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     paddingVertical: 14,
     paddingHorizontal: 4,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0, 0, 0, 0.12)',
+    borderBottomColor: SEPARATOR,
+  },
+  selectOptionLast: {
+    borderBottomWidth: 0,
+  },
+  selectOptionText: {
+    fontSize: 17,
+    fontFamily: "Satoshi-Medium",
+    color: "#000000",
+    flex: 1,
+    paddingRight: 12,
+  },
+  selectOptionTextSelected: { color: "#000000" },
+  multiSheet: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingTop: 10,
+    paddingHorizontal: 16,
+    maxHeight: "85%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 12,
+  },
+  searchShell: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 8,
+    minHeight: 48,
+    borderRadius: 14,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 17,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(26,26,26,0.96)",
+    padding: 0,
+    minHeight: 22,
+  },
+  multiSheetScroll: {
+    flexGrow: 0,
+    maxHeight: 320,
+  },
+  multiOptionRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: SEPARATOR,
   },
   multiOptionText: {
     flex: 1,
-    fontSize: 15,
-    fontFamily: 'Satoshi-Medium',
-    color: '#000000',
+    fontSize: 17,
+    fontFamily: "Satoshi-Medium",
+    color: "#000000",
     paddingRight: 12,
   },
-  multiOptionCheckSpacer: { width: 18 },
+  multiOptionCheckSpacer: { width: 22 },
   multiEmpty: {
     paddingVertical: 28,
-    textAlign: 'center',
-    fontSize: 14,
-    fontFamily: 'Satoshi-Medium',
-    color: 'rgba(0, 0, 0, 0.55)',
-  },
-  multiDoneBtn: {
-    marginTop: 12,
-    alignSelf: 'stretch',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 12,
-    backgroundColor: '#000000',
-  },
-  multiDoneBtnText: {
+    textAlign: "center",
     fontSize: 15,
-    fontFamily: 'Satoshi-Medium',
-    color: '#ffffff',
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(0, 0, 0, 0.45)",
   },
-  selectOption: {
-    paddingVertical: 16,
-    paddingHorizontal: 20,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(0, 0, 0, 0.2)',
+  eyeBtn: {
+    position: "absolute",
+    right: 14,
+    top: 0,
+    bottom: 0,
+    justifyContent: "center",
   },
-  selectOptionText: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000' },
-  eyeBtn: { position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' },
   checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
+    flexDirection: "row",
+    alignItems: "flex-start",
     gap: 10,
     marginTop: 6,
     marginBottom: 10,
-    maxWidth: '100%',
+    maxWidth: "100%",
   },
   checkbox: {
     width: 13,
     height: 13,
     marginTop: 4,
     borderWidth: 1.5,
-    borderColor: 'rgba(0, 0, 0, 0.55)',
+    borderColor: "rgba(0, 0, 0, 0.55)",
     borderRadius: 3,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#fff',
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
   },
-  checkboxOn: { backgroundColor: '#ffffff' },
-  checkboxText: { flex: 1, fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(26,26,26,0.96)', lineHeight: 20 },
-  link: { textDecorationLine: 'underline', fontFamily: 'Satoshi-Medium' },
-  pressed: { opacity: 0.9 },
+  checkboxOn: { backgroundColor: "#ffffff" },
+  checkboxText: {
+    flex: 1,
+    fontSize: 12,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(26,26,26,0.96)",
+    lineHeight: 20,
+  },
+  link: { textDecorationLine: "underline", fontFamily: "Satoshi-Medium" },
   footerCenter: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
     marginTop: 18,
-    flexWrap: 'wrap',
+    flexWrap: "wrap",
     gap: 4,
   },
-  footerMuted: { fontSize: 14, color: 'rgba(26,26,26,0.88)' },
-  footerBold: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: '#000000' },
-  supportRow: { flexDirection: 'row', justifyContent: 'center', marginTop: 14, flexWrap: 'wrap' },
-  supportMuted: { fontSize: 13, color: 'rgba(26,26,26,0.96)' },
+  footerMuted: { fontSize: 14, color: "rgba(26,26,26,0.88)" },
+  footerBold: { fontSize: 14, fontFamily: "Satoshi-Medium", color: "#000000" },
+  supportRow: {
+    flexDirection: "row",
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 14,
+  },
+  supportMuted: {
+    fontSize: 13,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(26,26,26,0.96)",
+  },
+  supportLink: {
+    fontSize: 13,
+    fontFamily: "Satoshi-Medium",
+    color: "#000000",
+    textDecorationLine: "underline",
+  },
+  signUpPrimary: {
+    marginTop: 20,
+  },
+  signUpPrimaryLabel: {
+    color: "#FFFFFF",
+    fontFamily: "Satoshi-Medium",
+  },
 });

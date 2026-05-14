@@ -5,13 +5,11 @@ import { useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { layout } from '@/constants/theme';
 /**
- * Raise a dispute — Figma 1053:3056. Empty values; placeholders only.
- * https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-3056
+ * Raise a dispute — solid-bordered fields, PROPERTY ADDRESS label.
  */
 
 const BLOCK_GAP = 24;
@@ -19,64 +17,23 @@ const LABEL_FIELD_GAP = 8;
 const AFTER_INTRO = 20;
 const FIELD_MIN_H = 54;
 const DETAILS_MIN_H = 132;
-const BOX_R = 8;
-const STROKE = 'rgba(142, 142, 147, 0.65)';
-const STROKE_W = 1;
+const BOX_R = 10;
 const MUTED = '#8E8E93';
 const TEXT_BLACK = '#000000';
+const OUTLINE = 'rgba(0, 0, 0, 0.08)';
 
-function DashedFrame({
-  width,
-  height,
-  borderRadius,
-}: {
-  width: number;
-  height: number;
-  borderRadius: number;
-}) {
-  if (width <= 0 || height <= 0) return null;
-  const inset = STROKE_W / 2;
-  return (
-    <Svg pointerEvents="none" width={width} height={height} style={StyleSheet.absoluteFill}>
-      <Rect
-        x={inset}
-        y={inset}
-        width={Math.max(0, width - STROKE_W)}
-        height={Math.max(0, height - STROKE_W)}
-        rx={borderRadius}
-        ry={borderRadius}
-        fill="none"
-        stroke={STROKE}
-        strokeWidth={STROKE_W}
-      />
-    </Svg>
-  );
-}
-
-/** Dashed shell that tracks inner size (supports multiline details). */
-function DashedInputBox({
+function FieldBox({
   minHeight,
-  borderRadius = BOX_R,
   children,
   innerStyle,
 }: {
   minHeight: number;
-  borderRadius?: number;
   children: ReactNode;
   innerStyle?: object;
 }) {
-  const [size, setSize] = useState({ w: 0, h: minHeight });
   return (
-    <View style={[styles.dashShell, { minHeight }]}>
-      <DashedFrame width={size.w} height={size.h} borderRadius={borderRadius} />
-      <View
-        style={[styles.dashInner, { minHeight }, innerStyle]}
-        onLayout={(e) => {
-          const { width, height } = e.nativeEvent.layout;
-          setSize({ w: Math.ceil(width), h: Math.ceil(height) });
-        }}>
-        {children}
-      </View>
+    <View style={[styles.fieldShell, { minHeight }]}>
+      <View style={[styles.fieldInner, { minHeight }, innerStyle]}>{children}</View>
     </View>
   );
 }
@@ -84,7 +41,7 @@ function DashedInputBox({
 export default function RaiseDisputeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [deal, setDeal] = useState('');
+  const [propertyAddress, setPropertyAddress] = useState('');
   const [category, setCategory] = useState('');
   const [otherParty, setOtherParty] = useState('');
   const [summary, setSummary] = useState('');
@@ -93,7 +50,7 @@ export default function RaiseDisputeScreen() {
 
   const submit = () => {
     if (
-      !deal.trim() ||
+      !propertyAddress.trim() ||
       !category.trim() ||
       !otherParty.trim() ||
       !summary.trim() ||
@@ -135,20 +92,20 @@ export default function RaiseDisputeScreen() {
 
           <View style={styles.fieldBlock}>
             <Text style={styles.label}>PROPERTY ADDRESS</Text>
-            <DashedInputBox minHeight={FIELD_MIN_H}>
+            <FieldBox minHeight={FIELD_MIN_H}>
               <TextInput
-                value={deal}
-                onChangeText={setDeal}
+                value={propertyAddress}
+                onChangeText={setPropertyAddress}
                 style={styles.input}
-                placeholder="OMM-20418 · 218 Victoria St, West Melbourne"
+                placeholder="218 Victoria St, West Melbourne VIC 3003"
                 placeholderTextColor={MUTED}
               />
-            </DashedInputBox>
+            </FieldBox>
           </View>
 
           <View style={styles.fieldBlock}>
             <Text style={styles.label}>CATEGORY</Text>
-            <DashedInputBox minHeight={FIELD_MIN_H}>
+            <FieldBox minHeight={FIELD_MIN_H}>
               <TextInput
                 value={category}
                 onChangeText={setCategory}
@@ -156,12 +113,12 @@ export default function RaiseDisputeScreen() {
                 placeholder="Commission"
                 placeholderTextColor={MUTED}
               />
-            </DashedInputBox>
+            </FieldBox>
           </View>
 
           <View style={styles.fieldBlock}>
             <Text style={styles.label}>OTHER PARTY</Text>
-            <DashedInputBox minHeight={FIELD_MIN_H}>
+            <FieldBox minHeight={FIELD_MIN_H}>
               <TextInput
                 value={otherParty}
                 onChangeText={setOtherParty}
@@ -169,12 +126,12 @@ export default function RaiseDisputeScreen() {
                 placeholder="Sarah Chen · Biggin Scott West Melbourne"
                 placeholderTextColor={MUTED}
               />
-            </DashedInputBox>
+            </FieldBox>
           </View>
 
           <View style={styles.fieldBlock}>
             <Text style={styles.label}>SUMMARY (ONE LINE)</Text>
-            <DashedInputBox minHeight={FIELD_MIN_H}>
+            <FieldBox minHeight={FIELD_MIN_H}>
               <TextInput
                 value={summary}
                 onChangeText={setSummary}
@@ -182,22 +139,22 @@ export default function RaiseDisputeScreen() {
                 placeholder="20% lower than agreed during countersign"
                 placeholderTextColor={MUTED}
               />
-            </DashedInputBox>
+            </FieldBox>
           </View>
 
           <View style={styles.fieldBlock}>
             <Text style={styles.label}>DETAILS</Text>
-            <DashedInputBox minHeight={DETAILS_MIN_H} innerStyle={styles.detailsInner}>
+            <FieldBox minHeight={DETAILS_MIN_H} innerStyle={styles.detailsInner}>
               <TextInput
                 value={details}
                 onChangeText={setDetails}
                 style={[styles.input, styles.inputMulti]}
-                placeholder="Describe what happened and the resolution you are seeking. Include deal refs and dates."
+                placeholder="Describe what happened and the resolution you are seeking. Include listing references and dates."
                 placeholderTextColor={MUTED}
                 multiline
                 textAlignVertical="top"
               />
-            </DashedInputBox>
+            </FieldBox>
           </View>
 
           <View style={styles.fieldBlock}>
@@ -208,7 +165,7 @@ export default function RaiseDisputeScreen() {
               onPress={() =>
                 Alert.alert('Attachments', 'File picker will be available in a future build. PNG, JPG, PDF • up to 5 files • 25MB max.')
               }>
-              <DashedInputBox minHeight={76} innerStyle={styles.attachInner}>
+              <FieldBox minHeight={76} innerStyle={styles.attachInner}>
                 <View style={styles.attachRow}>
                   <FontAwesome name="paperclip" size={18} color={MUTED} style={styles.attachIcon} />
                   <View style={styles.attachTextCol}>
@@ -216,25 +173,34 @@ export default function RaiseDisputeScreen() {
                     <Text style={styles.attachSub}>PNG, JPG, PDF • up to 5 files • 25MB max</Text>
                   </View>
                 </View>
-              </DashedInputBox>
+              </FieldBox>
             </Pressable>
           </View>
 
           <Pressable
-            style={({ pressed }) => [styles.checkRow, pressed && { opacity: 0.85 }]}
+            style={styles.checkRow}
             onPress={() => setResolvedAttempt(!resolvedAttempt)}
             accessibilityRole="checkbox"
             accessibilityState={{ checked: resolvedAttempt }}>
-            <View style={[styles.checkbox, resolvedAttempt && styles.checkboxChecked]}>
-              {resolvedAttempt ? <FontAwesome name="check" size={12} color="#fff" /> : null}
-            </View>
-            <Text style={styles.checkLabel}>I have attempted to resolve this directly with the other agent.</Text>
+            {({ pressed }) => (
+              <>
+                <View style={[styles.checkbox, resolvedAttempt && styles.checkboxChecked, pressed && { opacity: 0.7 }]}>
+                  {resolvedAttempt ? <FontAwesome name="check" size={12} color="#fff" /> : null}
+                </View>
+                <Text style={[styles.checkLabel, pressed && { opacity: 0.7 }]}>I have attempted to resolve this directly with the other agent.</Text>
+              </>
+            )}
           </Pressable>
 
           <View style={{ height: 28 }} />
 
-          <Pressable style={({ pressed }) => [styles.cta, pressed && { opacity: 0.92 }]} onPress={submit} accessibilityRole="button">
-            <Text style={styles.ctaText}>SUBMIT DISPUTE</Text>
+          <Pressable style={styles.cta} onPress={submit} accessibilityRole="button">
+            {({ pressed }) => (
+              <>
+                <Text style={styles.ctaText}>SUBMIT DISPUTE</Text>
+                {pressed && <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12 }]} />}
+              </>
+            )}
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -273,13 +239,19 @@ const styles = StyleSheet.create({
     lineHeight: 15,
     marginBottom: LABEL_FIELD_GAP,
   },
-  dashShell: { position: 'relative', width: '100%', backgroundColor: '#fff', borderRadius: BOX_R, overflow: 'hidden' },
-  dashInner: {
+  fieldShell: {
+    width: '100%',
+    borderRadius: BOX_R,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: OUTLINE,
+    backgroundColor: '#fafafa',
+    overflow: 'hidden',
+  },
+  fieldInner: {
     justifyContent: 'center',
     paddingHorizontal: 14,
     paddingVertical: 4,
     width: '100%',
-    backgroundColor: 'transparent',
   },
   detailsInner: {
     justifyContent: 'flex-start',
@@ -350,11 +322,12 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   cta: {
-    height: 48,
-    borderRadius: BOX_R,
+    height: 52,
+    borderRadius: 12,
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   ctaText: {
     fontSize: 14,

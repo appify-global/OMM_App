@@ -1,10 +1,9 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Text } from '@/components/OMMText';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Svg, { Line, Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { layout } from '@/constants/theme';
@@ -12,77 +11,19 @@ import type { DisputeEvidenceFile, DisputeStatus } from '@/lib/disputes-mock';
 import { getDisputeDetail } from '@/lib/disputes-mock';
 
 /**
- * Single dispute — read-only detail.
- * [Figma 1053:2893](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-2893&t=2eZigRM0BwNtC5wd-4)
+ * Single dispute — read-only detail. Solid-bordered cards.
  */
 
 const BLOCK_GAP = 24;
 const LABEL_FIELD_GAP = 8;
-const STROKE = 'rgba(0, 0, 0, 0.55)';
-const STROKE_W = 1.5;
 const MUTED = 'rgba(0, 0, 0, 0.55)';
-const CARD_R = 8;
+const CARD_R = 10;
 const THUMB = 60;
 const INFO_PAD = 20;
+const OUTLINE = 'rgba(0, 0, 0, 0.08)';
 
-function DashedFrame({
-  width,
-  height,
-  borderRadius,
-}: {
-  width: number;
-  height: number;
-  borderRadius: number;
-}) {
-  if (width <= 0 || height <= 0) return null;
-  const inset = STROKE_W / 2;
-  return (
-    <Svg pointerEvents="none" width={width} height={height} style={StyleSheet.absoluteFill}>
-      <Rect
-        x={inset}
-        y={inset}
-        width={Math.max(0, width - STROKE_W)}
-        height={Math.max(0, height - STROKE_W)}
-        rx={borderRadius}
-        ry={borderRadius}
-        fill="none"
-        stroke={STROKE}
-        strokeWidth={STROKE_W}
-      />
-    </Svg>
-  );
-}
-
-function DashedHorizontalRule({ width }: { width: number }) {
-  if (width <= 0) return null;
-  const y = STROKE_W;
-  return (
-    <Svg width={width} height={STROKE_W * 2 + 1} style={styles.dashSepSvg}>
-      <Line
-        x1={0}
-        y1={y}
-        x2={width}
-        y2={y}
-        stroke={STROKE}
-        strokeWidth={STROKE_W}
-      />
-    </Svg>
-  );
-}
-
-function DashedShell({ borderRadius, children, contentStyle }: { borderRadius: number; children: ReactNode; contentStyle?: object }) {
-  const [size, setSize] = useState({ w: 0, h: 0 });
-  return (
-    <View
-      style={styles.dashWrap}
-      onLayout={(e) => {
-        const { width, height } = e.nativeEvent.layout;
-        setSize({ w: Math.ceil(width), h: Math.ceil(height) });
-      }}>
-      <DashedFrame width={size.w} height={size.h} borderRadius={borderRadius} />
-      <View style={[styles.dashInnerPad, contentStyle]}>{children}</View>
-    </View>
-  );
+function CardShell({ children, contentStyle }: { children: ReactNode; contentStyle?: object }) {
+  return <View style={[styles.card, contentStyle]}>{children}</View>;
 }
 
 function StatusBadge({ status }: { status: DisputeStatus }) {
@@ -156,59 +97,43 @@ function EvidenceThumb({ file }: { file: DisputeEvidenceFile }) {
   }
   return (
     <View style={styles.thumbImgShell}>
-      <Svg pointerEvents="none" width={THUMB} height={THUMB} style={StyleSheet.absoluteFill}>
-        <Rect
-          x={STROKE_W / 2}
-          y={STROKE_W / 2}
-          width={THUMB - STROKE_W}
-          height={THUMB - STROKE_W}
-          rx={4}
-          ry={4}
-          fill="none"
-          stroke={STROKE}
-          strokeWidth={STROKE_W}
-        />
-      </Svg>
       <FontAwesome name="picture-o" size={20} color={MUTED} />
     </View>
   );
 }
 
 function DisputeInfoCard({
-  deal,
+  propertyAddress,
   category,
   otherParty,
   amountLine,
 }: {
-  deal: string;
+  propertyAddress: string;
   category: string;
   otherParty: string;
   amountLine: string;
 }) {
-  const [innerW, setInnerW] = useState(0);
   const rows = [
-    { label: 'PROPERTY ADDRESS', value: deal },
+    { label: 'PROPERTY ADDRESS', value: propertyAddress },
     { label: 'CATEGORY', value: category },
     { label: 'OTHER PARTY', value: otherParty },
     { label: 'AMOUNT IN DISPUTE', value: amountLine },
   ] as const;
 
   return (
-    <DashedShell borderRadius={CARD_R} contentStyle={styles.infoCardOuter}>
-      <View
-        style={styles.infoCardInner}
-        onLayout={(e) => setInnerW(Math.ceil(e.nativeEvent.layout.width))}>
+    <CardShell contentStyle={styles.infoCardOuter}>
+      <View style={styles.infoCardInner}>
         {rows.map((row, i) => (
           <View key={row.label}>
             <View style={styles.infoRowCell}>
               <Text style={styles.label}>{row.label}</Text>
               <Text style={styles.value}>{row.value}</Text>
             </View>
-            {i < rows.length - 1 ? <DashedHorizontalRule width={innerW} /> : null}
+            {i < rows.length - 1 ? <View style={styles.rowDivider} /> : null}
           </View>
         ))}
       </View>
-    </DashedShell>
+    </CardShell>
   );
 }
 
@@ -261,34 +186,34 @@ export default function DisputeDetailScreen() {
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}>
-        <DashedShell borderRadius={CARD_R} contentStyle={styles.heroInner}>
+        <CardShell contentStyle={styles.heroInner}>
           <View style={styles.heroTop}>
             <StatusBadge status={d.status} />
             <Text style={styles.heroId}>{d.id}</Text>
           </View>
           <Text style={styles.heroHeadline}>{d.statusHeadline}</Text>
           <Text style={styles.heroMeta}>{d.openedAssignedLine}</Text>
-        </DashedShell>
+        </CardShell>
 
         <View style={{ height: BLOCK_GAP }} />
 
-        <DisputeInfoCard deal={d.deal} category={d.category} otherParty={d.otherParty} amountLine={d.amountLine} />
+        <DisputeInfoCard propertyAddress={d.deal} category={d.category} otherParty={d.otherParty} amountLine={d.amountLine} />
 
         <View style={{ height: BLOCK_GAP }} />
 
         <Text style={styles.sectionLabel}>SUMMARY</Text>
         <View style={{ height: LABEL_FIELD_GAP }} />
-        <DashedShell borderRadius={CARD_R} contentStyle={styles.copyBox}>
+        <CardShell contentStyle={styles.copyBox}>
           {d.summary ? <Text style={styles.copyText}>{d.summary}</Text> : null}
-        </DashedShell>
+        </CardShell>
 
         <View style={{ height: BLOCK_GAP }} />
 
         <Text style={styles.sectionLabel}>DETAILS</Text>
         <View style={{ height: LABEL_FIELD_GAP }} />
-        <DashedShell borderRadius={CARD_R} contentStyle={styles.copyBoxLarge}>
+        <CardShell contentStyle={styles.copyBoxLarge}>
           {d.detailsBody ? <Text style={styles.copyText}>{d.detailsBody}</Text> : null}
-        </DashedShell>
+        </CardShell>
 
         <View style={{ height: BLOCK_GAP }} />
 
@@ -311,7 +236,7 @@ export default function DisputeDetailScreen() {
 
         <Text style={styles.sectionLabel}>ACTIVITY</Text>
         <View style={{ height: LABEL_FIELD_GAP }} />
-        <DashedShell borderRadius={CARD_R} contentStyle={styles.activityInner}>
+        <CardShell contentStyle={styles.activityInner}>
           {d.activity.map((a, i) => (
             <View key={`${a.sub}-${i}`} style={[styles.activityRow, i < d.activity.length - 1 && styles.activityRowGap]}>
               <View style={styles.bullet} />
@@ -321,12 +246,12 @@ export default function DisputeDetailScreen() {
               </View>
             </View>
           ))}
-        </DashedShell>
+        </CardShell>
 
         <View style={{ height: BLOCK_GAP }} />
 
         <Pressable
-          style={({ pressed }) => [styles.cta, pressed && { opacity: 0.92 }]}
+          style={styles.cta}
           onPress={() =>
             router.push({
               pathname: '/add-dispute-response',
@@ -334,7 +259,12 @@ export default function DisputeDetailScreen() {
             } as Href)
           }
           accessibilityRole="button">
-          <Text style={styles.ctaText}>ADD RESPONSE</Text>
+          {({ pressed }) => (
+            <>
+              <Text style={styles.ctaText}>ADD RESPONSE</Text>
+              {pressed && <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12 }]} />}
+            </>
+          )}
         </Pressable>
 
         <Pressable style={styles.withdrawWrap} onPress={onWithdraw} hitSlop={12} accessibilityRole="button">
@@ -362,8 +292,12 @@ const styles = StyleSheet.create({
     lineHeight: 27,
   },
   scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 8 },
-  dashWrap: { position: 'relative', backgroundColor: '#fff' },
-  dashInnerPad: { backgroundColor: 'transparent' },
+  card: {
+    borderRadius: CARD_R,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: OUTLINE,
+    backgroundColor: '#fafafa',
+  },
   heroInner: {
     paddingHorizontal: 17,
     paddingTop: 17,
@@ -405,8 +339,9 @@ const styles = StyleSheet.create({
   infoRowCell: {
     paddingVertical: 12,
   },
-  dashSepSvg: {
-    marginVertical: 0,
+  rowDivider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: OUTLINE,
   },
   sectionLabel: {
     fontSize: 10,
@@ -473,8 +408,9 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     alignItems: 'center',
     justifyContent: 'center',
-    position: 'relative',
-    backgroundColor: '#fff',
+    backgroundColor: '#fafafa',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: OUTLINE,
   },
   evidenceName: {
     fontSize: 12,
@@ -518,11 +454,12 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   cta: {
-    height: 48,
-    borderRadius: 4,
+    height: 52,
+    borderRadius: 12,
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   ctaText: {
     fontSize: 14,

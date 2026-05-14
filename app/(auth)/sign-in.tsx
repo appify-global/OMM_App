@@ -3,12 +3,17 @@ import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
-import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
 import { OAuthProviderCircles } from '@/components/oauth/OAuthProviderCircles';
 import { setAuthenticated } from '@/lib/auth-session';
+import {
+  isPermittedWorkEmail,
+  workEmailValidationMessage,
+  workEmailValidationMessageFromOAuth,
+} from '@/lib/work-email';
 import { layout } from '@/constants/theme';
 import { FIELD_OUTLINE_COLOR } from '@/lib/field-outline';
 
@@ -28,10 +33,22 @@ export default function SignInScreen() {
   };
 
   const onOAuthContinue = async () => {
-    // TODO: wire Google / Microsoft OAuth
+    // TODO(Clerk): const oauthEmail = session.user?.primaryEmailAddress?.emailAddress;
+    const oauthEmail = undefined as string | undefined;
+
+    const oauthDeny = workEmailValidationMessageFromOAuth(oauthEmail);
+    if (oauthDeny) {
+      Alert.alert('Work email required', oauthDeny);
+      return;
+    }
+
     await setAuthenticated();
     router.replace('/(tabs)');
   };
+
+  const workEmailFieldError =
+    email.trim().length > 0 ? workEmailValidationMessage(email) : null;
+  const canLogin = !!email.trim() && !!password && isPermittedWorkEmail(email);
 
   return (
     <KeyboardAvoidingView
@@ -61,7 +78,7 @@ export default function SignInScreen() {
           <Text style={styles.label}>WORK EMAIL</Text>
           <View style={[styles.inputShell, styles.inputShellEmail]}>
             <TextInput
-              style={styles.input}
+              style={[styles.input, workEmailFieldError ? styles.inputInvalid : undefined]}
               autoCapitalize="none"
               keyboardType="email-address"
               autoComplete="email"
@@ -69,8 +86,12 @@ export default function SignInScreen() {
               placeholderTextColor="rgba(0, 0, 0, 0.45)"
               value={email}
               onChangeText={setEmail}
+              maxLength={254}
             />
           </View>
+          {workEmailFieldError ? (
+            <Text style={styles.fieldError}>{workEmailFieldError}</Text>
+          ) : null}
 
           <Text style={styles.label}>PASSWORD</Text>
           <View style={styles.inputShell}>
@@ -111,7 +132,7 @@ export default function SignInScreen() {
         </View>
 
         <View style={styles.bottomBlock}>
-          <AppButton variant="filled" disabled={!email || !password} onPress={onSubmit}>
+          <AppButton variant="filled" disabled={!canLogin} onPress={onSubmit}>
             Login
           </AppButton>
 
@@ -203,6 +224,18 @@ const styles = StyleSheet.create({
     color: 'rgba(26,26,26,0.96)',
     backgroundColor: 'rgba(255,255,255,0.96)',
     letterSpacing: 0.14,
+  },
+  inputInvalid: {
+    borderColor: 'rgba(198, 40, 40, 0.9)',
+  },
+  fieldError: {
+    marginTop: 6,
+    marginLeft: 9,
+    marginBottom: 4,
+    fontSize: 12,
+    fontFamily: 'Satoshi-Medium',
+    color: '#C62828',
+    lineHeight: 17,
   },
   inputWithRight: { paddingRight: 44 },
   eyeBtn: { position: 'absolute', right: 14, top: 0, bottom: 0, justifyContent: 'center' },

@@ -6,81 +6,37 @@ import { useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { layout } from '@/constants/theme';
-/**
- * Share feedback — topic, feedback text, optional media attach.
- * [Figma 1053:3145](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-3145&t=2eZigRM0BwNtC5wd-4)
- * Fields start empty (no design prefill).
- */
 
 const FIELD_H = 54;
 const FEEDBACK_BOX_H = 150;
-const STROKE = 'rgba(0, 0, 0, 0.55)';
-const STROKE_W = 1.5;
 const BLOCK_GAP = 24;
+const FIELD_FILL = '#F2F2F7';
+const OUTLINE = 'rgba(60, 60, 67, 0.18)';
+const BOX_R = 10;
+const MUTED = 'rgba(60, 60, 67, 0.65)';
 
-function DashedFrame({
-  width,
-  height,
-  borderRadius,
-}: {
-  width: number;
-  height: number;
-  borderRadius: number;
-}) {
-  if (width <= 0) return null;
-  const inset = STROKE_W / 2;
-  return (
-    <Svg
-      pointerEvents="none"
-      width={width}
-      height={height}
-      style={StyleSheet.absoluteFill}>
-      <Rect
-        x={inset}
-        y={inset}
-        width={Math.max(0, width - STROKE_W)}
-        height={Math.max(0, height - STROKE_W)}
-        rx={borderRadius}
-        ry={borderRadius}
-        fill="none"
-        stroke={STROKE}
-        strokeWidth={STROKE_W}
-      />
-    </Svg>
-  );
-}
-
-function DashedFieldShell({
-  height,
-  borderRadius,
+function FieldShell({
+  minHeight,
+  multiline,
   children,
 }: {
-  height: number;
-  borderRadius: number;
+  minHeight: number;
+  multiline?: boolean;
   children: ReactNode;
 }) {
-  const [w, setW] = useState(0);
   return (
-    <View
-      style={[styles.dashShell, { minHeight: height }]}
-      onLayout={(e) => setW(Math.ceil(e.nativeEvent.layout.width))}>
-      <DashedFrame width={w} height={height} borderRadius={borderRadius} />
-      <View style={[styles.dashInner, { minHeight: height, height }]}>{children}</View>
+    <View style={[styles.fieldShell, { minHeight }]}>
+      <View style={[styles.fieldInner, multiline && styles.fieldInnerMulti, { minHeight }]}>
+        {children}
+      </View>
     </View>
   );
 }
 
-function FieldBlock({
-  label,
-  children,
-}: {
-  label: string;
-  children: ReactNode;
-}) {
+function FieldBlock({ label, children }: { label: string; children: ReactNode }) {
   return (
     <View style={styles.fieldBlock}>
       <Text style={styles.label10}>{label}</Text>
@@ -89,24 +45,22 @@ function FieldBlock({
   );
 }
 
-function FeedbackAttachBox() {
-  const [w, setW] = useState(0);
+function AttachBox() {
   const H = 74;
   return (
-    <View style={[styles.dashShell, { minHeight: H }]} onLayout={(e) => setW(Math.ceil(e.nativeEvent.layout.width))}>
-      {w > 0 ? <DashedFrame width={w} height={H} borderRadius={8} /> : null}
-      <Pressable
-        onPress={() => Alert.alert('Attachments', 'Photo / video picker would open here.')}
-        style={[styles.attachMainInner, { minHeight: H }]}
-        accessibilityRole="button"
-        accessibilityLabel="Add photos or videos">
-        <MaterialCommunityIcons name="paperclip" size={20} color="rgba(0, 0, 0, 0.65)" />
-        <View style={styles.attachCopyCol}>
+    <Pressable
+      style={[styles.attachShell, { minHeight: H }]}
+      onPress={() => Alert.alert('Attachments', 'Photo / video picker would open here.')}
+      accessibilityRole="button"
+      accessibilityLabel="Add photos or videos">
+      <View style={[styles.attachInner, { minHeight: H }]}>
+        <MaterialCommunityIcons name="paperclip" size={20} color={MUTED} />
+        <View style={styles.attachCopy}>
           <Text style={styles.attachTitle}>Add photos or videos</Text>
           <Text style={styles.attachSub}>Up to 5 • images & video • 50MB max</Text>
         </View>
-      </Pressable>
-    </View>
+      </View>
+    </Pressable>
   );
 }
 
@@ -131,12 +85,7 @@ export default function ShareFeedbackScreen() {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={insets.top}>
         <View style={styles.navBar}>
-          <Pressable
-            style={styles.navSide}
-            onPress={() => router.back()}
-            hitSlop={12}
-            accessibilityRole="button"
-            accessibilityLabel="Back">
+          <Pressable style={styles.navSide} onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
             <FontAwesome name="chevron-left" size={20} color="#000000" />
           </Pressable>
           <View style={styles.navCenter}>
@@ -150,11 +99,11 @@ export default function ShareFeedbackScreen() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}>
           <Text style={styles.intro}>
-            Feedback is read by Appify product & support. Include a deal ref (e.g. OMM-20418) if relevant.
+            Feedback is read by OMM product & support. Include a listing reference (e.g. OMM-20418) if relevant.
           </Text>
 
-          <FieldBlock label="Topic">
-            <DashedFieldShell height={FIELD_H} borderRadius={4}>
+          <FieldBlock label="TOPIC">
+            <FieldShell minHeight={FIELD_H}>
               <TextInput
                 value={topic}
                 onChangeText={setTopic}
@@ -162,41 +111,44 @@ export default function ShareFeedbackScreen() {
                 placeholder="Topic"
                 autoCapitalize="sentences"
                 autoCorrect
-                placeholderTextColor="rgba(0, 0, 0, 0.45)"
+                placeholderTextColor={MUTED}
               />
-            </DashedFieldShell>
+            </FieldShell>
           </FieldBlock>
 
-          <FieldBlock label="Your feedback">
-            <DashedFieldShell height={FEEDBACK_BOX_H} borderRadius={4}>
+          <FieldBlock label="YOUR FEEDBACK">
+            <FieldShell minHeight={FEEDBACK_BOX_H} multiline>
               <TextInput
                 value={feedback}
                 onChangeText={setFeedback}
-                style={[styles.input, styles.inputMultiline]}
+                style={[styles.input, styles.inputMulti]}
                 placeholder="Your feedback"
                 multiline
                 textAlignVertical="top"
-                placeholderTextColor="rgba(0, 0, 0, 0.45)"
+                placeholderTextColor={MUTED}
               />
-            </DashedFieldShell>
+            </FieldShell>
           </FieldBlock>
 
           <View style={styles.attachSection}>
-            <Text style={styles.label10}>Attachments (optional)</Text>
-            <FeedbackAttachBox />
+            <Text style={styles.label10}>ATTACHMENTS (OPTIONAL)</Text>
+            <AttachBox />
           </View>
 
           <Pressable
+            style={[styles.submitBtn, !canSubmit && styles.submitBtnDisabled]}
             onPress={onSubmit}
             disabled={!canSubmit}
-            style={({ pressed }) => [
-              styles.submitBtn,
-              !canSubmit && styles.submitBtnDisabled,
-              pressed && canSubmit && { opacity: 0.92 },
-            ]}
             accessibilityRole="button"
             accessibilityLabel="Submit feedback">
-            <Text style={styles.submitBtnText}>Submit feedback</Text>
+            {({ pressed }) => (
+              <>
+                <Text style={styles.submitBtnText}>Submit feedback</Text>
+                {pressed && canSubmit ? (
+                  <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12 }]} />
+                ) : null}
+              </>
+            )}
           </Pressable>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -221,88 +173,94 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   intro: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '400',
-    color: 'rgba(0, 0, 0, 0.55)',
-    lineHeight: 18,
+    color: MUTED,
+    lineHeight: 19,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 22,
   },
-  fieldBlock: {
-    marginBottom: BLOCK_GAP,
-  },
+  fieldBlock: { marginBottom: BLOCK_GAP },
   label10: {
     fontSize: 10,
     fontWeight: '400',
-    color: 'rgba(0, 0, 0, 0.55)',
+    color: MUTED,
     letterSpacing: 0.25,
     textTransform: 'uppercase',
     marginBottom: 8,
   },
-  dashShell: {
-    position: 'relative',
+  fieldShell: {
     width: '100%',
-    backgroundColor: '#fff',
+    borderRadius: BOX_R,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: OUTLINE,
+    backgroundColor: FIELD_FILL,
+    overflow: 'hidden',
   },
-  dashInner: {
+  fieldInner: {
     justifyContent: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 14,
     width: '100%',
+  },
+  fieldInnerMulti: {
+    justifyContent: 'flex-start',
+    paddingTop: 12,
+    paddingBottom: 12,
   },
   input: {
-    fontSize: 14,
+    fontSize: 17,
     fontWeight: '400',
     color: '#000',
     paddingVertical: Platform.select({ ios: 14, default: 12 }),
     margin: 0,
   },
-  inputMultiline: {
-    minHeight: FEEDBACK_BOX_H - 20,
-    paddingTop: 12,
-    paddingBottom: 12,
+  inputMulti: {
+    minHeight: FEEDBACK_BOX_H - 28,
+    paddingTop: 4,
+    paddingBottom: 4,
   },
-  attachSection: {
-    marginBottom: BLOCK_GAP,
+  attachSection: { marginBottom: BLOCK_GAP },
+  attachShell: {
+    width: '100%',
+    borderRadius: BOX_R,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: OUTLINE,
+    backgroundColor: FIELD_FILL,
+    overflow: 'hidden',
   },
-  attachMainInner: {
+  attachInner: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    paddingHorizontal: 18,
-    paddingVertical: 18,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
     width: '100%',
   },
-  attachCopyCol: {
-    flex: 1,
-    minWidth: 0,
-    gap: 2,
-  },
+  attachCopy: { flex: 1, minWidth: 0, gap: 2 },
   attachTitle: {
-    fontSize: 13,
+    fontSize: 15,
     fontFamily: 'Satoshi-Medium',
     color: '#000000',
   },
   attachSub: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '400',
-    color: 'rgba(0, 0, 0, 0.55)',
-    lineHeight: 16.5,
+    color: MUTED,
+    lineHeight: 17,
   },
   submitBtn: {
-    height: 48,
-    borderRadius: 4,
+    height: 52,
+    borderRadius: 12,
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
-  submitBtnDisabled: {
-    opacity: 0.45,
-  },
+  submitBtnDisabled: { opacity: 0.4 },
   submitBtnText: {
-    fontSize: 14,
+    fontSize: 16,
     fontFamily: 'Satoshi-Medium',
     color: '#fff',
-    letterSpacing: 0.8,
-    textTransform: 'uppercase',
+    letterSpacing: -0.2,
   },
 });

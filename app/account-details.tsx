@@ -2,6 +2,7 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
+import { AppButton } from '@/components/AppButton';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
 import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
@@ -23,7 +24,10 @@ const STROKE = 'rgba(0, 0, 0, 0.45)';
 const STROKE_W = 1.5;
 const MUTED = 'rgba(0, 0, 0, 0.55)';
 const SEP = 'rgba(0, 0, 0, 0.12)';
+const SELECT_ROW_GAP = 8;
+const SELECT_CHEVRON_SIZE = 12;
 type GstChoice = '' | 'Yes' | 'No';
+const GST_OPTIONS: readonly ('Yes' | 'No')[] = ['Yes', 'No'];
 
 function DashedFrame({
   width,
@@ -78,6 +82,80 @@ function DashedInputBox({
   );
 }
 
+function GstRegisteredField({
+  value,
+  onChange,
+}: {
+  value: GstChoice;
+  onChange: (next: GstChoice) => void;
+}) {
+  const insets = useSafeAreaInsets();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <DashedInputBox minHeight={FIELD_MIN_H} innerStyle={styles.selectInner}>
+        <Pressable
+          onPress={() => setOpen(true)}
+          accessibilityRole="button"
+          accessibilityLabel="GST registered"
+          accessibilityHint="Opens menu to choose Yes or No"
+          style={({ pressed }) => [styles.selectPressable, pressed && styles.selectPressed]}>
+          <View style={styles.selectRow}>
+            <Text
+              style={[styles.selectValue, !value && styles.selectPlaceholder]}
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              {value || 'Yes or No'}
+            </Text>
+            <FontAwesome name="chevron-down" size={SELECT_CHEVRON_SIZE} color="rgba(0, 0, 0, 0.55)" />
+          </View>
+        </Pressable>
+      </DashedInputBox>
+
+      <Modal visible={open} transparent animationType="slide" onRequestClose={() => setOpen(false)}>
+        <View style={styles.selectModalRoot}>
+          <Pressable style={styles.selectModalBackdrop} onPress={() => setOpen(false)} accessibilityRole="button" />
+          <View style={[styles.selectSheet, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+            <View style={styles.sheetHandle} />
+            <View style={styles.sheetHeaderRow}>
+              <Text style={styles.sheetTitle}>GST registered</Text>
+              <Pressable
+                onPress={() => setOpen(false)}
+                hitSlop={12}
+                accessibilityRole="button"
+                accessibilityLabel="Done">
+                <Text style={styles.sheetDone}>Done</Text>
+              </Pressable>
+            </View>
+            {GST_OPTIONS.map((option, index) => {
+              const selected = value === option;
+              return (
+                <Pressable
+                  key={option}
+                  style={[styles.selectOption, index === GST_OPTIONS.length - 1 && styles.selectOptionLast]}
+                  onPress={() => {
+                    onChange(option);
+                    setOpen(false);
+                  }}
+                  accessibilityRole="menuitem"
+                  accessibilityState={{ selected }}>
+                  <Text style={[styles.selectOptionText, selected && styles.selectOptionTextSelected]}>{option}</Text>
+                  {selected ? (
+                    <FontAwesome name="check" size={16} color="#000000" />
+                  ) : (
+                    <View style={styles.selectCheckSpacer} />
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+      </Modal>
+    </>
+  );
+}
+
 export default function AccountDetailsScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -86,7 +164,6 @@ export default function AccountDetailsScreen() {
   const [accountNumber, setAccountNumber] = useState('');
   const [abn, setAbn] = useState('');
   const [gstRegistered, setGstRegistered] = useState<GstChoice>('');
-  const [gstPickerOpen, setGstPickerOpen] = useState(false);
 
   const onSave = () => {
     Alert.alert('Saved', 'Bank and tax details were updated.');
@@ -109,9 +186,10 @@ export default function AccountDetailsScreen() {
         </View>
 
         <ScrollView
+          style={styles.scrollFlex}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 100 }]}>
+          contentContainerStyle={styles.scrollContent}>
           <Text style={styles.intro}>
             Where OMM deposits your commission payouts. Verified via microdeposit (1—2 business days).
           </Text>
@@ -188,63 +266,15 @@ export default function AccountDetailsScreen() {
 
           <View style={styles.fieldBlock}>
             <Text style={styles.label}>GST REGISTERED</Text>
-            <DashedInputBox minHeight={FIELD_MIN_H} innerStyle={styles.selectShell}>
-              <Pressable
-                onPress={() => setGstPickerOpen(true)}
-                accessibilityRole="button"
-                accessibilityLabel="GST registered"
-                accessibilityHint="Opens menu to choose Yes or No"
-                style={({ pressed }) => [styles.selectRow, pressed && { opacity: 0.85 }]}>
-                <Text style={[styles.selectValue, !gstRegistered && styles.selectPlaceholder]}>
-                  {gstRegistered || 'Yes or No'}
-                </Text>
-                <FontAwesome name="chevron-down" size={14} color="rgba(0, 0, 0, 0.45)" />
-              </Pressable>
-            </DashedInputBox>
+            <GstRegisteredField value={gstRegistered} onChange={setGstRegistered} />
           </View>
-
-          <Pressable style={({ pressed }) => [styles.cta, pressed && { opacity: 0.92 }]} onPress={onSave} accessibilityRole="button">
-            <Text style={styles.ctaText}>SAVE CHANGES</Text>
-          </Pressable>
         </ScrollView>
 
-        <Modal
-          visible={gstPickerOpen}
-          transparent
-          animationType="fade"
-          onRequestClose={() => setGstPickerOpen(false)}>
-          <View style={styles.modalRoot}>
-            <Pressable style={styles.modalBackdrop} onPress={() => setGstPickerOpen(false)} accessibilityRole="button" />
-            <View style={[styles.modalSheet, { paddingBottom: Math.max(insets.bottom, 16) + 12 }]}>
-              <Text style={styles.modalSheetTitle}>GST registered</Text>
-              <Pressable
-                style={({ pressed }) => [styles.modalOption, pressed && { opacity: 0.85 }]}
-                onPress={() => {
-                  setGstRegistered('Yes');
-                  setGstPickerOpen(false);
-                }}
-                accessibilityRole="menuitem">
-                <Text style={styles.modalOptionText}>Yes</Text>
-              </Pressable>
-              <Pressable
-                style={({ pressed }) => [styles.modalOption, pressed && { opacity: 0.85 }]}
-                onPress={() => {
-                  setGstRegistered('No');
-                  setGstPickerOpen(false);
-                }}
-                accessibilityRole="menuitem">
-                <Text style={styles.modalOptionText}>No</Text>
-              </Pressable>
-              <View style={styles.modalDivider} />
-              <Pressable
-                style={({ pressed }) => [styles.modalCancel, pressed && { opacity: 0.85 }]}
-                onPress={() => setGstPickerOpen(false)}
-                accessibilityRole="button">
-                <Text style={styles.modalCancelText}>Cancel</Text>
-              </Pressable>
-            </View>
-          </View>
-        </Modal>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+          <AppButton variant="filled" onPress={onSave} textStyle={styles.saveBtnLabel}>
+            Save changes
+          </AppButton>
+        </View>
       </KeyboardAvoidingView>
     </View>
   );
@@ -267,7 +297,12 @@ const styles = StyleSheet.create({
     color: '#000000',
     lineHeight: 27,
   },
-  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 8 },
+  scrollFlex: { flex: 1 },
+  scrollContent: {
+    paddingHorizontal: layout.screenGutter,
+    paddingTop: 8,
+    paddingBottom: 24,
+  },
   intro: {
     fontSize: 14,
     fontWeight: '400',
@@ -316,93 +351,119 @@ const styles = StyleSheet.create({
     marginBottom: BLOCK_GAP,
     marginTop: 4,
   },
-  cta: {
-    height: 48,
-    borderRadius: BOX_R,
-    backgroundColor: '#000000',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: 8,
+  footer: {
+    paddingHorizontal: layout.screenGutter,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: SEP,
+    backgroundColor: '#fff',
   },
-  ctaText: {
+  saveBtnLabel: {
     fontSize: 14,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
     letterSpacing: 0.35,
     textTransform: 'uppercase',
   },
-  selectShell: {
+  selectInner: {
     paddingVertical: 0,
+    minHeight: FIELD_MIN_H,
+  },
+  selectPressable: {
+    alignSelf: 'stretch',
+    width: '100%',
+    minHeight: FIELD_MIN_H,
     justifyContent: 'center',
+  },
+  selectPressed: {
+    opacity: 0.85,
   },
   selectRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    minHeight: FIELD_MIN_H - 2,
-    paddingVertical: Platform.select({ ios: 2, default: 0 }),
+    gap: SELECT_ROW_GAP,
+    minHeight: FIELD_MIN_H,
   },
   selectValue: {
     flex: 1,
+    minWidth: 0,
     fontSize: 15,
     fontWeight: '400',
     color: '#000',
     lineHeight: 22,
-    paddingVertical: Platform.select({ ios: 12, default: 10 }),
   },
   selectPlaceholder: {
     color: 'rgba(0, 0, 0, 0.45)',
   },
-  modalRoot: {
+  selectModalRoot: {
     flex: 1,
     justifyContent: 'flex-end',
   },
-  modalBackdrop: {
+  selectModalBackdrop: {
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.35)',
   },
-  modalSheet: {
+  selectSheet: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 14,
-    paddingTop: 12,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingTop: 10,
     paddingHorizontal: layout.screenGutter,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 16,
+    shadowRadius: 8,
+    elevation: 12,
   },
-  modalSheetTitle: {
-    fontSize: 11,
-    fontFamily: 'Satoshi-Medium',
-    color: MUTED,
-    textTransform: 'uppercase',
-    letterSpacing: 0.25,
-    marginBottom: 10,
-    textAlign: 'center',
+  sheetHandle: {
+    width: 40,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: 'rgba(60, 60, 67, 0.3)',
+    alignSelf: 'center',
+    marginBottom: 12,
   },
-  modalOption: {
-    paddingVertical: 16,
+  sheetHeaderRow: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingBottom: 12,
+    marginBottom: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: SEP,
   },
-  modalOptionText: {
+  sheetTitle: {
     fontSize: 17,
-    fontWeight: '400',
-    color: '#000',
-  },
-  modalDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: SEP,
-    marginVertical: 4,
-  },
-  modalCancel: {
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  modalCancelText: {
-    fontSize: 16,
     fontFamily: 'Satoshi-Medium',
-    color: MUTED,
+    color: '#000000',
+  },
+  sheetDone: {
+    fontSize: 17,
+    fontFamily: 'Satoshi-Medium',
+    color: '#007AFF',
+  },
+  selectCheckSpacer: {
+    width: 22,
+  },
+  selectOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: SEP,
+  },
+  selectOptionLast: {
+    borderBottomWidth: 0,
+  },
+  selectOptionText: {
+    flex: 1,
+    fontSize: 17,
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
+    paddingRight: 12,
+  },
+  selectOptionTextSelected: {
+    color: '#000000',
   },
 });

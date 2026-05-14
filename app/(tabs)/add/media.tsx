@@ -4,7 +4,7 @@ import { useCallback } from 'react';
 import { Text } from '@/components/OMMText';
 import { Alert, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
 
-import { PL_PAD, PL_BORDER, PL_MUTED, PL_TITLE, PrimaryCta, PublishStepHeader, dashedShell, useListingFlowBottomPad } from './_shared';
+import { PL_PAD, PL_BORDER, PL_MUTED, PL_TITLE, PrimaryCta, PublishStepHeader, fieldShell, useListingFlowBottomPad } from './_shared';
 
 export default function PublishListingMedia() {
   const router = useRouter();
@@ -36,7 +36,7 @@ export default function PublishListingMedia() {
             </Pressable>
           </View>
           <Pressable
-            style={[styles.photoDrop, dashedShell]}
+            style={[styles.photoDrop, fieldShell]}
             onPress={() => Alert.alert('Photos', 'Browse photos.')}>
             <View style={styles.uploadGlyph}>
               <FontAwesome name="cloud-upload" size={22} color="#000000" />
@@ -48,7 +48,7 @@ export default function PublishListingMedia() {
             {Array.from({ length: 6 }).map((_, i) => (
               <Pressable
                 key={i}
-                style={[styles.gridCell, dashedShell, { width: cell, height: cell }]}
+                style={[styles.gridCell, fieldShell, { width: cell, height: cell }]}
                 onPress={() => Alert.alert('Photos', 'Add photo slot.')}>
                 <FontAwesome name="plus" size={20} color={PL_BORDER} />
               </Pressable>
@@ -67,7 +67,7 @@ export default function PublishListingMedia() {
             </Pressable>
           </View>
           <Pressable
-            style={[styles.sideBox, dashedShell]}
+            style={[styles.sideBox, fieldShell]}
             onPress={() => Alert.alert('Video', 'Upload tour video.')}>
             <View style={styles.sideIcon}>
               <FontAwesome name="play" size={18} color="#000000" style={{ marginLeft: 3 }} />
@@ -82,7 +82,7 @@ export default function PublishListingMedia() {
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { marginBottom: 12 }]}>FLOOR PLAN</Text>
           <Pressable
-            style={[styles.sideBox, dashedShell]}
+            style={[styles.sideBox, fieldShell]}
             onPress={() => Alert.alert('Floor plan', 'Upload floor plan.')}>
             <View style={styles.sideIcon}>
               <FontAwesome name="file-o" size={18} color="#000000" />

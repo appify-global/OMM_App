@@ -67,6 +67,51 @@ app.get('/api/db-ping', requireAuth, async (_req, res) => {
   }
 });
 
+/**
+ * Home “sold / pipeline” snapshot for the authenticated agent.
+ * Replace the static payload with Postgres reads when listings / settlements tables exist.
+ */
+app.get('/api/agent-home-metrics', requireAuth, async (req, res) => {
+  try {
+    void req.userId;
+    res.json({
+      recentlySold: [
+        {
+          id: '1',
+          addressLine: '12 Hartington St',
+          suburb: 'Elsternwick',
+          soldPriceDisplay: '$1.85M',
+          soldAtDisplay: 'Sold 3d ago',
+          imageIndex: 0,
+        },
+        {
+          id: '2',
+          addressLine: '9 Pasley St',
+          suburb: 'St Kilda',
+          soldPriceDisplay: '$1.42M',
+          soldAtDisplay: 'Sold 1w ago',
+          imageIndex: 1,
+        },
+        {
+          id: '3',
+          addressLine: '44 Orrong Rd',
+          suburb: 'Armadale',
+          soldPriceDisplay: '$2.10M',
+          soldAtDisplay: 'Sold 2w ago',
+          imageIndex: 2,
+        },
+      ],
+      activeListingsCount: 4,
+      pendingListingsCount: 2,
+      inspectionsBookedCount: 3,
+      pipelineCommissionEstimateAud: { lowAud: 41250, highAud: 51500 },
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to load agent home metrics' });
+  }
+});
+
 app.listen(port, () => {
   console.log(`OMM API listening on ${port}`);
 });

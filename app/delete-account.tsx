@@ -114,11 +114,13 @@ export default function DeleteAccountScreen() {
         <View style={{ flexGrow: 1, minHeight: 32 }} />
 
         <Pressable
-          style={({ pressed }) => [styles.deleteBtn, pressed && { opacity: 0.92 }]}
+          style={styles.deleteBtn}
           onPress={onDeletePress}
           accessibilityRole="button"
           accessibilityLabel="Delete account">
-          <Text style={styles.deleteBtnText}>DELETE ACCOUNT</Text>
+          {({ pressed }) => (
+            <Text style={[styles.deleteBtnText, pressed && { opacity: 0.72 }]}>DELETE ACCOUNT</Text>
+          )}
         </Pressable>
 
         <View style={{ height: 12 }} />

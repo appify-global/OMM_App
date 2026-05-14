@@ -1,17 +1,29 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { type Href, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
-import { Image, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, Image, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppButton } from '@/components/AppButton';
+import {
+  acknowledgeDealForViewer,
+  canViewerAcknowledgeDeal,
+  canWriteReviewForDeal,
+  dealAcknowledgementStatusLabel,
+  DEMO_CHAT_PROPERTY_REF,
+  getDealAcknowledgement,
+  type DealAcknowledgementRecord,
+} from '@/lib/deal-acknowledgement';
 import { AGENT_IMG, PROPERTY_IMG_1 } from '@/lib/propertyImages';
 import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
 
 const MENU_ITEMS_BEFORE: { key: string; label: string }[] = [
   { key: 'profile', label: 'View agent profile' },
   { key: 'reviews', label: 'View reviews' },
+  { key: 'acknowledge', label: 'Acknowledge transaction' },
   { key: 'mute', label: 'Mute notifications' },
   { key: 'dispute', label: 'Raise a dispute' },
 ];
@@ -31,9 +43,55 @@ const HEADER_CONTENT_H = 68;
 export default function ContactSellerChatScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { propertyRef: propertyRefParam } = useLocalSearchParams<{ propertyRef?: string }>();
+  const propertyRef =
+    typeof propertyRefParam === 'string' && propertyRefParam.trim().length > 0
+      ? propertyRefParam.trim()
+      : DEMO_CHAT_PROPERTY_REF;
+
   const [menuOpen, setMenuOpen] = useState(false);
+  const [deal, setDeal] = useState<DealAcknowledgementRecord | null>(null);
+  const [ackBanner, setAckBanner] = useState<string | null>(null);
+
+  const loadDeal = useCallback(() => {
+    let alive = true;
+    getDealAcknowledgement(propertyRef).then((row) => {
+      if (alive) setDeal(row);
+    });
+    return () => {
+      alive = false;
+    };
+  }, [propertyRef]);
+
+  useFocusEffect(loadDeal);
 
   const closeMenu = () => setMenuOpen(false);
+
+  const openWriteReview = useCallback(() => {
+    router.push({
+      pathname: '/write-review',
+      params: { propertyRef },
+    } as Href);
+  }, [propertyRef, router]);
+
+  const onAcknowledge = useCallback(async () => {
+    try {
+      const next = await acknowledgeDealForViewer(propertyRef);
+      setDeal(next);
+      if (canWriteReviewForDeal(next)) {
+        setAckBanner('Both parties acknowledged this transaction.');
+      } else {
+        setAckBanner('Your acknowledgement is recorded. We will notify you when reviews are available.');
+      }
+    } catch {
+      Alert.alert('Unable to acknowledge', 'Please try again in a moment.');
+    }
+  }, [propertyRef]);
+
+  const menuItemsBefore = MENU_ITEMS_BEFORE.filter((item) => {
+    if (item.key !== 'acknowledge') return true;
+    return deal != null && canViewerAcknowledgeDeal(deal);
+  });
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -82,13 +140,14 @@ export default function ContactSellerChatScreen() {
               },
             ]}>
             <View style={styles.menuCard} accessibilityViewIsModal>
-              {MENU_ITEMS_BEFORE.map((item) => (
+              {menuItemsBefore.map((item) => (
                 <Pressable
                   key={item.key}
                   onPress={() => {
                     closeMenu();
                     if (item.key === 'profile') router.push('/agent-profile' as Href);
                     if (item.key === 'reviews') router.push('/agent-reviews' as Href);
+                    if (item.key === 'acknowledge') void onAcknowledge();
                   }}
                   style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowPressed]}
                   accessibilityRole="button">
@@ -110,6 +169,27 @@ export default function ContactSellerChatScreen() {
         </View>
       </Modal>
 
+      {deal ? (
+        <View style={styles.dealBar}>
+          <View style={styles.dealBarTextCol}>
+            <Text style={styles.dealBarKicker}>TRANSACTION · {deal.propertyRef}</Text>
+            <Text style={styles.dealBarTitle} numberOfLines={1}>
+              {deal.suburb} · {deal.propertyType}
+            </Text>
+            <Text style={styles.dealBarStatus}>{dealAcknowledgementStatusLabel(deal)}</Text>
+          </View>
+          {canWriteReviewForDeal(deal) ? (
+            <AppButton variant="filled" shrink onPress={openWriteReview} textStyle={styles.dealBarBtnLabel}>
+              Leave review
+            </AppButton>
+          ) : canViewerAcknowledgeDeal(deal) ? (
+            <AppButton variant="filled" shrink onPress={() => void onAcknowledge()} textStyle={styles.dealBarBtnLabel}>
+              Acknowledge
+            </AppButton>
+          ) : null}
+        </View>
+      ) : null}
+
       <ScrollView
         style={styles.thread}
         contentContainerStyle={[styles.threadInner, { paddingBottom: 24 }]}
@@ -117,6 +197,21 @@ export default function ContactSellerChatScreen() {
         <View style={styles.datePillWrap}>
           <Text style={styles.datePill}>TODAY</Text>
         </View>
+
+        {ackBanner ? (
+          <View style={styles.systemBanner}>
+            <Text style={styles.systemBannerText}>{ackBanner}</Text>
+            {deal && canWriteReviewForDeal(deal) ? (
+              <AppButton
+                variant="filled"
+                onPress={openWriteReview}
+                style={styles.systemBannerBtn}
+                textStyle={styles.systemBannerBtnLabel}>
+                Leave review
+              </AppButton>
+            ) : null}
+          </View>
+        ) : null}
 
         <View style={styles.msgInWrap}>
           <View style={styles.bubbleIn}>
@@ -187,6 +282,71 @@ const styles = StyleSheet.create({
     fontFamily: 'Satoshi-Medium',
     color: '#2d8a54',
     letterSpacing: 0.6,
+  },
+  dealBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(0, 0, 0, 0.12)',
+    backgroundColor: '#f7f7f8',
+  },
+  dealBarTextCol: {
+    flex: 1,
+    minWidth: 0,
+    gap: 2,
+  },
+  dealBarKicker: {
+    fontSize: 10,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.45)',
+    letterSpacing: 0.35,
+  },
+  dealBarTitle: {
+    fontSize: 14,
+    fontFamily: 'Satoshi-Medium',
+    color: '#000000',
+  },
+  dealBarStatus: {
+    fontSize: 12,
+    fontWeight: '400',
+    color: 'rgba(0, 0, 0, 0.55)',
+    marginTop: 2,
+  },
+  dealBarBtnLabel: {
+    fontSize: 13,
+    fontFamily: 'Satoshi-Medium',
+    letterSpacing: 0.2,
+    textTransform: 'none',
+  },
+  systemBanner: {
+    alignSelf: 'stretch',
+    marginBottom: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 10,
+    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
+  },
+  systemBannerText: {
+    fontSize: 13,
+    lineHeight: 19,
+    color: 'rgba(0, 0, 0, 0.65)',
+    textAlign: 'center',
+  },
+  systemBannerBtn: {
+    marginTop: 12,
+    alignSelf: 'stretch',
+    height: 44,
+  },
+  systemBannerBtnLabel: {
+    fontSize: 13,
+    fontFamily: 'Satoshi-Medium',
+    letterSpacing: 0.2,
+    textTransform: 'none',
   },
   thread: { flex: 1 },
   threadInner: { paddingHorizontal: 16, paddingTop: 20 },

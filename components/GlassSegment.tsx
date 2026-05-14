@@ -1,25 +1,25 @@
-import { BlurView } from 'expo-blur';
-import { useCallback, useMemo, useState } from 'react';
+import { BlurView } from "expo-blur";
+import { useCallback, useMemo, useState } from "react";
 import {
-  LayoutChangeEvent,
-  Platform,
-  Pressable,
-  StyleSheet,
-  View,
-  type StyleProp,
-  type ViewStyle,
-} from 'react-native';
+    LayoutChangeEvent,
+    Platform,
+    Pressable,
+    StyleSheet,
+    View,
+    type StyleProp,
+    type ViewStyle,
+} from "react-native";
 import Animated, {
-  Extrapolation,
-  interpolate,
-  useAnimatedStyle,
-  useSharedValue,
-  withSpring,
-} from 'react-native-reanimated';
+    Extrapolation,
+    interpolate,
+    useAnimatedStyle,
+    useSharedValue,
+    withSpring,
+} from "react-native-reanimated";
 
-import { Text } from '@/components/OMMText';
-import { Fonts, glass, ink, inkSubtle } from '@/constants/theme';
-import { hapticSelection } from '@/lib/haptics';
+import { Text } from "@/components/OMMText";
+import { Fonts, ink, inkSubtle } from "@/constants/theme";
+import { hapticSelection } from "@/lib/haptics";
 
 export type GlassSegmentItem<K extends string> = {
   key: K;
@@ -90,7 +90,12 @@ export function GlassSegment<K extends string>({
   });
 
   const thumbStyle = useAnimatedStyle(() => {
-    const scale = interpolate(press.value, [0, 1], [1, 0.97], Extrapolation.CLAMP);
+    const scale = interpolate(
+      press.value,
+      [0, 1],
+      [1, 0.97],
+      Extrapolation.CLAMP,
+    );
     return {
       transform: [{ translateX: offset.value }, { scale }],
       width: Math.max(0, itemWidth),
@@ -102,14 +107,22 @@ export function GlassSegment<K extends string>({
       onLayout={onLayoutTrack}
       style={[styles.track, style]}
       accessibilityRole="tablist"
-      accessibilityLabel={accessibilityLabel}>
+      accessibilityLabel={accessibilityLabel}
+    >
       {/* Animated glass thumb — clear track, depth read entirely from light/shadow. */}
       {trackW > 0 ? (
-        <AnimatedView pointerEvents="none" style={[styles.thumbOuter, thumbStyle]}>
+        <AnimatedView
+          pointerEvents="none"
+          style={[styles.thumbOuter, thumbStyle]}
+        >
           <View style={styles.thumbAmbient} />
           <View style={styles.thumbInner}>
-            {Platform.OS === 'ios' ? (
-              <BlurView tint="light" intensity={50} style={StyleSheet.absoluteFill} />
+            {Platform.OS === "ios" ? (
+              <BlurView
+                tint="light"
+                intensity={50}
+                style={StyleSheet.absoluteFill}
+              />
             ) : null}
             <View pointerEvents="none" style={styles.thumbFill} />
             <View pointerEvents="none" style={styles.thumbTopHairline} />
@@ -135,14 +148,16 @@ export function GlassSegment<K extends string>({
             }}
             accessibilityRole="tab"
             accessibilityState={{ selected }}
-            accessibilityLabel={item.label}>
+            accessibilityLabel={item.label}
+          >
             <Text
               style={[
                 styles.label,
                 { letterSpacing },
                 selected ? styles.labelOn : styles.labelOff,
               ]}
-              numberOfLines={1}>
+              numberOfLines={1}
+            >
               {item.label}
             </Text>
           </Pressable>
@@ -154,23 +169,23 @@ export function GlassSegment<K extends string>({
 
 const styles = StyleSheet.create({
   track: {
-    position: 'relative',
-    flexDirection: 'row',
-    alignItems: 'center',
+    position: "relative",
+    flexDirection: "row",
+    alignItems: "center",
     height: HEIGHT,
     borderRadius: RADIUS,
     padding: PADDING,
-    backgroundColor: 'transparent',
+    backgroundColor: "transparent",
   },
   /** Outer holds the tight contact shadow — must NOT clip. */
   thumbOuter: {
-    position: 'absolute',
+    position: "absolute",
     top: PADDING,
     left: 0,
     bottom: PADDING,
     borderRadius: THUMB_RADIUS,
-    backgroundColor: 'transparent',
-    shadowColor: '#000',
+    backgroundColor: "transparent",
+    shadowColor: "#000",
     shadowOpacity: 0.16,
     shadowOffset: { width: 0, height: 4 },
     shadowRadius: 10,
@@ -180,8 +195,8 @@ const styles = StyleSheet.create({
   thumbAmbient: {
     ...StyleSheet.absoluteFillObject,
     borderRadius: THUMB_RADIUS,
-    backgroundColor: 'transparent',
-    shadowColor: '#000',
+    backgroundColor: "transparent",
+    shadowColor: "#000",
     shadowOpacity: 0.08,
     shadowOffset: { width: 0, height: 12 },
     shadowRadius: 22,
@@ -191,33 +206,33 @@ const styles = StyleSheet.create({
   thumbInner: {
     flex: 1,
     borderRadius: THUMB_RADIUS,
-    overflow: 'hidden',
+    overflow: "hidden",
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: 'rgba(60, 60, 67, 0.10)',
+    borderColor: "rgba(60, 60, 67, 0.10)",
   },
   thumbFill: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(255, 255, 255, 0.96)',
+    backgroundColor: "rgba(255, 255, 255, 0.96)",
   },
   thumbTopHairline: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
   },
   cell: {
     flex: 1,
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
+    height: "100%",
+    alignItems: "center",
+    justifyContent: "center",
     zIndex: 1,
   },
   label: {
     fontSize: 11,
     fontFamily: Fonts.medium,
-    textTransform: 'uppercase',
+    textTransform: "uppercase",
   },
   labelOff: { color: inkSubtle },
   labelOn: { color: ink },

@@ -6,10 +6,10 @@ import type { ReactNode } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { Alert, Platform, Pressable, ScrollView, Share, StyleSheet, View } from 'react-native';
-import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { layout } from '@/constants/theme';
+import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 import { buildInvoiceDocumentBody, invoiceExportFilename, saveInvoiceToDocumentDirectory } from '@/lib/invoice-export';
 import type { InvoiceDetailModel } from '@/lib/invoices-mock';
 import { getInvoiceDetailAtIndex } from '@/lib/invoices-mock';
@@ -21,7 +21,7 @@ import { getInvoiceDetailAtIndex } from '@/lib/invoices-mock';
  */
 
 const CARD_PAD = 16;
-/** Vertical gap between major dashed sections */
+/** Vertical gap between major bordered sections */
 const SECTION_GAP = 16;
 /** Space below nav meta row before first card */
 const META_TO_CARD = 20;
@@ -32,40 +32,10 @@ const PRE_ACTION_GAP = 24;
 /** Space between primary and secondary buttons */
 const ACTION_GAP = 12;
 const CARD_R = 8;
-const STROKE = 'rgba(0, 0, 0, 0.55)';
-const STROKE_W = 1.5;
 const MUTED = 'rgba(0, 0, 0, 0.55)';
 const BTN_BG = '#000000';
 
-function DashedFrame({
-  width,
-  height,
-  borderRadius,
-}: {
-  width: number;
-  height: number;
-  borderRadius: number;
-}) {
-  if (width <= 0 || height <= 0) return null;
-  const inset = STROKE_W / 2;
-  return (
-    <Svg pointerEvents="none" width={width} height={height} style={StyleSheet.absoluteFill}>
-      <Rect
-        x={inset}
-        y={inset}
-        width={Math.max(0, width - STROKE_W)}
-        height={Math.max(0, height - STROKE_W)}
-        rx={borderRadius}
-        ry={borderRadius}
-        fill="none"
-        stroke={STROKE}
-        strokeWidth={STROKE_W}
-      />
-    </Svg>
-  );
-}
-
-function DashedBox({
+function HairlineBox({
   minHeight,
   children,
   innerStyle,
@@ -76,23 +46,14 @@ function DashedBox({
   innerStyle?: object;
   elevated?: boolean;
 }) {
-  const [size, setSize] = useState({ w: 0, h: minHeight });
   return (
     <View
       style={[
-        styles.dashShell,
-        { minHeight, overflow: elevated ? 'visible' : 'hidden' },
-        elevated && styles.dashShellElevated,
+        styles.hairlineShell,
+        { minHeight },
+        elevated ? styles.hairlineShellElevated : styles.hairlineShellClipped,
       ]}>
-      <DashedFrame width={size.w} height={size.h} borderRadius={CARD_R} />
-      <View
-        style={[styles.dashInner, { minHeight }, innerStyle]}
-        onLayout={(e) => {
-          const { width, height } = e.nativeEvent.layout;
-          setSize({ w: Math.ceil(width), h: Math.ceil(height) });
-        }}>
-        {children}
-      </View>
+      <View style={[styles.hairlineInner, innerStyle]}>{children}</View>
     </View>
   );
 }
@@ -131,15 +92,15 @@ function DetailBody({
 
       <View style={{ height: META_TO_CARD }} />
 
-      <DashedBox minHeight={120} elevated innerStyle={styles.totalCardInner}>
+      <HairlineBox minHeight={120} elevated innerStyle={styles.totalCardInner}>
         <Text style={[styles.label, styles.labelWithExtraBelow]}>TOTAL</Text>
         <Text style={styles.heroAmount}>{d.totalFormatted}</Text>
         <Text style={styles.gstSub}>{d.gstSubtext}</Text>
-      </DashedBox>
+      </HairlineBox>
 
       <View style={{ height: SECTION_GAP }} />
 
-      <DashedBox minHeight={168} innerStyle={styles.detailsCardInner}>
+      <HairlineBox minHeight={168} innerStyle={styles.detailsCardInner}>
         <View style={styles.fieldBlock}>
           <Text style={styles.label}>PROPERTY</Text>
           <Text style={styles.bodyVal}>{d.propertyLine}</Text>
@@ -152,14 +113,14 @@ function DetailBody({
           <Text style={styles.label}>{d.paymentFieldLabel}</Text>
           <Text style={styles.bodyVal}>{d.paidViaLine}</Text>
         </View>
-      </DashedBox>
+      </HairlineBox>
 
       <View style={{ height: SECTION_GAP }} />
 
       <Text style={styles.issuedAboveLines}>{d.issuedLabel}</Text>
       <View style={{ height: ISSUED_TO_LINES }} />
 
-      <DashedBox minHeight={140} innerStyle={styles.linesCardInner}>
+      <HairlineBox minHeight={140} innerStyle={styles.linesCardInner}>
         {d.lineItems.map((line, i) => (
           <View key={`${line.description}-${i}`} style={i < d.lineItems.length - 1 ? styles.lineRowGap : styles.lineRow}>
             <Text style={styles.lineDesc} numberOfLines={2}>
@@ -168,14 +129,14 @@ function DetailBody({
             <Text style={styles.lineAmt}>{line.amountFormatted}</Text>
           </View>
         ))}
-      </DashedBox>
+      </HairlineBox>
 
       <View style={{ height: SECTION_GAP }} />
 
-      <DashedBox minHeight={44} innerStyle={styles.footerTotalInner}>
+      <HairlineBox minHeight={44} innerStyle={styles.footerTotalInner}>
         <Text style={styles.footerTotalLabel}>TOTAL</Text>
         <Text style={styles.footerTotalAmt}>{d.footerTotalFormatted}</Text>
-      </DashedBox>
+      </HairlineBox>
 
       <View style={{ height: PRE_ACTION_GAP }} />
 
@@ -472,20 +433,27 @@ const styles = StyleSheet.create({
   scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 8 },
   missWrap: { paddingHorizontal: layout.screenGutter, paddingTop: 24 },
   missText: { fontSize: 14, fontWeight: '400', color: '#000000', lineHeight: 21 },
-  dashShell: {
+  hairlineShell: {
     position: 'relative',
     width: '100%',
     backgroundColor: '#fff',
     borderRadius: CARD_R,
+    borderWidth: FIELD_OUTLINE_WIDTH,
+    borderColor: FIELD_OUTLINE_COLOR,
+    borderStyle: 'solid',
   },
-  dashShellElevated: {
+  hairlineShellClipped: {
+    overflow: 'hidden',
+  },
+  hairlineShellElevated: {
+    overflow: 'visible',
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.06,
     shadowRadius: 8,
     elevation: 2,
   },
-  dashInner: {
+  hairlineInner: {
     backgroundColor: 'transparent',
     width: '100%',
   },
@@ -677,8 +645,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#fff',
     borderRadius: 10,
-    borderWidth: STROKE_W,
-    borderColor: STROKE,
+    borderWidth: FIELD_OUTLINE_WIDTH,
+    borderColor: FIELD_OUTLINE_COLOR,
   },
   secondaryBtnText: {
     fontSize: 14,
@@ -701,8 +669,8 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 8,
     backgroundColor: '#fff',
-    borderWidth: STROKE_W,
-    borderColor: STROKE,
+    borderWidth: FIELD_OUTLINE_WIDTH,
+    borderColor: FIELD_OUTLINE_COLOR,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.12,

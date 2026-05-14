@@ -12,25 +12,9 @@ import { layout } from '@/constants/theme';
  */
 
 import { DEMO_AGENT_AGENCY } from '@/lib/melbourne-demo-locations';
+import { PUBLISHED_AGENT_REVIEWS, publishedReviewContextLine } from '@/lib/agent-published-reviews';
 import { AGENT_IMG, PROPERTY_IMG_1, propertyImageAtIndex } from '@/lib/propertyImages';
 const CARD_R = 14;
-
-const REVIEWS = [
-  {
-    name: 'Sarah Chen',
-    role: 'Buyers Agent • BR Realty',
-    rating: '5.0',
-    quote: 'Quick replies, SOI was always on hand. Settlement ran smooth.',
-    date: '14 APR 2026',
-  },
-  {
-    name: 'Tom Reid',
-    role: 'Listing Agent • Marshall White',
-    rating: '4.8',
-    quote: 'Clear authority docs, fair commission split. Would work with again.',
-    date: '02 APR 2026',
-  },
-] as const;
 
 const LISTINGS = [
   {
@@ -164,18 +148,19 @@ export default function AgentProfileScreen() {
           action="SEE ALL →"
           onActionPress={() => router.push('/agent-reviews' as Href)}
         />
-        {REVIEWS.map((r) => (
-          <View key={r.name} style={styles.reviewCard}>
+        {PUBLISHED_AGENT_REVIEWS.slice(0, 2).map((r) => (
+          <View key={r.id} style={styles.reviewCard}>
             <View style={styles.reviewTop}>
               <Image source={PROPERTY_IMG_1} style={styles.reviewAvatar} resizeMode="cover" />
               <View style={styles.reviewMeta}>
-                <Text style={styles.reviewName}>{r.name}</Text>
-                <Text style={styles.reviewRole}>{r.role}</Text>
+                <Text style={styles.reviewName}>{r.reviewerName}</Text>
+                <Text style={styles.reviewRole}>{r.reviewerRole}</Text>
               </View>
               <Text style={styles.reviewStars}>★ {r.rating}</Text>
             </View>
             <View style={styles.reviewBodyDivider} />
             <Text style={styles.reviewQuote}>{r.quote}</Text>
+            <Text style={styles.reviewContext}>{publishedReviewContextLine(r)}</Text>
             <Text style={styles.reviewDate}>{r.date}</Text>
           </View>
         ))}
@@ -413,7 +398,14 @@ const styles = StyleSheet.create({
   reviewRole: { fontSize: 12, fontWeight: '400', color: 'rgba(0, 0, 0, 0.5)', marginTop: 2 },
   reviewStars: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: '#000000' },
   reviewQuote: { fontSize: 14, fontWeight: '400', color: '#000000', lineHeight: 21 },
-  reviewDate: { marginTop: 12, fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)' },
+  reviewContext: {
+    marginTop: 8,
+    fontSize: 11,
+    fontWeight: '400',
+    color: 'rgba(0, 0, 0, 0.5)',
+    lineHeight: 16.5,
+  },
+  reviewDate: { marginTop: 8, fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)' },
   listingCard: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -7,7 +7,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { borderHairline, inkSubtle, layout } from '@/constants/theme';
 /**
  * Payout history — Figma 1053:3498.
  * https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-3498&t=2eZigRM0BwNtC5wd-4
@@ -23,7 +23,6 @@ const CARD_R = 8;
 const STROKE = 'rgba(0, 0, 0, 0.45)';
 const STROKE_W = 1.5;
 const MUTED = 'rgba(0, 0, 0, 0.55)';
-const CHIP_INACTIVE_BG = '#efefef';
 
 type FilterKey = 'all' | 'month' | 'months3' | 'year';
 
@@ -166,28 +165,33 @@ export default function PayoutHistoryScreen() {
 
         <View style={{ height: AFTER_SUMMARY }} />
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipScroll}>
-          {FILTERS.map((f, i) => {
-            const on = filter === f.key;
-            return (
-              <Pressable
-                key={f.key}
-                onPress={() => setFilter(f.key)}
-                style={({ pressed }) => [
-                  styles.chip,
-                  i < FILTERS.length - 1 ? styles.chipSpacing : null,
-                  on ? styles.chipOn : styles.chipOff,
-                  pressed && { opacity: 0.9 },
-                ]}
-                accessibilityRole="button"
-                accessibilityState={{ selected: on }}>
-                <Text style={[styles.chipText, on ? styles.chipTextOn : styles.chipTextOff]} numberOfLines={1}>
-                  {f.label}
-                </Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        <View style={styles.filterBar}>
+          <View style={styles.chipStrip}>
+            {FILTERS.map((f) => {
+              const on = filter === f.key;
+              return (
+                <Pressable
+                  key={f.key}
+                  onPress={() => setFilter(f.key)}
+                  style={[styles.chip, on ? styles.chipOn : styles.chipOff]}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}>
+                  {({ pressed }) => (
+                    <Text
+                      style={[
+                        styles.chipLabel,
+                        on ? styles.chipLabelOn : styles.chipLabelOff,
+                        pressed && !on && { opacity: 0.7 },
+                      ]}
+                      numberOfLines={1}>
+                      {f.label}
+                    </Text>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
 
         <View style={{ height: AFTER_CHIPS }} />
 
@@ -265,37 +269,44 @@ const styles = StyleSheet.create({
     color: MUTED,
     lineHeight: 21,
   },
-  chipScroll: {
+  filterBar: {
+    paddingTop: 4,
+    paddingBottom: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: borderHairline,
+  },
+  chipStrip: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     alignItems: 'center',
-    paddingRight: 4,
+    gap: 8,
+    minHeight: 31,
   },
   chip: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
+    flexShrink: 0,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    minHeight: 31,
     justifyContent: 'center',
     alignItems: 'center',
-    minHeight: 40,
   },
-  chipSpacing: { marginRight: 8 },
   chipOn: {
     backgroundColor: '#000000',
   },
   chipOff: {
-    backgroundColor: CHIP_INACTIVE_BG,
+    backgroundColor: 'transparent',
   },
-  chipText: {
+  chipLabel: {
     fontSize: 12,
     fontFamily: 'Satoshi-Medium',
-    letterSpacing: 0.15,
+    letterSpacing: 0.2,
   },
-  chipTextOn: {
-    color: '#fff',
-    fontFamily: 'Satoshi-Medium',
+  chipLabelOn: {
+    color: '#FFFFFF',
   },
-  chipTextOff: {
-    color: '#000000',
+  chipLabelOff: {
+    color: inkSubtle,
   },
   monthBlock: {
     marginBottom: BLOCK_GAP,

@@ -4,7 +4,6 @@ import type { ReactNode } from 'react';
 import { useMemo, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { layout } from '@/constants/theme';
@@ -20,10 +19,9 @@ const BLOCK_GAP = 24;
 const LIST_GAP = 14;
 const AFTER_INTRO = 16;
 const AFTER_FILTERS = 16;
-const STROKE = 'rgba(0, 0, 0, 0.55)';
-const STROKE_W = 1.5;
 const MUTED = 'rgba(0, 0, 0, 0.55)';
-const CARD_R = 8;
+const OUTLINE = 'rgba(0, 0, 0, 0.08)';
+const CARD_R = 10;
 
 type FilterKey = 'all' | DisputeStatus;
 
@@ -34,47 +32,8 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: 'resolved', label: 'RESOLVED' },
 ];
 
-function DashedFrame({
-  width,
-  height,
-  borderRadius,
-}: {
-  width: number;
-  height: number;
-  borderRadius: number;
-}) {
-  if (width <= 0 || height <= 0) return null;
-  const inset = STROKE_W / 2;
-  return (
-    <Svg pointerEvents="none" width={width} height={height} style={StyleSheet.absoluteFill}>
-      <Rect
-        x={inset}
-        y={inset}
-        width={Math.max(0, width - STROKE_W)}
-        height={Math.max(0, height - STROKE_W)}
-        rx={borderRadius}
-        ry={borderRadius}
-        fill="none"
-        stroke={STROKE}
-        strokeWidth={STROKE_W}
-      />
-    </Svg>
-  );
-}
-
-function DashedCard({ children }: { children: ReactNode }) {
-  const [size, setSize] = useState({ w: 0, h: 0 });
-  return (
-    <View
-      style={styles.dashedCard}
-      onLayout={(e) => {
-        const { width, height } = e.nativeEvent.layout;
-        setSize({ w: Math.ceil(width), h: Math.ceil(height) });
-      }}>
-      <DashedFrame width={size.w} height={size.h} borderRadius={CARD_R} />
-      <View style={styles.dashedCardInner}>{children}</View>
-    </View>
-  );
+function ListCard({ children }: { children: ReactNode }) {
+  return <View style={styles.listCard}>{children}</View>;
 }
 
 function StatusBadge({ status }: { status: DisputeStatus }) {
@@ -183,19 +142,20 @@ export default function DisputesScreen() {
               <Pressable
                 key={f.key}
                 onPress={() => setFilter(f.key)}
-                style={({ pressed }) => [
+                style={[
                   styles.filterChip,
                   i < FILTERS.length - 1 ? styles.filterChipSpacing : null,
                   on ? styles.filterChipOn : styles.filterChipOff,
-                  pressed && { opacity: 0.88 },
                 ]}
                 accessibilityRole="button"
                 accessibilityState={{ selected: on }}>
-                <Text
-                  style={[styles.filterChipText, on && styles.filterChipTextOn, f.key !== 'all' && styles.filterUpper]}
-                  numberOfLines={1}>
-                  {f.label}
-                </Text>
+                {({ pressed }) => (
+                  <Text
+                    style={[styles.filterChipText, on && styles.filterChipTextOn, f.key !== 'all' && styles.filterUpper, pressed && { opacity: 0.7 }]}
+                    numberOfLines={1}>
+                    {f.label}
+                  </Text>
+                )}
               </Pressable>
             );
           })}
@@ -214,7 +174,7 @@ export default function DisputesScreen() {
               accessibilityRole="button"
               accessibilityLabel={`Dispute ${d.id}`}>
               {({ pressed }) => (
-                <DashedCard>
+                <ListCard>
                   <View style={[styles.cardPress, pressed && { opacity: 0.92 }]}>
                     <View style={styles.cardTop}>
                       <Text style={styles.cardId}>{d.id}</Text>
@@ -223,18 +183,23 @@ export default function DisputesScreen() {
                     <Text style={styles.cardTitle}>{d.title}</Text>
                     <Text style={styles.cardMeta}>{d.timeLabel}</Text>
                   </View>
-                </DashedCard>
+                </ListCard>
               )}
             </Pressable>
           ))}
         </View>
 
         <Pressable
-          style={({ pressed }) => [styles.cta, pressed && { opacity: 0.92 }]}
+          style={styles.cta}
           onPress={() => router.push('/raise-dispute' as Href)}
           accessibilityRole="button"
           accessibilityLabel="Raise a dispute">
-          <Text style={styles.ctaText}>RAISE A DISPUTE</Text>
+          {({ pressed }) => (
+            <>
+              <Text style={styles.ctaText}>RAISE A DISPUTE</Text>
+              {pressed && <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12 }]} />}
+            </>
+          )}
         </Pressable>
       </ScrollView>
     </View>
@@ -293,17 +258,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#000000',
   },
   filterChipOff: {
-    backgroundColor: '#fff',
-    borderWidth: 1,
-    borderColor: 'rgba(0, 0, 0, 0.14)',
+    backgroundColor: 'transparent',
   },
   filterChipText: {
     fontSize: 12,
     fontWeight: '400',
-    color: '#2e2e2e',
+    color: 'rgba(0,0,0,0.45)',
   },
   filterChipTextOn: {
     color: '#fff',
+    fontFamily: 'Satoshi-Medium',
     textTransform: 'uppercase',
   },
   filterUpper: {
@@ -313,14 +277,12 @@ const styles = StyleSheet.create({
     gap: LIST_GAP,
     marginBottom: BLOCK_GAP,
   },
-  dashedCard: {
-    position: 'relative',
-    backgroundColor: '#fff',
-  },
-  dashedCardInner: {
-    paddingHorizontal: 0,
-    paddingVertical: 0,
-    gap: 0,
+  listCard: {
+    borderRadius: CARD_R,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: OUTLINE,
+    backgroundColor: '#fafafa',
+    overflow: 'hidden',
   },
   cardPress: {
     paddingHorizontal: 17,
@@ -355,11 +317,12 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
   cta: {
-    height: 48,
-    borderRadius: 4,
+    height: 52,
+    borderRadius: 12,
     backgroundColor: '#000000',
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
   },
   ctaText: {
     fontSize: 14,
