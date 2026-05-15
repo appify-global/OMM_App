@@ -78,6 +78,7 @@ function RootLayoutNav() {
         <Stack.Screen name="authority-expiring" options={{ headerShown: false }} />
         <Stack.Screen name="recent-listings" options={{ headerShown: false }} />
         <Stack.Screen name="view-live-listing" options={{ headerShown: false }} />
+        <Stack.Screen name="soi-preview" options={{ headerShown: false }} />
         <Stack.Screen name="contact-seller-chat" options={{ headerShown: false }} />
         <Stack.Screen name="messages" options={{ headerShown: false }} />
         <Stack.Screen name="agent-profile" options={{ headerShown: false }} />

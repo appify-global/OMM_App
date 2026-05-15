@@ -20,7 +20,7 @@ import { VIEW_LIVE_LISTING_CARD } from '@/lib/saved-listings';
  * Flow: [Figma 1053:8028](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-8028)
  */
 
-import { AGENT_IMG, PROPERTY_IMG_1 } from '@/lib/propertyImages';
+import { AGENT_IMG, PROPERTY_IMG_1, propertyImageAtIndex } from '@/lib/propertyImages';
 import {
   DEMO_AGENT_AGENCY,
   DEMO_ANONYMOUS_LISTING_ADDRESS_MULTILINE,
@@ -42,6 +42,11 @@ const DEMO_SELLER_PHONE_TEL = '+61393284500';
 
 const SECTION = 28;
 const GAP_MD = 16;
+
+function firstQueryParam(value: string | string[] | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  return Array.isArray(value) ? value[0] : value;
+}
 
 function Kicker({ children }: { children: string }) {
   return <Text style={styles.kicker}>{children}</Text>;
@@ -70,7 +75,25 @@ function FeatureCell({
 export default function ViewLiveListingScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { addressDisclosure: addressDisclosureParam } = useLocalSearchParams<{ addressDisclosure?: string }>();
+  const {
+    addressDisclosure: addressDisclosureParam,
+    street: streetParam,
+    suburb: suburbParam,
+    price: priceParam,
+    beds: bedsParam,
+    baths: bathsParam,
+    cars: carsParam,
+    imageIndex: imageIndexParam,
+  } = useLocalSearchParams<{
+    addressDisclosure?: string;
+    street?: string;
+    suburb?: string;
+    price?: string;
+    beds?: string;
+    baths?: string;
+    cars?: string;
+    imageIndex?: string;
+  }>();
   const [storedDisclosure, setStoredDisclosure] = useState<LiveListingAddressDisclosure | null>(null);
 
   useEffect(() => {
@@ -80,21 +103,43 @@ export default function ViewLiveListingScreen() {
     void readDemoLiveListingDisclosure().then(setStoredDisclosure);
   }, [addressDisclosureParam]);
 
-  const addressDisclosure: LiveListingAddressDisclosure =
-    addressDisclosureParam !== undefined
-      ? parseAddressDisclosureParam(addressDisclosureParam)
-      : (storedDisclosure ?? 'disclose');
-  const addressAnonymousToBuyers = addressDisclosure === 'not_disclose';
   const { isSaved, toggleSaved } = useSavedListings();
-  const saved = isSaved(VIEW_LIVE_LISTING_CARD.id);
   const [soiOpen, setSoiOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [sellerContactOpen, setSellerContactOpen] = useState(false);
 
+  const street = firstQueryParam(streetParam);
+  const suburb = firstQueryParam(suburbParam);
+  const listingFromRecent = Boolean(street && suburb);
+  const listingPrice = firstQueryParam(priceParam);
+  const listingBeds = firstQueryParam(bedsParam);
+  const listingBaths = firstQueryParam(bathsParam);
+  const listingCars = firstQueryParam(carsParam);
+  const listingImageIndex = Math.max(0, parseInt(firstQueryParam(imageIndexParam) ?? '0', 10) || 0);
+  const heroSource = listingFromRecent ? propertyImageAtIndex(listingImageIndex) : PROPERTY_IMG_1;
+
+  const addressMultiline = listingFromRecent ? `${street},\n${suburb} VIC` : null;
+  const displayPrice = listingFromRecent && listingPrice ? listingPrice : '$2,450,000';
+  const displayBeds = listingFromRecent && listingBeds ? listingBeds : '3';
+  const displayBaths = listingFromRecent && listingBaths ? listingBaths : '2';
+  const displayCars = listingFromRecent && listingCars ? listingCars : '2';
+  const mapQuery = listingFromRecent ? `${street}, ${suburb} VIC Australia` : null;
+  const descriptionBody = listingFromRecent
+    ? `A refined ${displayBeds}-bedroom property in ${suburb}, combining modern living with easy access to local amenities, transport links, and vibrant surroundings.`
+    : 'A refined 3-bedroom property positioned in a prime central location, combining modern living with easy access to key amenities, transport links, and vibrant city surroundings.';
+
+  const addressDisclosure: LiveListingAddressDisclosure = listingFromRecent
+    ? 'disclose'
+    : addressDisclosureParam !== undefined
+      ? parseAddressDisclosureParam(addressDisclosureParam)
+      : (storedDisclosure ?? 'disclose');
+  const addressAnonymousToBuyers = addressDisclosure === 'not_disclose';
+  const saved = isSaved(VIEW_LIVE_LISTING_CARD.id);
+
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
       <View style={styles.heroWrap}>
-        <Image source={PROPERTY_IMG_1} style={styles.heroImg} resizeMode="cover" />
+        <Image source={heroSource} style={styles.heroImg} resizeMode="cover" />
         <Pressable
           onPress={() => router.back()}
           hitSlop={12}
@@ -135,13 +180,15 @@ export default function ViewLiveListingScreen() {
             <Text style={styles.addressTitle}>The street address is not disclosed publicly on this listing.</Text>
             <Text style={styles.addressSubMuted}>{DEMO_ANONYMOUS_LISTING_ADDRESS_MULTILINE}</Text>
           </>
+        ) : listingFromRecent && addressMultiline ? (
+          <Text style={styles.addressTitle}>{addressMultiline}</Text>
         ) : (
           <Text style={styles.addressTitle}>{DEMO_PRIMARY_ADDRESS_MULTILINE}</Text>
         )}
 
         <View style={styles.priceBlock}>
           <Text style={[styles.kicker, styles.kickerNoTop]}>LISTING PRICE</Text>
-          <Text style={styles.priceValue}>$2,450,000</Text>
+          <Text style={styles.priceValue}>{displayPrice}</Text>
         </View>
         <View style={styles.ruleThick} />
 
@@ -162,12 +209,12 @@ export default function ViewLiveListingScreen() {
           <View style={styles.featureRow}>
             <FeatureCell
               label="BEDROOMS"
-              value="3"
+              value={displayBeds}
               icon={<MaterialCommunityIcons name="bed" size={24} color="#fff" />}
             />
             <FeatureCell
               label="BATHROOMS"
-              value="2"
+              value={displayBaths}
               icon={<MaterialCommunityIcons name="bathtub" size={22} color="#fff" />}
             />
           </View>
@@ -178,24 +225,25 @@ export default function ViewLiveListingScreen() {
             </View>
             <View style={styles.featureTextCol}>
               <Text style={styles.featureLabel}>CARSPACES</Text>
-              <Text style={styles.featureValue}>2</Text>
+              <Text style={styles.featureValue}>{displayCars}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.sectionPad}>
           <Text style={styles.descKicker}>DESCRIPTION</Text>
-          <Text style={styles.descBody}>
-            A refined 3-bedroom property positioned in a prime central location, combining modern living with easy
-            access to key amenities, transport links, and vibrant city surroundings.
-          </Text>
+          <Text style={styles.descBody}>{descriptionBody}</Text>
         </View>
 
         <Text style={[styles.locKicker, styles.sectionPadTop]}>LOCATION</Text>
         <View style={styles.locMapBlock}>
           <ApproximateAreaMap
             variant={addressAnonymousToBuyers ? 'anonymous' : 'disclosed'}
-            mapsQuery={addressAnonymousToBuyers ? DEMO_APPROXIMATE_MAPS_QUERY : DEMO_PRIMARY_STREET}
+            mapsQuery={
+              addressAnonymousToBuyers
+                ? DEMO_APPROXIMATE_MAPS_QUERY
+                : mapQuery ?? DEMO_PRIMARY_STREET
+            }
             radiusMeters={500}
           />
         </View>

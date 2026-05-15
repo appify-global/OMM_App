@@ -1,4 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Text } from '@/components/OMMText';
@@ -17,17 +18,28 @@ import {
   useListingFlowBottomPad,
 } from './_shared';
 import { DEMO_SOI_SUBURB_POSTCODE } from '@/lib/melbourne-demo-locations';
+import {
+  SOI_MAX_BYTES,
+  clearSoiAttachment,
+  formatSoiSize,
+  isSoiImageMime,
+  loadSoiAttachment,
+  pickSoiDocument,
+  type SoiAttachment,
+} from '@/lib/soi-attachment';
 
 type SoiChoice = 'auto' | 'upload';
-type ActiveSoiFlow = null | { kind: 'auto' } | { kind: 'upload' };
+type ActiveSoiFlow = null | { kind: 'auto' };
 
-const MOCK_SOI_FILE = {
-  name: 'SOI-west-melbourne-terrace.pdf',
-  pages: '4',
-  sizeLabel: '1.2 MB',
-  progressDoneLabel: '0.94 MB OF 1.2 MB',
-  progressEtaLabel: 'ABOUT 1 SECOND LEFT',
-};
+function attachedAgo(iso: string): string {
+  const t = new Date(iso).getTime();
+  if (Number.isNaN(t)) return 'Uploaded recently';
+  const sec = Math.floor((Date.now() - t) / 1000);
+  if (sec < 60) return 'Uploaded just now';
+  if (sec < 3600) return `Uploaded ${Math.floor(sec / 60)} min ago`;
+  if (sec < 86400) return `Uploaded ${Math.floor(sec / 3600)} hr ago`;
+  return `Uploaded ${Math.floor(sec / 86400)} day${Math.floor(sec / 86400) === 1 ? '' : 's'} ago`;
+}
 
 function GeneratingSoiModal({
   visible,
@@ -79,45 +91,6 @@ function GeneratingSoiModal({
 
           <Pressable onPress={onCancel} style={genStyles.cancelBtn} accessibilityRole="button">
             <Text style={genStyles.cancelLabel}>CANCEL GENERATION</Text>
-          </Pressable>
-        </Pressable>
-      </View>
-    </Modal>
-  );
-}
-
-function UploadingSoiModal({ visible, onCancel }: { visible: boolean; onCancel: () => void }) {
-  return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent>
-      <View style={upStyles.scrim}>
-        <Pressable style={upStyles.sheet} onPress={(e) => e.stopPropagation()}>
-          <View style={upStyles.grabHandle} accessibilityLabel="" />
-          <Text style={upStyles.upTitle}>Uploading SOI</Text>
-          <Text style={upStyles.upSub}>Verifying signatures and required fields...</Text>
-
-          <View style={[upStyles.fileCard, fieldShell]}>
-            <View style={upStyles.pdfBadge}>
-              <Text style={upStyles.pdfBadgeText}>PDF</Text>
-            </View>
-            <View style={upStyles.fileMeta}>
-              <Text style={upStyles.fileName}>{MOCK_SOI_FILE.name}</Text>
-              <Text style={upStyles.fileDims}>
-                {MOCK_SOI_FILE.pages} pages • {MOCK_SOI_FILE.sizeLabel}
-              </Text>
-              <View style={upStyles.barTrack}>
-                <View style={[upStyles.barFill, { width: '80%' }]} />
-              </View>
-              <View style={upStyles.barLabels}>
-                <Text style={upStyles.barLabel}>{MOCK_SOI_FILE.progressDoneLabel}</Text>
-                <Text style={upStyles.barLabel}>{MOCK_SOI_FILE.progressEtaLabel}</Text>
-              </View>
-            </View>
-          </View>
-
-          <Text style={upStyles.statusLine}>Your SOI is being scanned and attached to the listing.</Text>
-
-          <Pressable onPress={onCancel} style={upStyles.cancelBtn} accessibilityRole="button">
-            <Text style={upStyles.cancelLabel}>CANCEL UPLOAD</Text>
           </Pressable>
         </Pressable>
       </View>
@@ -188,91 +161,24 @@ const genStyles = StyleSheet.create({
   cancelLabel: { color: '#fff', fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5 },
 });
 
-const upStyles = StyleSheet.create({
-  scrim: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.45)',
-    justifyContent: 'flex-end',
-  },
-  sheet: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
-    paddingHorizontal: PL_PAD,
-    paddingTop: 12,
-    paddingBottom: PL_PAD + 8,
-  },
-  grabHandle: {
-    alignSelf: 'center',
-    width: 36,
-    height: 4,
-    borderRadius: 2,
-    backgroundColor: 'rgba(0, 0, 0, 0.3)',
-    marginBottom: 16,
-  },
-  upTitle: { fontSize: 20, fontFamily: 'Satoshi-Medium', color: PL_BODY, marginBottom: 8 },
-  upSub: { fontSize: 14, color: PL_MUTED, lineHeight: 21, marginBottom: 20 },
-  fileCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    gap: 14,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-  },
-  pdfBadge: {
-    width: 44,
-    height: 44,
-    borderRadius: 6,
-    backgroundColor: PL_CARD,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pdfBadgeText: { color: '#fff', fontSize: 11, fontFamily: 'Satoshi-Medium', letterSpacing: 0.3 },
-  fileMeta: { flex: 1, minWidth: 0 },
-  fileName: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: PL_BODY, marginBottom: 4 },
-  fileDims: { fontSize: 12, color: PL_MUTED, marginBottom: 12 },
-  barTrack: {
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: 'rgba(0, 0, 0, 0.12)',
-    overflow: 'hidden',
-    marginBottom: 8,
-  },
-  barFill: { height: '100%', backgroundColor: PL_CARD, borderRadius: 4 },
-  barLabels: { flexDirection: 'row', justifyContent: 'space-between', gap: 8 },
-  barLabel: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: PL_MUTED, letterSpacing: 0.35, flex: 1 },
-  statusLine: {
-    fontSize: 13,
-    color: PL_MUTED,
-    textAlign: 'center',
-    lineHeight: 19.5,
-    marginBottom: 20,
-    paddingHorizontal: 8,
-  },
-  cancelBtn: {
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: PL_CTA,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  cancelLabel: { color: '#fff', fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5 },
-});
-
 export default function PublishListingSoi() {
   const router = useRouter();
   const params = useLocalSearchParams<{ suburb?: string }>();
   const bottomPad = useListingFlowBottomPad();
   const [choice, setChoice] = useState<SoiChoice>('auto');
   const [activeFlow, setActiveFlow] = useState<ActiveSoiFlow>(null);
-  const [uploadAttached, setUploadAttached] = useState(false);
+  const [attachment, setAttachment] = useState<SoiAttachment | null>(null);
+  const [picking, setPicking] = useState(false);
   const flowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const suburbLine =
     typeof params.suburb === 'string' && params.suburb.trim().length > 0
       ? params.suburb.trim()
       : DEMO_SOI_SUBURB_POSTCODE;
+
+  useEffect(() => {
+    loadSoiAttachment().then(setAttachment);
+  }, []);
 
   const saveDraft = useCallback(() => {
     Alert.alert('Draft saved', 'Your listing draft has been saved.');
@@ -289,6 +195,8 @@ export default function PublishListingSoi() {
     setChoice('auto');
     setActiveFlow(null);
     clearFlowTimer();
+    void clearSoiAttachment();
+    setAttachment(null);
   };
 
   const selectUpload = () => {
@@ -298,22 +206,15 @@ export default function PublishListingSoi() {
   };
 
   useEffect(() => {
-    if (!activeFlow) {
+    if (!activeFlow || activeFlow.kind !== 'auto') {
       clearFlowTimer();
       return;
     }
-
-    const kind = activeFlow.kind;
     flowTimerRef.current = setTimeout(() => {
       flowTimerRef.current = null;
       setActiveFlow(null);
-      if (kind === 'auto') {
-        router.push('/add/referral' as Href);
-      } else {
-        setUploadAttached(true);
-      }
+      router.push('/add/referral' as Href);
     }, 3000);
-
     return clearFlowTimer;
   }, [activeFlow, clearFlowTimer, router]);
 
@@ -322,17 +223,41 @@ export default function PublishListingSoi() {
     clearFlowTimer();
   };
 
+  const runPick = async () => {
+    if (picking) return;
+    setPicking(true);
+    try {
+      const result = await pickSoiDocument();
+      if (result.ok) {
+        setAttachment(result.attachment);
+        return;
+      }
+      if ('error' in result) {
+        Alert.alert('Cannot attach SOI', result.error);
+      }
+    } finally {
+      setPicking(false);
+    }
+  };
+
   const onContinue = () => {
     if (choice === 'auto') {
       setActiveFlow({ kind: 'auto' });
       return;
     }
-    if (uploadAttached) {
+    if (attachment) {
       router.push('/add/referral' as Href);
       return;
     }
-    setActiveFlow({ kind: 'upload' });
+    void runPick();
   };
+
+  const removeAttachment = async () => {
+    await clearSoiAttachment();
+    setAttachment(null);
+  };
+
+  const hasUpload = choice === 'upload' && attachment != null;
 
   return (
     <View style={[styles.root, { paddingBottom: bottomPad }]}>
@@ -391,24 +316,31 @@ export default function PublishListingSoi() {
               )}
             </View>
             <View style={styles.choiceCopy}>
-              <Text style={styles.choiceTitle}>Upload existing SOI (PDF)</Text>
+              <Text style={styles.choiceTitle}>Upload SOI (PDF or images)</Text>
               <Text style={styles.choiceBody}>
-                Drop in a signed Statement of Information you've already prepared. Max 5 MB.
+                JPEG, PNG, WebP, HEIC, or PDF — max {formatSoiSize(SOI_MAX_BYTES)} per file. Use a clear photo or export
+                from your CRM.
               </Text>
             </View>
           </View>
         </Pressable>
 
-        {uploadAttached && choice === 'upload' ? (
+        {hasUpload ? (
           <View style={[styles.attachedCard, fieldShell]}>
             <View style={styles.attachedRow}>
               <View style={styles.docIcon}>
-                <FontAwesome name="file-text-o" size={18} color="#000000" />
+                {isSoiImageMime(attachment.mimeType) ? (
+                  <MaterialCommunityIcons name="image-outline" size={22} color="#000000" />
+                ) : (
+                  <FontAwesome name="file-pdf-o" size={20} color="#000000" />
+                )}
               </View>
               <View style={styles.attachedCopy}>
-                <Text style={styles.attachedName}>{MOCK_SOI_FILE.name}</Text>
+                <Text style={styles.attachedName} numberOfLines={2}>
+                  {attachment.name}
+                </Text>
                 <Text style={styles.attachedMeta}>
-                  {MOCK_SOI_FILE.pages} pages • {MOCK_SOI_FILE.sizeLabel} • Uploaded just now
+                  {formatSoiSize(attachment.sizeBytes)} · {attachedAgo(attachment.attachedAt)}
                 </Text>
                 <View style={styles.attachedPill}>
                   <FontAwesome name="check" size={10} color="#fff" style={{ marginRight: 4 }} />
@@ -417,22 +349,36 @@ export default function PublishListingSoi() {
               </View>
             </View>
             <View style={styles.attachedActions}>
-              <Pressable onPress={() => Alert.alert('SOI', 'Preview would open here.')} hitSlop={8}>
+              <Pressable onPress={() => router.push('/soi-preview' as Href)} hitSlop={8}>
                 <Text style={styles.actionLink}>VIEW</Text>
               </Pressable>
-              <Pressable
-                onPress={() => {
-                  setUploadAttached(false);
-                  Alert.alert('Replace', 'Choose a new PDF (demo).');
-                }}
-                hitSlop={8}>
-                <Text style={styles.actionLink}>REPLACE</Text>
+              <Pressable onPress={() => void runPick()} hitSlop={8} disabled={picking}>
+                <Text style={[styles.actionLink, picking && { opacity: 0.45 }]}>REPLACE</Text>
               </Pressable>
-              <Pressable onPress={() => setUploadAttached(false)} hitSlop={8}>
+              <Pressable onPress={() => void removeAttachment()} hitSlop={8}>
                 <Text style={styles.actionLink}>REMOVE</Text>
               </Pressable>
             </View>
           </View>
+        ) : choice === 'upload' ? (
+          <Pressable
+            style={[styles.pickCard, fieldShell]}
+            onPress={() => void runPick()}
+            disabled={picking}
+            accessibilityRole="button"
+            accessibilityLabel="Choose SOI file">
+            <View style={styles.pickRow}>
+              {picking ? (
+                <ActivityIndicator color="#000" style={{ marginRight: 12 }} />
+              ) : (
+                <FontAwesome name="folder-open-o" size={20} color="#000000" style={{ marginRight: 12 }} />
+              )}
+              <View style={{ flex: 1 }}>
+                <Text style={styles.pickTitle}>{picking ? 'Opening file picker…' : 'Choose PDF or image'}</Text>
+                <Text style={styles.pickSub}>Or tap Continue below to pick a file.</Text>
+              </View>
+            </View>
+          </Pressable>
         ) : (
           <View style={[styles.statusCard, fieldShell]}>
             <View style={styles.statusRow}>
@@ -450,7 +396,7 @@ export default function PublishListingSoi() {
       </ScrollView>
 
       <View style={styles.ctaWrap}>
-        <PrimaryCta label="CONTINUE" onPress={onContinue} />
+        <PrimaryCta label={picking ? 'PLEASE WAIT…' : 'CONTINUE'} onPress={onContinue} disabled={picking} />
       </View>
 
       <GeneratingSoiModal
@@ -458,7 +404,6 @@ export default function PublishListingSoi() {
         suburbLine={suburbLine}
         onCancel={cancelFlow}
       />
-      <UploadingSoiModal visible={activeFlow?.kind === 'upload'} onCancel={cancelFlow} />
     </View>
   );
 }
@@ -510,6 +455,11 @@ const styles = StyleSheet.create({
   },
   recommendedText: { color: '#fff', fontSize: 9, fontFamily: 'Satoshi-Medium', letterSpacing: 0.45 },
   choiceBody: { fontSize: 13, color: PL_MUTED, lineHeight: 18.2 },
+
+  pickCard: { borderRadius: 8, padding: 19, marginBottom: 0 },
+  pickRow: { flexDirection: 'row', alignItems: 'center' },
+  pickTitle: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  pickSub: { fontSize: 11, color: 'rgba(0,0,0,0.55)', marginTop: 4 },
 
   statusCard: { borderRadius: 8, padding: 19 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },

@@ -1,11 +1,22 @@
 import { BlurView } from 'expo-blur';
-import { Text } from '@/components/OMMText';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import * as Sharing from 'expo-sharing';
+import { type Href, useRouter } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Image, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { Text } from '@/components/OMMText';
 import { AppButton, APP_BUTTON_STACK_GAP } from '@/components/AppButton';
+import { layout } from '@/constants/theme';
 import { DEMO_SOI_PROPERTY_LINE } from '@/lib/melbourne-demo-locations';
+import {
+  formatSoiSize,
+  isSoiImageMime,
+  isSoiPdfMime,
+  loadSoiAttachment,
+  type SoiAttachment,
+} from '@/lib/soi-attachment';
 
 type Props = {
   visible: boolean;
@@ -13,9 +24,10 @@ type Props = {
   propertyLine?: string;
 };
 
+const PREVIEW_WEB_H = 220;
+
 /**
- * Statement of Information — bottom sheet; backdrop uses **blur** (listing visible underneath).
- * [Figma 1053:8028](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-8028)
+ * Statement of Information — bottom sheet; shows attached SOI preview when available.
  */
 export function SoiBottomSheet({
   visible,
@@ -23,6 +35,52 @@ export function SoiBottomSheet({
   propertyLine = DEMO_SOI_PROPERTY_LINE,
 }: Props) {
   const insets = useSafeAreaInsets();
+  const router = useRouter();
+  const [attachment, setAttachment] = useState<SoiAttachment | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!visible) return;
+    let alive = true;
+    setLoading(true);
+    loadSoiAttachment().then((row) => {
+      if (alive) {
+        setAttachment(row);
+        setLoading(false);
+      }
+    });
+    return () => {
+      alive = false;
+    };
+  }, [visible]);
+
+  const openFullPreview = () => {
+    onClose();
+    router.push('/soi-preview' as Href);
+  };
+
+  const onDownload = async () => {
+    if (!attachment) {
+      Alert.alert('No file', 'Upload a Statement of Information from the listing workflow first.');
+      return;
+    }
+    const ok = await Sharing.isAvailableAsync();
+    if (!ok) {
+      Alert.alert('Sharing', 'Sharing is not available on this device.');
+      return;
+    }
+    try {
+      await Sharing.shareAsync(attachment.uri, {
+        mimeType: attachment.mimeType,
+        dialogTitle: attachment.name,
+      });
+    } catch {
+      Alert.alert('Sharing', 'Could not share this file.');
+    }
+  };
+
+  const isImage = attachment != null && isSoiImageMime(attachment.mimeType);
+  const isPdf = attachment != null && isSoiPdfMime(attachment.mimeType);
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -50,27 +108,72 @@ export function SoiBottomSheet({
               contentContainerStyle={styles.scrollInner}
               showsVerticalScrollIndicator={false}
               bounces={false}>
-              <View style={styles.infoCard}>
-                <Text style={styles.cardMeta}>SOI · 4 pages · PDF</Text>
-                <Text style={styles.cardBody}>
-                  Indicative selling range and comparable sales as required by Victorian law.
-                </Text>
-                <Text style={styles.cardPlaceholder}>[ Preview of first page ]</Text>
-              </View>
-              <View style={styles.infoCard}>
-                <Text style={styles.priceLabel}>PRICE GUIDE</Text>
-                <Text style={styles.priceRange}>$2,350,000 — $2,550,000</Text>
-                <Text style={styles.cardDates}>Issued 12 Apr 2026 · Expires 12 Jul 2026</Text>
-              </View>
+              {loading ? (
+                <View style={styles.loadingBox}>
+                  <ActivityIndicator color="#111111" />
+                </View>
+              ) : attachment ? (
+                <>
+                  <View style={styles.infoCard}>
+                    <Text style={styles.cardMeta} numberOfLines={1}>
+                      {attachment.name} · {formatSoiSize(attachment.sizeBytes)}
+                    </Text>
+                    <Text style={styles.cardBody}>
+                      {isPdf ? 'PDF preview (scroll on full screen for multi-page).' : 'Image preview of your SOI.'}
+                    </Text>
+                    {isImage ? (
+                      <Image
+                        source={{ uri: attachment.uri }}
+                        style={styles.sheetThumb}
+                        resizeMode="cover"
+                        accessibilityLabel={`SOI preview, ${attachment.name}`}
+                      />
+                    ) : isPdf ? (
+                      <View style={styles.pdfPreviewBox}>
+                        <WebView
+                          source={{ uri: attachment.uri }}
+                          style={styles.pdfWeb}
+                          originWhitelist={['*']}
+                          scalesPageToFit
+                          scrollEnabled={false}
+                        />
+                      </View>
+                    ) : (
+                      <Text style={styles.cardPlaceholder}>Open full screen to view this file.</Text>
+                    )}
+                  </View>
+                  <View style={styles.infoCard}>
+                    <Text style={styles.priceLabel}>PRICE GUIDE</Text>
+                    <Text style={styles.priceRange}>$2,350,000 — $2,550,000</Text>
+                    <Text style={styles.cardDates}>Issued 12 Apr 2026 · Expires 12 Jul 2026</Text>
+                  </View>
+                </>
+              ) : (
+                <>
+                  <View style={styles.infoCard}>
+                    <Text style={styles.cardMeta}>SOI · Upload from listing publish flow</Text>
+                    <Text style={styles.cardBody}>
+                      Indicative selling range and comparable sales as required by Victorian law. Attach a PDF or photo of
+                      your SOI when you publish a listing.
+                    </Text>
+                    <Text style={styles.cardPlaceholder}>[ No file attached yet ]</Text>
+                  </View>
+                  <View style={styles.infoCard}>
+                    <Text style={styles.priceLabel}>PRICE GUIDE</Text>
+                    <Text style={styles.priceRange}>$2,350,000 — $2,550,000</Text>
+                    <Text style={styles.cardDates}>Issued 12 Apr 2026 · Expires 12 Jul 2026</Text>
+                  </View>
+                </>
+              )}
             </ScrollView>
 
             <View style={styles.actions}>
-              <AppButton variant="filled" onPress={onClose} textStyle={styles.btnPrimary}>
-                OPEN FULL PDF
+              <AppButton variant="filled" onPress={openFullPreview} textStyle={styles.btnPrimary}>
+                VIEW FULL DOCUMENT
               </AppButton>
               <View style={{ height: APP_BUTTON_STACK_GAP }} />
-              <AppButton variant="outlined" onPress={onClose} textStyle={styles.btnSecondary}>
-                DOWNLOAD
+              <AppButton variant="outlined" onPress={() => void onDownload()} textStyle={styles.btnSecondary}>
+                SHARE OR DOWNLOAD
               </AppButton>
             </View>
           </View>
@@ -79,7 +182,6 @@ export function SoiBottomSheet({
     </Modal>
   );
 }
-
 
 const styles = StyleSheet.create({
   wrap: {
@@ -121,8 +223,9 @@ const styles = StyleSheet.create({
     lineHeight: 22,
     paddingHorizontal: 8,
   },
-  scroll: { maxHeight: 360 },
+  scroll: { maxHeight: 380 },
   scrollInner: { gap: 14, paddingBottom: 8 },
+  loadingBox: { minHeight: 120, alignItems: 'center', justifyContent: 'center' },
   infoCard: {
     backgroundColor: '#ffffff',
     borderRadius: 14,
@@ -147,6 +250,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontStyle: 'italic',
     color: 'rgba(0, 0, 0, 0.45)',
+  },
+  sheetThumb: {
+    width: '100%',
+    height: 160,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0,0,0,0.06)',
+  },
+  pdfPreviewBox: {
+    height: PREVIEW_WEB_H,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: 'rgba(0,0,0,0.04)',
+  },
+  pdfWeb: {
+    flex: 1,
+    minHeight: PREVIEW_WEB_H,
+    backgroundColor: '#fff',
   },
   priceLabel: {
     fontSize: 12,

@@ -1,6 +1,6 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { Text } from '@/components/OMMText';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -78,14 +78,20 @@ function ListingRow({
   row,
   index,
   status,
+  onPress,
 }: {
   row: Row;
   index: number;
   status: 'LIVE' | 'SOLD';
+  onPress: () => void;
 }) {
   const statusStyle = status === 'SOLD' ? styles.statusSold : styles.statusLive;
   return (
-    <View style={styles.row}>
+    <Pressable
+      onPress={onPress}
+      style={styles.row}
+      accessibilityRole="button"
+      accessibilityLabel={`${row.street}, ${row.suburb}, ${row.price}`}>
       <Image source={propertyImageAtIndex(index)} style={styles.thumb} resizeMode="cover" />
       <View style={styles.rowBody}>
         <View style={styles.rowTop}>
@@ -116,7 +122,7 @@ function ListingRow({
           </View>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -152,7 +158,26 @@ export default function RecentListingsScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 28 }]}>
           {ROWS.map((row, index) => (
-            <ListingRow key={row.id} row={row} index={index} status={rowStatus} />
+            <ListingRow
+              key={row.id}
+              row={row}
+              index={index}
+              status={rowStatus}
+              onPress={() =>
+                router.push({
+                  pathname: '/view-live-listing',
+                  params: {
+                    street: row.street,
+                    suburb: row.suburb,
+                    price: row.price,
+                    beds: String(row.beds),
+                    baths: String(row.baths),
+                    cars: String(row.cars),
+                    imageIndex: String(index),
+                  },
+                } as Href)
+              }
+            />
           ))}
       </ScrollView>
     </View>
