@@ -677,7 +677,7 @@ function BillingAddressSheet({
         />
         <View style={styles.addCardBetweenFields} />
         <BillingFieldRow
-          label="ZIP CODE"
+          label="POST CODE"
           value={form.zipCode}
           onChangeText={patchField('zipCode')}
           placeholder="Postcode"

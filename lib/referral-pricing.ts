@@ -1,5 +1,5 @@
 /**
- * Referral fee percentage applies to the **listing agent’s commission** (or agreed referral pool
+ * Referral fee percentage applies to the **selling agent’s commission** (or agreed referral pool
  * — same numeric base once authority is wired), **not** to the sale price directly.
  *
  * Until an authority provides the real commission, we **illustrate** total commission as

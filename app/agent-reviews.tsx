@@ -84,7 +84,7 @@ export default function AgentReviewsScreen() {
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 28 }]}>
         <View style={styles.summaryCard}>
           <Text style={styles.summaryName}>Anton Zhouk</Text>
-          <Text style={styles.summaryRole}>Listing Agent · {DEMO_AGENT_AGENCY}</Text>
+          <Text style={styles.summaryRole}>Selling agent · {DEMO_AGENT_AGENCY}</Text>
           <View style={styles.summaryRow}>
             <View style={styles.summaryLeft}>
               <Text style={styles.bigScore}>4.9</Text>

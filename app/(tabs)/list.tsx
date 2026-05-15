@@ -332,15 +332,15 @@ function ListingCard({
       <View style={styles.specRow}>
         <View style={styles.specItem}>
           <MaterialCommunityIcons name="bed" size={20} color="#000000" />
-          <Text style={styles.specText}>{listing.beds} Bedrooms</Text>
+          <Text style={styles.specText}>{listing.beds} bedrooms</Text>
         </View>
         <View style={styles.specItem}>
           <MaterialCommunityIcons name="bathtub" size={20} color="#000000" />
-          <Text style={styles.specText}>{listing.baths} Bathrooms</Text>
+          <Text style={styles.specText}>{listing.baths} bathrooms</Text>
         </View>
         <View style={styles.specItem}>
           <MaterialCommunityIcons name="car" size={20} color="#000000" />
-          <Text style={styles.specText}>{listing.cars} Car Spaces</Text>
+          <Text style={styles.specText}>{listing.cars} car spaces</Text>
         </View>
       </View>
       <Text style={styles.propTitle}>{listing.title}</Text>

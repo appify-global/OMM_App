@@ -85,9 +85,9 @@ export default function PostBuyerBriefScreen() {
   const [suburbs, setSuburbs] = useState('218 Victoria St, West Melbourne — walk-up flat');
   const [budget, setBudget] = useState('$1.80m – $2.60m · flexible if sole mandate');
   const [propertyType, setPropertyType] = useState('Period home or renovated townhouse · 3........');
-  const [beds, setBeds] = useState('3+ (4 preferred)');
-  const [baths, setBaths] = useState('2+ (3 preferred)');
-  const [cars, setCars] = useState('2+ (2 preferred)');
+  const [minBedrooms, setMinBedrooms] = useState('3+ (4 preferred)');
+  const [minBathrooms, setMinBathrooms] = useState('2+ (3 preferred)');
+  const [minCarSpaces, setMinCarSpaces] = useState('2+ (2 preferred)');
   const [brief, setBrief] = useState(
     'Renovated Edwardian near North Melbourne station. North living. Relocating family · need childcare & primary …',
   );
@@ -127,22 +127,22 @@ export default function PostBuyerBriefScreen() {
 
         <BriefField
           label="Minimum bedrooms (optional)"
-          value={beds}
-          onChangeText={setBeds}
+          value={minBedrooms}
+          onChangeText={setMinBedrooms}
           optionalLabel
         />
 
         <BriefField
           label="Minimum bathrooms (optional)"
-          value={baths}
-          onChangeText={setBaths}
+          value={minBathrooms}
+          onChangeText={setMinBathrooms}
           optionalLabel
         />
 
         <BriefField
           label="Minimum car spaces (optional)"
-          value={cars}
-          onChangeText={setCars}
+          value={minCarSpaces}
+          onChangeText={setMinCarSpaces}
           optionalLabel
         />
 

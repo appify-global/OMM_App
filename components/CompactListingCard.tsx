@@ -87,7 +87,7 @@ export function CompactListingCard({
     return (
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={`Listing ${title}`}
+        accessibilityLabel={`Listing ${title}, ${beds} bedrooms, ${baths} bathrooms, ${cars} car spaces`}
         onPress={onPress}
         style={({ pressed }) => [
           styles.card,

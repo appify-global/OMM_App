@@ -7,7 +7,7 @@ export const PROPERTY_IMG_2: ImageSourcePropType = require('@/assets/images/prop
 /** Wide architectural exterior — used behind the Home "Publish a property" hero CTA. */
 export const HERO_PROPERTY_IMG: ImageSourcePropType = require('@/assets/images/hero-property.jpg');
 
-/** Demo listing agent (Anton Zhouk) headshot — bundled square crop (Unsplash). */
+/** Demo selling agent (Anton Zhouk) headshot — bundled square crop (Unsplash). */
 export const AGENT_IMG: ImageSourcePropType = require('@/assets/images/agent.jpg');
 
 export function propertyImageAtIndex(index: number): ImageSourcePropType {

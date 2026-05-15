@@ -224,7 +224,7 @@ export default function ViewLiveListingScreen() {
               <MaterialCommunityIcons name="car" size={20} color="#fff" />
             </View>
             <View style={styles.featureTextCol}>
-              <Text style={styles.featureLabel}>CARSPACES</Text>
+              <Text style={styles.featureLabel}>CAR SPACES</Text>
               <Text style={styles.featureValue}>{displayCars}</Text>
             </View>
           </View>
@@ -273,7 +273,7 @@ export default function ViewLiveListingScreen() {
           </View>
         </View>
 
-        <Text style={styles.agentSectionKicker}>LISTING AGENT</Text>
+        <Text style={styles.agentSectionKicker}>SELLING AGENT</Text>
         <View style={styles.agentCard}>
           <Image source={AGENT_IMG} style={styles.agentAvatar} resizeMode="cover" />
           <View style={styles.agentText}>

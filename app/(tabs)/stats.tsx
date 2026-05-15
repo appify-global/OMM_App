@@ -98,7 +98,7 @@ const ACTIVITIES: ActivityRow[] = [
     subtitle: "Offer $2.35m — vendor wants $2.42m walk-away.",
     time: "2m",
     sheetTitle: "M. Patel",
-    sheetSubtitle: `Listing agent · ${DEMO_PRIMARY_LISTING_TITLE}`,
+    sheetSubtitle: `Selling agent · ${DEMO_PRIMARY_LISTING_TITLE}`,
     sheetBody:
       "Thanks for your offer. It is below what the seller will accept for this property. They are open to a counter closer to the list price.",
     sheetTime: "2 minutes ago",

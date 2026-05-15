@@ -149,14 +149,14 @@ function PublishListingStep1() {
   const [propertyType, setPropertyType] = useState<string>("");
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
-  const [beds, setBeds] = useState("");
-  const [baths, setBaths] = useState("");
-  const [cars, setCars] = useState("");
+  const [bedrooms, setBedrooms] = useState("");
+  const [bathrooms, setBathrooms] = useState("");
+  const [carSpaces, setCarSpaces] = useState("");
   const [landAreaSize, setLandAreaSize] = useState("");
   const [internalArea, setInternalArea] = useState("");
 
   const [pickKind, setPickKind] = useState<
-    null | "type" | "beds" | "baths" | "cars"
+    null | "type" | "bedrooms" | "bathrooms" | "car_spaces"
   >(null);
   const [activePriceField, setActivePriceField] = useState<
     "from" | "to" | null
@@ -381,13 +381,13 @@ function PublishListingStep1() {
           <View style={styles.tripleCol}>
             <Text style={styles.smallCaps}>BEDROOMS</Text>
             <Pressable
-              onPress={() => setPickKind("beds")}
+              onPress={() => setPickKind("bedrooms")}
               style={[styles.tripleField, fieldShell, styles.inputRowCenter]}
             >
               <Text
-                style={[styles.tripleVal, !beds && styles.inputPlaceholder]}
+                style={[styles.tripleVal, !bedrooms && styles.inputPlaceholder]}
               >
-                {beds || "3"}
+                {bedrooms || "3"}
               </Text>
               <FontAwesome name="chevron-down" size={11} color={PL_BORDER} />
             </Pressable>
@@ -395,13 +395,16 @@ function PublishListingStep1() {
           <View style={styles.tripleCol}>
             <Text style={styles.smallCaps}>BATHROOMS</Text>
             <Pressable
-              onPress={() => setPickKind("baths")}
+              onPress={() => setPickKind("bathrooms")}
               style={[styles.tripleField, fieldShell, styles.inputRowCenter]}
             >
               <Text
-                style={[styles.tripleVal, !baths && styles.inputPlaceholder]}
+                style={[
+                  styles.tripleVal,
+                  !bathrooms && styles.inputPlaceholder,
+                ]}
               >
-                {baths || "2"}
+                {bathrooms || "2"}
               </Text>
               <FontAwesome name="chevron-down" size={11} color={PL_BORDER} />
             </Pressable>
@@ -409,13 +412,16 @@ function PublishListingStep1() {
           <View style={styles.tripleCol}>
             <Text style={styles.smallCaps}>CAR SPACES</Text>
             <Pressable
-              onPress={() => setPickKind("cars")}
+              onPress={() => setPickKind("car_spaces")}
               style={[styles.tripleField, fieldShell, styles.inputRowCenter]}
             >
               <Text
-                style={[styles.tripleVal, !cars && styles.inputPlaceholder]}
+                style={[
+                  styles.tripleVal,
+                  !carSpaces && styles.inputPlaceholder,
+                ]}
               >
-                {cars || "2"}
+                {carSpaces || "2"}
               </Text>
               <FontAwesome name="chevron-down" size={11} color={PL_BORDER} />
             </Pressable>
@@ -467,24 +473,24 @@ function PublishListingStep1() {
         onClose={() => setPickKind(null)}
       />
       <PickModal
-        visible={pickKind === "beds"}
+        visible={pickKind === "bedrooms"}
         title="Bedrooms"
         options={COUNT_OPTS}
-        onPick={(v) => setBeds(v)}
+        onPick={(v) => setBedrooms(v)}
         onClose={() => setPickKind(null)}
       />
       <PickModal
-        visible={pickKind === "baths"}
+        visible={pickKind === "bathrooms"}
         title="Bathrooms"
         options={COUNT_OPTS}
-        onPick={(v) => setBaths(v)}
+        onPick={(v) => setBathrooms(v)}
         onClose={() => setPickKind(null)}
       />
       <PickModal
-        visible={pickKind === "cars"}
+        visible={pickKind === "car_spaces"}
         title="Car spaces"
         options={COUNT_OPTS}
-        onPick={(v) => setCars(v)}
+        onPick={(v) => setCarSpaces(v)}
         onClose={() => setPickKind(null)}
       />
     </View>

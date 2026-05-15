@@ -43,13 +43,13 @@ const MATCHES: Row[] = [
     id: '4',
     title: 'Yield-led investor',
     priceRange: '$650k – $850k',
-    meta: 'Footscray · 2 bed · prefers settled tenant',
+    meta: 'Footscray · 2 bedrooms · prefers settled tenant',
   },
   {
     id: '5',
     title: 'Single-level prestige',
     priceRange: '$5.0m – $7.0m',
-    meta: 'Williamstown, Newport, Spotswood · Townhouse · 3 bed · schools',
+    meta: 'Williamstown, Newport, Spotswood · Townhouse · 3 bedrooms · schools',
   },
   {
     id: '6',

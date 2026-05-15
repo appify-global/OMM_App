@@ -29,7 +29,7 @@ const DEMO_VENDOR = {
   role: 'Vendor · selling with AZ Real Estate',
   address: 'Unit 2/55 Sydney Rd, Brunswick VIC 3056',
   asking: '$1.80m',
-  summary: 'Renovated townhouse · 4 bed · 3 bath · 2 car · land 320m²',
+  summary: 'Renovated townhouse · 4 bedrooms · 3 bathrooms · 2 car spaces · land 320m²',
   listingStatus: 'Off-market · exclusive authority · SOI published',
   settlement: '60–90 days · vendor flexible for strong offer',
   keyPoints: 'North-facing living · premium kitchen · walk to schools & Sydney Rd retail',

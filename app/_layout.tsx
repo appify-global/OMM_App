@@ -74,6 +74,7 @@ function RootLayoutNav() {
         <Stack.Screen name="reviews" options={{ headerShown: false }} />
         <Stack.Screen name="write-review" options={{ headerShown: false }} />
         <Stack.Screen name="saved-searches" options={{ headerShown: false }} />
+        <Stack.Screen name="saved-properties" options={{ headerShown: false }} />
         <Stack.Screen name="post-buyer-brief" options={{ headerShown: false }} />
         <Stack.Screen name="authority-expiring" options={{ headerShown: false }} />
         <Stack.Screen name="recent-listings" options={{ headerShown: false }} />

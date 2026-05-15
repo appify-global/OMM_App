@@ -67,7 +67,7 @@ const DR1033: DisputeDetail = {
   status: 'open',
   title: 'Authority expiry mismatch · 12 Park Ave',
   timeLabel: 'Opened 1w ago',
-  statusHeadline: 'Awaiting documents from the listing agent. You will be notified when there is an update.',
+  statusHeadline: 'Awaiting documents from the selling agent. You will be notified when there is an update.',
   openedAssignedLine: 'Opened 1w ago · Not yet assigned',
   deal: 'OMM-20102 · 12 Park Ave, Stonnington',
   category: 'Authority / timing',

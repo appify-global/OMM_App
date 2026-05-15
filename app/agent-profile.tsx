@@ -19,13 +19,13 @@ const CARD_R = 14;
 const LISTINGS = [
   {
     address: '15 Rowe St, Fitzroy North VIC 3068',
-    specs: 'HOUSE · 4 BED · 2 BATH',
+    specs: 'House · 4 bedrooms · 2 bathrooms',
     price: '$2.1m — $2.3m',
     listed: 'Listed 3 days ago',
   },
   {
     address: '102/8 Joseph Rd, Footscray VIC 3011',
-    specs: 'APARTMENT · 2 BED · 1 BATH',
+    specs: 'Apartment · 2 bedrooms · 1 bathroom',
     price: '$850k — $920k',
     listed: 'Listed 12 days ago',
   },
@@ -93,7 +93,7 @@ export default function AgentProfileScreen() {
             </View>
             <View style={styles.heroTextCol}>
               <Text style={styles.name}>Anton Zhouk</Text>
-              <Text style={styles.roleLine}>Listing Agent</Text>
+              <Text style={styles.roleLine}>Selling agent</Text>
               <Text style={styles.agencyLine}>{DEMO_AGENT_AGENCY}</Text>
               <View style={styles.starsRow}>
                 {[1, 2, 3, 4, 5].map((i) => (

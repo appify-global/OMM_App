@@ -37,7 +37,7 @@ const ALL_LISTINGS: ListingRow[] = [
   {
     id: '1',
     address: '142 Orrong Rd, Hawthorn East VIC 3123',
-    specs: 'HOUSE · 4 BED · 2 BATH · 2 CAR',
+    specs: 'House · 4 bedrooms · 2 bathrooms · 2 car spaces',
     priceLine: '$2.1m — $2.3m',
     status: 'live',
     listedLine: 'LISTED 3 DAYS AGO',
@@ -46,7 +46,7 @@ const ALL_LISTINGS: ListingRow[] = [
   {
     id: '2',
     address: '4 Murray St, Ascot Vale VIC 3032',
-    specs: 'HOUSE · 4 BED · 2 BATH · 2 CAR',
+    specs: 'House · 4 bedrooms · 2 bathrooms · 2 car spaces',
     priceLine: '$2.1m — $2.3m',
     status: 'under_offer',
     listedLine: 'LISTED 12 WEEKS AGO',
@@ -55,7 +55,7 @@ const ALL_LISTINGS: ListingRow[] = [
   {
     id: '3',
     address: '27 Kooyong Rd, Armadale VIC 3143',
-    specs: 'HOUSE · 4 BED · 2 BATH · 2 CAR',
+    specs: 'House · 4 bedrooms · 2 bathrooms · 2 car spaces',
     priceLine: 'SOLD $2.65m',
     status: 'sold',
     listedLine: 'LISTED 3 DAYS AGO',
@@ -64,7 +64,7 @@ const ALL_LISTINGS: ListingRow[] = [
   {
     id: '4',
     address: '102/8 Joseph Rd, Footscray VIC 3011',
-    specs: 'APARTMENT · 2 BED · 1 BATH · 1 CAR',
+    specs: 'Apartment · 2 bedrooms · 1 bathroom · 1 car space',
     priceLine: '$850k — $920k',
     status: 'live',
     listedLine: 'LISTED 12 DAYS AGO',
@@ -119,7 +119,7 @@ export default function AgentActiveListingsScreen() {
           </View>
           <View style={styles.agentText}>
             <Text style={styles.agentName}>Anton Zhouk</Text>
-            <Text style={styles.agentRole}>Listing Agent · {DEMO_AGENT_AGENCY}</Text>
+            <Text style={styles.agentRole}>Selling agent · {DEMO_AGENT_AGENCY}</Text>
           </View>
         </View>
 

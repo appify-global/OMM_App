@@ -241,7 +241,7 @@ function LargeListingCard(
         imageSource?: ImageSourcePropType;
         title: string;
         price: string;
-        beds: string;
+        specLine: string;
         badgeLeft: string;
         badgeRight: string;
         footerLabels: [string, string, string];
@@ -306,7 +306,7 @@ function LargeListingCard(
             </View>
           ) : (
             <>
-              <Text style={styles.propSpecs}>{props.beds}</Text>
+              <Text style={styles.propSpecs}>{props.specLine}</Text>
               <View style={styles.propStatsRow}>
                 {props.footerLabels.map((l, i) => (
                   <Text
@@ -890,7 +890,7 @@ export default function HomeScreen() {
               name="Preston California Bungalow"
               address="15 Miller St, Preston VIC 3072"
               price="$2.1M — $2.3M"
-              specs="4 BED · 3 BATH · 720M²"
+              specs="4 bedrooms · 3 bathrooms · 720m²"
               match="92% MATCH"
               imageSource={propertyImageAtIndex(0)}
             />
@@ -899,7 +899,7 @@ export default function HomeScreen() {
               name="Sandringham Bay House"
               address="72 Bay Rd, Sandringham VIC 3191"
               price="$1.9M — $2.2M"
-              specs="3 BED · 2 BATH · 420M²"
+              specs="3 bedrooms · 2 bathrooms · 420m²"
               match="88% MATCH"
               imageSource={propertyImageAtIndex(1)}
             />
@@ -908,7 +908,7 @@ export default function HomeScreen() {
               name="Collingwood Workshop"
               address="201 Smith St, Collingwood VIC 3066"
               price="$1.6M — $1.85M"
-              specs="3 BED · 2 BATH · 310M²"
+              specs="3 bedrooms · 2 bathrooms · 310m²"
               match="85% MATCH"
               imageSource={propertyImageAtIndex(2)}
             />
@@ -1058,7 +1058,7 @@ export default function HomeScreen() {
             />
             <SavedSearchCard
               name="John Doe"
-              criteria="4+ beds • House • $1.8M—2.4M"
+              criteria="4+ bedrooms • House • $1.8M—2.4M"
               badge="8 NEW"
               alertsOn
               meta="Yesterday"
@@ -1066,7 +1066,7 @@ export default function HomeScreen() {
             <View style={{ height: 12 }} />
             <SavedSearchCard
               name="Footscray & Seddon"
-              criteria="3+ beds • Townhouse • $2M—3M"
+              criteria="3+ bedrooms • Townhouse • $2M—3M"
               badge="2 NEW"
               alertsOn={false}
               meta="Paused 2d ago"
@@ -1076,6 +1076,7 @@ export default function HomeScreen() {
                 <SectionHeader
                   title="Saved properties"
                   style={styles.sectionHeaderBeforeListingCard}
+                  onSeeAll={() => router.push("/saved-properties" as Href)}
                 />
                 {savedProperties.map((item) => (
                   <Pressable
@@ -1091,7 +1092,7 @@ export default function HomeScreen() {
                     <LargeListingCard
                       title={item.title}
                       price={item.price}
-                      beds={item.beds}
+                      specLine={item.specLine}
                       badgeLeft={item.badgeLeft}
                       badgeRight={item.badgeRight}
                       footerLabels={item.footerLabels}
@@ -1119,7 +1120,7 @@ export default function HomeScreen() {
                 price="$2.0M — $2.2M"
                 badgeLeft="OFF-MARKET"
                 badgeRight="92% MATCH"
-                specParts={["4 bed", "3 bath", "650m²"]}
+                specParts={["4 bedrooms", "3 bathrooms", "650m²"]}
               />
             </Pressable>
           </>
