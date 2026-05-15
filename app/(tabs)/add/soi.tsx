@@ -18,6 +18,7 @@ import {
   useListingFlowBottomPad,
 } from './_shared';
 import { DEMO_SOI_SUBURB_POSTCODE } from '@/lib/melbourne-demo-locations';
+import { slateNavy } from '@/constants/theme';
 import {
   SOI_MAX_BYTES,
   clearSoiAttachment,
@@ -106,8 +107,8 @@ const genStyles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: '#fff',
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderTopLeftRadius: 13,
+    borderTopRightRadius: 13,
     paddingHorizontal: PL_PAD,
     paddingTop: 24,
     paddingBottom: PL_PAD + 8,
@@ -115,7 +116,7 @@ const genStyles = StyleSheet.create({
   genTitle: { fontSize: 20, fontFamily: 'Satoshi-Medium', color: PL_BODY, marginBottom: 10 },
   genLede: { fontSize: 14, color: PL_MUTED, lineHeight: 21, marginBottom: 20 },
   progressCard: {
-    borderRadius: 12,
+    borderRadius: 9,
     padding: 16,
     marginBottom: 20,
     gap: 18,
@@ -124,7 +125,7 @@ const genStyles = StyleSheet.create({
   iconDone: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 9,
     backgroundColor: PL_CARD,
     alignItems: 'center',
     justifyContent: 'center',
@@ -133,7 +134,7 @@ const genStyles = StyleSheet.create({
   iconLoading: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 9,
     borderWidth: 1,
     borderColor: PL_BODY,
     alignItems: 'center',
@@ -143,7 +144,7 @@ const genStyles = StyleSheet.create({
   iconPending: {
     width: 24,
     height: 24,
-    borderRadius: 12,
+    borderRadius: 9,
     borderWidth: 1,
     borderColor: 'rgba(0, 0, 0, 0.28)',
     marginTop: 2,
@@ -153,12 +154,12 @@ const genStyles = StyleSheet.create({
   genStepSub: { fontSize: 12, color: PL_MUTED, lineHeight: 17 },
   cancelBtn: {
     height: 48,
-    borderRadius: 14,
+    borderRadius: 11,
     backgroundColor: PL_CTA,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelLabel: { color: '#fff', fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5 },
+  cancelLabel: { color: PL_BODY, fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5 },
 });
 
 export default function PublishListingSoi() {
@@ -426,7 +427,7 @@ const styles = StyleSheet.create({
 
   ctaWrap: { paddingBottom: 6, marginTop: -8 },
 
-  choiceCard: { borderRadius: 14, padding: 20, marginBottom: 16 },
+  choiceCard: { borderRadius: 9, padding: 20, marginBottom: 16 },
   choiceCardSelected: {
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 4 },
@@ -438,7 +439,7 @@ const styles = StyleSheet.create({
   choiceIcon: {
     width: 40,
     height: 40,
-    borderRadius: 20,
+    borderRadius: 17,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -448,7 +449,7 @@ const styles = StyleSheet.create({
   titleRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8, marginBottom: 8 },
   choiceTitle: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: PL_BODY },
   recommendedPill: {
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
@@ -456,14 +457,14 @@ const styles = StyleSheet.create({
   recommendedText: { color: '#fff', fontSize: 9, fontFamily: 'Satoshi-Medium', letterSpacing: 0.45 },
   choiceBody: { fontSize: 13, color: PL_MUTED, lineHeight: 18.2 },
 
-  pickCard: { borderRadius: 8, padding: 19, marginBottom: 0 },
+  pickCard: { borderRadius: 5, padding: 19, marginBottom: 0 },
   pickRow: { flexDirection: 'row', alignItems: 'center' },
   pickTitle: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: '#000000' },
   pickSub: { fontSize: 11, color: 'rgba(0,0,0,0.55)', marginTop: 4 },
 
-  statusCard: { borderRadius: 8, padding: 19 },
+  statusCard: { borderRadius: 5, padding: 19 },
   statusRow: { flexDirection: 'row', alignItems: 'center', gap: 14 },
-  attachedCard: { borderRadius: 8, padding: 19, marginBottom: 0 },
+  attachedCard: { borderRadius: 5, padding: 19, marginBottom: 0 },
   attachedRow: { flexDirection: 'row', alignItems: 'flex-start', gap: 14 },
   attachedCopy: { flex: 1, minWidth: 0 },
   attachedName: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: '#000000', marginBottom: 4 },

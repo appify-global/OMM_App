@@ -9,7 +9,7 @@ import { Alert, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, St
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { accent, layout } from '@/constants/theme';
 /**
  * Account details (bank payouts) — Figma 1053:3682.
  * https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-3682&t=2eZigRM0BwNtC5wd-4
@@ -142,7 +142,7 @@ function GstRegisteredField({
                   accessibilityState={{ selected }}>
                   <Text style={[styles.selectOptionText, selected && styles.selectOptionTextSelected]}>{option}</Text>
                   {selected ? (
-                    <FontAwesome name="check" size={16} color="#000000" />
+                    <FontAwesome name="check" size={16} color={accent} />
                   ) : (
                     <View style={styles.selectCheckSpacer} />
                   )}
@@ -439,7 +439,7 @@ const styles = StyleSheet.create({
   sheetDone: {
     fontSize: 17,
     fontFamily: 'Satoshi-Medium',
-    color: '#007AFF',
+    color: accent,
   },
   selectCheckSpacer: {
     width: 22,
@@ -464,6 +464,6 @@ const styles = StyleSheet.create({
     paddingRight: 12,
   },
   selectOptionTextSelected: {
-    color: '#000000',
+    color: accent,
   },
 });

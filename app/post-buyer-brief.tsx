@@ -7,6 +7,7 @@ import { Pressable, ScrollView, StyleSheet, View, type StyleProp, type TextStyle
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
+import { accent, ink } from '@/constants/theme';
 
 /** [Figma 1053:1137](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-1137) */
 const SCREEN_H_PAD = 32;
@@ -284,7 +285,7 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
   },
   submitBtn: {
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     height: 48,
     borderRadius: FIELD_RADIUS,
     alignItems: 'center',
@@ -294,7 +295,7 @@ const styles = StyleSheet.create({
   submitLabel: {
     fontSize: 14,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
+    color: ink,
     letterSpacing: -0.14,
   },
   draftBtn: {

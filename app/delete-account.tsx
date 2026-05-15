@@ -7,7 +7,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { accent, ink, layout } from '@/constants/theme';
 import { clearAuthenticated } from '@/lib/auth-session';
 
 /**
@@ -183,14 +183,14 @@ const styles = StyleSheet.create({
   deleteBtn: {
     height: BTN_H,
     borderRadius: BOX_R,
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     alignItems: 'center',
     justifyContent: 'center',
   },
   deleteBtnText: {
     fontSize: 14,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
+    color: ink,
     letterSpacing: 0.35,
     textTransform: 'uppercase',
   },

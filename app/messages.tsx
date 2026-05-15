@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
  * [Figma 1053:7188 / section 1053:7187](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-7187)
  */
 
-import { borderHairline, fillMisty, ink, inkSubtle, palette } from '@/constants/theme';
+import { accent, borderHairline, fillMisty, ink, inkSubtle, palette, slateNavy } from '@/constants/theme';
 import { countDealsAwaitingViewerAcknowledgement, DEMO_CHAT_PROPERTY_REF } from '@/lib/deal-acknowledgement';
 import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { AGENT_IMG } from '@/lib/propertyImages';
@@ -229,7 +229,7 @@ export default function MessagesScreen() {
         style={[styles.fab, { bottom: Math.max(insets.bottom, 20) + 8 }]}
         accessibilityRole="button"
         accessibilityLabel="Compose message">
-        <FontAwesome name="pencil" size={20} color="#fff" />
+        <FontAwesome name="pencil" size={20} color={palette.black} />
       </Pressable>
     </View>
   );
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
     height: 44,
     maxWidth: '100%',
     overflow: 'hidden',
-    borderRadius: 12,
+    borderRadius: 7,
     backgroundColor: 'rgba(0,0,0,0.04)',
     paddingHorizontal: 14,
   },
@@ -287,25 +287,25 @@ const styles = StyleSheet.create({
   chip: {
     height: 31,
     paddingHorizontal: 14,
-    borderRadius: 18,
+    borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chipOn: { backgroundColor: ink },
+  chipOn: { backgroundColor: accent },
   chipOff: {
     backgroundColor: palette.white,
     borderWidth: 1,
     borderColor: borderHairline,
   },
   chipLabel: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: inkSubtle },
-  chipLabelOn: { color: palette.white },
+  chipLabelOn: { color: ink },
   scroll: { flex: 1, minHeight: 0 },
   shortcut: {
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: 56,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: 7,
     backgroundColor: 'rgba(0,0,0,0.04)',
     gap: 12,
   },
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     borderWidth: 2,
     borderColor: '#ffffff',
   },
@@ -351,8 +351,8 @@ const styles = StyleSheet.create({
     right: 20,
     width: 56,
     height: 56,
-    borderRadius: 14,
-    backgroundColor: '#000000',
+    borderRadius: 12,
+    backgroundColor: accent,
     alignItems: 'center',
     justifyContent: 'center',
     shadowColor: '#000',

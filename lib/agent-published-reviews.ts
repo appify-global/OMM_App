@@ -27,7 +27,7 @@ export const PUBLISHED_AGENT_REVIEWS: PublishedAgentReview[] = [
   {
     id: 'pub-2',
     reviewerName: 'Tom Reid',
-    reviewerRole: 'Selling agent • Marshall White',
+    reviewerRole: 'Real Estate Agent • Marshall White',
     rating: '4.8',
     quote: 'Clear authority docs, fair commission split. Would work with again.',
     date: '02 APR 2026',

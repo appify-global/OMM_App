@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { Image, Pressable, ScrollView, StyleSheet, View, type ImageSourcePropType } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
-import { layout } from "@/constants/theme";
+import { accent, frost, ink, layout, slateNavy } from '@/constants/theme';
 import { useTabScreenBottomPad } from "@/lib/useTabScreenBottomPad";
 import { useTabBarOnScroll } from "@/lib/tab-bar-visibility";
 
@@ -161,7 +161,7 @@ function tabKeyFromSegmentQuery(q: string | undefined): TabKey | null {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#fff" },
+  root: { flex: 1, backgroundColor: frost },
   scroll: { paddingHorizontal: layout.screenGutter },
   pageTitle: {
     fontSize: 28,
@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
   segment: {
     flexDirection: "row",
     backgroundColor: "rgba(0,0,0,0.06)",
-    borderRadius: 14,
+    borderRadius: 9,
     padding: 4,
     marginBottom: 20,
     gap: 4,
@@ -190,11 +190,11 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 9,
     alignItems: "center",
-    borderRadius: 11,
+    borderRadius: 6,
     minWidth: 0,
   },
   segItemOn: {
-    backgroundColor: "#fff",
+    backgroundColor: accent,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     color: "rgba(0, 0, 0, 0.45)",
     textAlign: "center",
   },
-  segLabelOn: { color: "#000000" },
+  segLabelOn: { color: ink },
   listingCard: {
     borderRadius: 16,
     overflow: "hidden",
@@ -229,7 +229,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 12,
     left: 12,
-    backgroundColor: "#000000",
+    backgroundColor: slateNavy,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 12,
     right: 12,
-    backgroundColor: "#000000",
+    backgroundColor: slateNavy,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
@@ -289,14 +289,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginTop: 18,
     marginBottom: 16,
-    backgroundColor: "#000000",
+    backgroundColor: accent,
     height: 48,
-    borderRadius: 14,
+    borderRadius: 9,
     alignItems: "center",
     justifyContent: "center",
   },
   manageBtnText: {
-    color: "#fff",
+    color: ink,
     fontSize: 14,
     fontFamily: "Satoshi-Medium",
     letterSpacing: 0.35,

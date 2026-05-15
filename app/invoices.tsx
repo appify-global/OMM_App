@@ -7,7 +7,7 @@ import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { borderHairline, inkSubtle, layout } from '@/constants/theme';
+import { accent, borderHairline, ink, inkSubtle, layout, slateNavy } from '@/constants/theme';
 import {
   type InvoiceFilterKey,
   type InvoiceRow,
@@ -32,7 +32,7 @@ const ROW_CARD_MIN_H = 168;
 const STROKE = 'rgba(0, 0, 0, 0.55)';
 const STROKE_W = 1.5;
 const MUTED = 'rgba(0, 0, 0, 0.55)';
-const EXPORT_BG = '#000000';
+const EXPORT_BG = slateNavy;
 
 const FILTERS: { key: InvoiceFilterKey; label: string }[] = [
   { key: 'all', label: 'ALL' },
@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     backgroundColor: EXPORT_BG,
     paddingHorizontal: 14,
     paddingVertical: 8,
-    borderRadius: 14,
+    borderRadius: 11,
     justifyContent: 'center',
     alignItems: 'center',
     minHeight: 32,
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
     color: MUTED,
     lineHeight: 21,
   },
-  /** Idle: gray labels; selected: solid black pill (same pattern as Payout history). */
+  /** Idle: gray labels; selected: accent pill (same pattern as Payout history). */
   filterBar: {
     paddingTop: 4,
     paddingBottom: 12,
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     flexShrink: 0,
-    borderRadius: 18,
+    borderRadius: 13,
     paddingHorizontal: 14,
     paddingVertical: 7,
     minHeight: 31,
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chipOn: {
-    backgroundColor: '#000000',
+    backgroundColor: accent,
   },
   chipOff: {
     backgroundColor: 'transparent',
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   chipLabelOn: {
-    color: '#FFFFFF',
+    color: ink,
   },
   chipLabelOff: {
     color: inkSubtle,
@@ -393,10 +393,10 @@ const styles = StyleSheet.create({
     lineHeight: 15,
   },
   badgeSent: {
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     paddingHorizontal: 12,
     paddingVertical: 6,
-    borderRadius: 14,
+    borderRadius: 11,
   },
   badgeSentText: {
     fontSize: 10,
@@ -411,7 +411,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(0, 0, 0, 0.14)',
     paddingHorizontal: 10,
     paddingVertical: 6,
-    borderRadius: 14,
+    borderRadius: 11,
   },
   badgeOutstandingText: {
     fontSize: 10,

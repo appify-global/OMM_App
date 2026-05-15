@@ -16,7 +16,7 @@ import Animated, {
 } from 'react-native-reanimated';
 
 import { Text } from '@/components/OMMText';
-import { Fonts, ink, inkSubtle } from '@/constants/theme';
+import { Fonts, accent, controlRadius, ink, inkSubtle } from '@/constants/theme';
 import { hapticSelection } from '@/lib/haptics';
 
 export type HeaderToggleItem<K extends string> = {
@@ -38,13 +38,10 @@ export type HeaderToggleProps<K extends string> = {
 /**
  * Liquid-pill segmented toggle.
  *
- * Departs from a fixed equal-width segmented control: the active pill is a
- * solid black lozenge that morphs its **width** to hug the active label, and
- * springs between labels on selection. Inactive labels float as plain text on
- * the screen — no track, no card, no chrome. The black pill mirrors the active
- * slot in the floating tab bar so the two read as a deliberate pair.
- *
- * Mechanics:
+ * Departs from a fixed equal-width segmented control: the active pill is an
+ * accent lozenge that morphs its **width** to hug the active label, and springs
+ * between labels on selection. Inactive labels float as plain text on the
+ * screen — no track, no card, no chrome.
  *   1. Each cell measures its own layout (x + width) on first paint.
  *   2. Reanimated shared values drive the pill's `translateX` and `width`.
  *   3. Press squish (scale 0.97) with spring damping for tactile feedback.
@@ -148,7 +145,7 @@ export function HeaderToggle<K extends string>({
 }
 
 const PILL_HEIGHT = 32;
-const PILL_RADIUS = PILL_HEIGHT / 2;
+const PILL_RADIUS = controlRadius.liquidPill;
 
 const styles = StyleSheet.create({
   row: {
@@ -165,14 +162,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignSelf: 'center',
   },
-  /** Solid black liquid pill — animated x + width to hug the active label. */
+  /** Accent liquid pill — animated x + width to hug the active label. */
   pill: {
     position: 'absolute',
     top: 0,
     left: 0,
     height: PILL_HEIGHT,
     borderRadius: PILL_RADIUS,
-    backgroundColor: ink,
+    backgroundColor: accent,
     shadowColor: '#000',
     shadowOpacity: 0.16,
     shadowOffset: { width: 0, height: 4 },
@@ -193,5 +190,5 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   labelOff: { color: inkSubtle },
-  labelOn: { color: '#ffffff' },
+  labelOn: { color: ink },
 });

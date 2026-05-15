@@ -1,10 +1,13 @@
-const tintColorLight = '#000000';
+import { frost } from '@/constants/theme';
+
+/** Matches `accent` in `constants/theme` — tabs & native tint in light mode. */
+const tintColorLight = '#38BDF8';
 const tintColorDark = '#ffffff';
 
 export default {
   light: {
     text: '#000000',
-    background: '#ffffff',
+    background: frost,
     tint: tintColorLight,
     tabIconDefault: 'rgba(0,0,0,0.35)',
     tabIconSelected: tintColorLight,

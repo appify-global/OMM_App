@@ -8,7 +8,7 @@ import { Alert, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { layout, slateNavy, accent, ink } from '@/constants/theme';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 
 /**
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   verifiedChip: {
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     paddingHorizontal: 13,
     paddingVertical: 4,
     borderRadius: 14,
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   saveBtn: {
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     minHeight: 50,
     alignItems: 'center',
     justifyContent: 'center',
@@ -416,7 +416,7 @@ const styles = StyleSheet.create({
   saveBtnText: {
     fontSize: 15,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
+    color: ink,
     letterSpacing: -0.14,
   },
 });

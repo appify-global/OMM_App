@@ -6,7 +6,7 @@ import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { accent, ink, layout, slateNavy } from '@/constants/theme';
 import type { DisputeStatus } from '@/lib/disputes-mock';
 import { DISPUTES_LIST } from '@/lib/disputes-mock';
 
@@ -60,26 +60,26 @@ function StatusBadge({ status }: { status: DisputeStatus }) {
 
 const badge = StyleSheet.create({
   base: {
-    borderRadius: 10,
+    borderRadius: 7,
     paddingHorizontal: 10,
     paddingVertical: 5,
     justifyContent: 'center',
     alignItems: 'center',
   },
   underReview: {
-    borderRadius: 10,
+    borderRadius: 7,
     paddingHorizontal: 10,
     paddingVertical: 5,
     backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
   open: {
-    borderRadius: 10,
+    borderRadius: 7,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
   },
   resolved: {
-    borderRadius: 10,
+    borderRadius: 7,
     paddingHorizontal: 11,
     paddingVertical: 6,
     backgroundColor: '#fff',
@@ -197,7 +197,7 @@ export default function DisputesScreen() {
           {({ pressed }) => (
             <>
               <Text style={styles.ctaText}>RAISE A DISPUTE</Text>
-              {pressed && <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12 }]} />}
+              {pressed && <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 9 }]} />}
             </>
           )}
         </Pressable>
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   filterChip: {
-    borderRadius: 18,
+    borderRadius: 13,
     paddingHorizontal: 14,
     paddingVertical: 7,
     minHeight: 31,
@@ -255,7 +255,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   filterChipOn: {
-    backgroundColor: '#000000',
+    backgroundColor: accent,
   },
   filterChipOff: {
     backgroundColor: 'transparent',
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
     color: 'rgba(0,0,0,0.45)',
   },
   filterChipTextOn: {
-    color: '#fff',
+    color: ink,
     fontFamily: 'Satoshi-Medium',
     textTransform: 'uppercase',
   },
@@ -318,8 +318,8 @@ const styles = StyleSheet.create({
   },
   cta: {
     height: 52,
-    borderRadius: 12,
-    backgroundColor: '#000000',
+    borderRadius: 9,
+    backgroundColor: accent,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -327,7 +327,7 @@ const styles = StyleSheet.create({
   ctaText: {
     fontSize: 14,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
+    color: ink,
     letterSpacing: -0.35,
     textTransform: 'uppercase',
   },

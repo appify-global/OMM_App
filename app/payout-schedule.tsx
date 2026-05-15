@@ -2,13 +2,14 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
+import { AppButton } from '@/components/AppButton';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { accent, ink, layout } from '@/constants/theme';
 /**
  * Payout schedule — Figma 1053:3766.
  * https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-3766&t=2eZigRM0BwNtC5wd-4
@@ -212,9 +213,9 @@ export default function PayoutScheduleScreen() {
             <Text style={styles.infoText}>Amounts below the threshold roll into the next period.</Text>
           </DashedBox>
 
-          <Pressable style={({ pressed }) => [styles.cta, pressed && { opacity: 0.92 }]} onPress={onSave} accessibilityRole="button">
-            <Text style={styles.ctaText}>SAVE CHANGES</Text>
-          </Pressable>
+          <AppButton variant="filled" onPress={onSave} style={styles.cta} textStyle={styles.ctaText}>
+            SAVE CHANGES
+          </AppButton>
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -281,7 +282,7 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 1.5,
-    borderColor: '#000000',
+    borderColor: 'rgba(0, 0, 0, 0.35)',
     marginRight: 14,
     marginTop: 2,
     alignItems: 'center',
@@ -289,13 +290,13 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   radioOuterOn: {
-    borderColor: '#000000',
+    borderColor: accent,
   },
   radioInner: {
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#000000',
+    backgroundColor: accent,
   },
   freqTextCol: {
     flex: 1,
@@ -322,7 +323,7 @@ const styles = StyleSheet.create({
   dayPill: {
     paddingHorizontal: 14,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 15,
     minWidth: 48,
     alignItems: 'center',
     justifyContent: 'center',
@@ -330,12 +331,12 @@ const styles = StyleSheet.create({
   dayPillOff: {
     backgroundColor: '#fff',
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: accent,
   },
   dayPillOn: {
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     borderWidth: 1,
-    borderColor: '#000000',
+    borderColor: accent,
   },
   dayPillText: {
     fontSize: 13,
@@ -346,7 +347,7 @@ const styles = StyleSheet.create({
     color: '#000',
   },
   dayPillTextOn: {
-    color: '#fff',
+    color: ink,
   },
   amountInner: {
     justifyContent: 'center',
@@ -371,17 +372,9 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   cta: {
-    height: 48,
-    borderRadius: CARD_R,
-    backgroundColor: '#000000',
-    alignItems: 'center',
-    justifyContent: 'center',
     marginTop: BLOCK_GAP,
   },
   ctaText: {
-    fontSize: 14,
-    fontFamily: 'Satoshi-Medium',
-    color: '#fff',
     letterSpacing: 0.35,
     textTransform: 'uppercase',
   },

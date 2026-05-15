@@ -203,5 +203,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginHorizontal: PL_PAD,
   },
-  publishLabel: { color: '#fff', fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.35 },
+  publishLabel: { color: PL_BODY, fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.35 },
 });

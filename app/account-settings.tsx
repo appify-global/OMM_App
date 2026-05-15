@@ -9,7 +9,7 @@ import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
-import { layout } from '@/constants/theme';
+import { accent, ink, layout } from '@/constants/theme';
 
 /**
  * Account settings — profile fields + notifications + save.
@@ -277,14 +277,14 @@ const styles = StyleSheet.create({
   saveBtn: {
     height: 48,
     borderRadius: 14,
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     alignItems: 'center',
     justifyContent: 'center',
   },
   saveBtnText: {
     fontSize: 14,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
+    color: ink,
     letterSpacing: -0.35,
     textTransform: 'uppercase',
   },

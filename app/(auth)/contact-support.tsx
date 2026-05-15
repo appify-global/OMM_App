@@ -8,7 +8,7 @@ import { TextInput } from '@/components/OMMTextInput';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { accent, ink, layout, slateNavy } from '@/constants/theme';
 
 /**
  * Contact support — ticket form + attachments. Solid fields (iOS-style).
@@ -353,14 +353,14 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 8,
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     alignItems: 'center',
     justifyContent: 'center',
   },
   sendBtn: {
     height: 52,
     borderRadius: 12,
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   sendBtnText: {
     fontSize: 16,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
+    color: ink,
     letterSpacing: -0.2,
   },
 });

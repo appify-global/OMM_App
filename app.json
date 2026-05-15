@@ -32,7 +32,15 @@
     },
     "plugins": [
       "expo-router",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow $(PRODUCT_NAME) to access your photos to add listing images and videos.",
+          "cameraPermission": "Allow $(PRODUCT_NAME) to use your camera to capture listing photos and tour videos.",
+          "microphonePermission": "Allow $(PRODUCT_NAME) to record audio when you film a listing tour video."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

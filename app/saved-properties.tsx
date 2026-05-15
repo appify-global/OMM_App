@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Text } from '@/components/OMMText';
 import { ScreenHeader } from '@/components/ScreenHeader';
-import { layout } from '@/constants/theme';
+import { layout, slateNavy } from '@/constants/theme';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 import { propertyImageAtIndex } from '@/lib/propertyImages';
 import { VIEW_LIVE_LISTING_ID, type SavedListingCardData } from '@/lib/saved-listings';
@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     maxWidth: '42%',
   },
-  statusLive: { backgroundColor: '#000000' },
+  statusLive: { backgroundColor: slateNavy },
   statusSold: { backgroundColor: '#3a3a3a' },
   statusText: {
     fontSize: 9,

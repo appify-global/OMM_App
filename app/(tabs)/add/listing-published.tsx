@@ -17,6 +17,7 @@ import {
   useListingFlowBottomPad,
 } from './_shared';
 import { useListingDraft } from './listing-draft-context';
+import { slateNavy } from '@/constants/theme';
 import { persistDemoLiveListingDisclosure } from '@/lib/demo-live-listing-disclosure';
 import { DEMO_PRIMARY_SUBURB_LINE } from '@/lib/melbourne-demo-locations';
 
@@ -239,7 +240,7 @@ const dm = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelLabel: { color: '#fff', fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5 },
+  cancelLabel: { color: PL_BODY, fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5 },
 });
 
 const sm = StyleSheet.create({
@@ -328,7 +329,7 @@ const sm = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  cancelLabel: { color: '#fff', fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5 },
+  cancelLabel: { color: PL_BODY, fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.5 },
 });
 
 export default function ListingPublishedScreen() {
@@ -528,7 +529,7 @@ const styles = StyleSheet.create({
   },
   gridValue: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: PL_BODY, lineHeight: 18 },
   pdfCard: {
-    backgroundColor: PL_CARD,
+    backgroundColor: slateNavy,
     borderRadius: 14,
     padding: 18,
     marginBottom: 24,
@@ -579,7 +580,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 12,
   },
-  primaryWideLabel: { color: '#fff', fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.35 },
+  primaryWideLabel: { color: PL_BODY, fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.35 },
   secondaryWide: {
     height: 48,
     borderRadius: 14,

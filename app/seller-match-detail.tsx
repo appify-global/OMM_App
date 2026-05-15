@@ -1,11 +1,14 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { type Href, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { frost, layout, slateNavy } from '@/constants/theme';
 import { AppButton } from '@/components/AppButton';
+import { ContactSellerOptionsSheet } from '@/components/ContactSellerOptionsSheet';
+import { SellerContactSheet } from '@/components/SellerContactSheet';
 
 /**
  * Vendor / seller match detail.
@@ -26,7 +29,8 @@ function FieldBlock({ label, value }: { label: string; value: string }) {
 
 const DEMO_VENDOR = {
   name: 'Jane Doe',
-  role: 'Vendor · selling with AZ Real Estate',
+  role: 'Real Estate Agent · selling with AZ Real Estate',
+  contactEmail: 'jane.doe@azrealestate.com.au',
   address: 'Unit 2/55 Sydney Rd, Brunswick VIC 3056',
   asking: '$1.80m',
   summary: 'Renovated townhouse · 4 bedrooms · 3 bathrooms · 2 car spaces · land 320m²',
@@ -39,6 +43,8 @@ const DEMO_VENDOR = {
 export default function SellerMatchDetailScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [contactMenuOpen, setContactMenuOpen] = useState(false);
+  const [contactSheetOpen, setContactSheetOpen] = useState(false);
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -78,11 +84,34 @@ export default function SellerMatchDetailScreen() {
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <AppButton
           variant="filled"
-          onPress={() => router.push('/contact-seller-chat' as Href)}
+          onPress={() => setContactMenuOpen(true)}
           textStyle={styles.contactLabel}>
           Contact Seller
         </AppButton>
       </View>
+
+      <ContactSellerOptionsSheet
+        visible={contactMenuOpen}
+        onClose={() => setContactMenuOpen(false)}
+        onMessageSeller={() => {
+          setContactMenuOpen(false);
+          router.push('/contact-seller-chat' as Href);
+        }}
+        onContactInfo={() => {
+          setContactMenuOpen(false);
+          setContactSheetOpen(true);
+        }}
+      />
+
+      <SellerContactSheet
+        visible={contactSheetOpen}
+        onClose={() => setContactSheetOpen(false)}
+        title="Contact details"
+        hint="Reach this seller using the details below."
+        displayName={DEMO_VENDOR.name}
+        email={DEMO_VENDOR.contactEmail}
+        showPhone={false}
+      />
     </View>
   );
 }
@@ -110,8 +139,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   card: {
-    backgroundColor: '#f5f1eb',
-    borderRadius: 14,
+    backgroundColor: slateNavy,
+    borderRadius: 11,
     padding: 18,
     gap: 18,
   },
@@ -119,10 +148,10 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 10,
     fontFamily: 'Satoshi-Medium',
-    color: 'rgba(0, 0, 0, 0.45)',
+    color: 'rgba(248, 250, 252, 0.55)',
     letterSpacing: 0.35,
   },
-  fieldValue: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000', lineHeight: 22 },
+  fieldValue: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: frost, lineHeight: 22 },
   footer: {
     position: 'absolute',
     left: 0,

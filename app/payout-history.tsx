@@ -7,7 +7,7 @@ import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { borderHairline, inkSubtle, layout } from '@/constants/theme';
+import { accent, borderHairline, ink, inkSubtle, layout, slateNavy } from '@/constants/theme';
 /**
  * Payout history — Figma 1053:3498.
  * https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-3498&t=2eZigRM0BwNtC5wd-4
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
   },
   chip: {
     flexShrink: 0,
-    borderRadius: 18,
+    borderRadius: 13,
     paddingHorizontal: 14,
     paddingVertical: 7,
     minHeight: 31,
@@ -292,7 +292,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   chipOn: {
-    backgroundColor: '#000000',
+    backgroundColor: accent,
   },
   chipOff: {
     backgroundColor: 'transparent',
@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   chipLabelOn: {
-    color: '#FFFFFF',
+    color: ink,
   },
   chipLabelOff: {
     color: inkSubtle,
@@ -341,10 +341,10 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   badge: {
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     paddingHorizontal: 11,
     paddingVertical: 5,
-    borderRadius: 10,
+    borderRadius: 7,
   },
   badgeText: {
     fontSize: 10,

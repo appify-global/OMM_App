@@ -13,6 +13,7 @@ import {
   View,
 } from "react-native";
 
+import { accent, controlRadius, frost } from "@/constants/theme";
 import {
   formatAudWhole,
   parseFormattedAudWholeDollars,
@@ -113,8 +114,8 @@ const pickStyles = StyleSheet.create({
   },
   sheet: {
     backgroundColor: "#fff",
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderTopLeftRadius: 11,
+    borderTopRightRadius: 11,
     padding: 20,
     paddingBottom: 32,
   },
@@ -498,7 +499,7 @@ function PublishListingStep1() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: "#fff" },
+  root: { flex: 1, backgroundColor: frost },
   scroll: { paddingTop: 8, paddingBottom: 16 },
   pageTitle: {
     fontSize: 24,
@@ -532,7 +533,7 @@ const styles = StyleSheet.create({
   },
   segmentCell: {
     flex: 1,
-    borderRadius: 14,
+    borderRadius: controlRadius.optionCell,
     minHeight: 48,
     paddingVertical: 12,
     paddingHorizontal: 12,
@@ -540,8 +541,8 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   segmentCellSelected: {
-    backgroundColor: "rgba(0, 0, 0, 0.04)",
-    borderColor: PL_BODY,
+    backgroundColor: accent,
+    borderColor: accent,
   },
   segmentLabel: {
     fontSize: 14,
@@ -553,7 +554,7 @@ const styles = StyleSheet.create({
     color: PL_BODY,
   },
   inputShell: {
-    borderRadius: 14,
+    borderRadius: controlRadius.optionCell,
     height: 54,
     paddingHorizontal: 16,
     justifyContent: "center",
@@ -577,7 +578,7 @@ const styles = StyleSheet.create({
   rangeRow: { flexDirection: "row", alignItems: "center", gap: 8 },
   rangeHalf: {
     flex: 1,
-    borderRadius: 8,
+    borderRadius: 5,
     paddingHorizontal: 15,
     paddingTop: 15,
     paddingBottom: 12,
@@ -620,7 +621,7 @@ const styles = StyleSheet.create({
   priceSuggestChip: {
     paddingVertical: 10,
     paddingHorizontal: 14,
-    borderRadius: 10,
+    borderRadius: 5,
     backgroundColor: "#fff",
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "rgba(60, 60, 67, 0.22)",

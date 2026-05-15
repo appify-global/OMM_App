@@ -3,7 +3,7 @@ import { Text } from '@/components/OMMText';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { accent, frost, ink, inkMuted, layout, palette, controlRadius } from '@/constants/theme';
 import { useTabScreenBottomPad } from '@/lib/useTabScreenBottomPad';
 
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
@@ -17,7 +17,8 @@ export const PL_TITLE = 'rgba(0, 0, 0, 0.72)';
 export const PL_BODY = '#000000';
 export const PL_MUTED = 'rgba(0, 0, 0, 0.55)';
 export const PL_CARD = '#000000';
-export const PL_CTA = '#000000';
+/** Primary filled actions in the listing wizard (Continue, Publish, modal primaries). */
+export const PL_CTA = accent;
 
 /** Padding below fixed CTAs so content clears the floating tab pill. */
 export function useListingFlowBottomPad() {
@@ -29,7 +30,7 @@ export const fieldShell = {
   borderWidth: FIELD_OUTLINE_WIDTH,
   borderColor: FIELD_OUTLINE_COLOR,
   borderStyle: 'solid' as const,
-  backgroundColor: '#fff',
+  backgroundColor: palette.white,
 };
 
 const HEADER_SIDE = 82;
@@ -99,7 +100,7 @@ export function PrimaryCta({
 const styles = StyleSheet.create({
   headerWrap: {
     width: '100%',
-    backgroundColor: '#fff',
+    backgroundColor: frost,
   },
   headerRow: {
     flexDirection: 'row',
@@ -137,13 +138,13 @@ const styles = StyleSheet.create({
   saveDraft: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: '#000', textAlign: 'right' },
   cta: {
     height: 48,
-    borderRadius: 14,
+    borderRadius: controlRadius.listingCta,
     backgroundColor: PL_CTA,
     alignItems: 'center',
     justifyContent: 'center',
     marginHorizontal: PL_PAD,
   },
-  ctaLabel: { color: '#fff', fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: -0.35 },
-  ctaDisabled: { backgroundColor: 'rgba(0, 0, 0, 0.28)' },
-  ctaLabelDisabled: { color: 'rgba(255, 255, 255, 0.75)' },
+  ctaLabel: { color: ink, fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: -0.35 },
+  ctaDisabled: { backgroundColor: 'rgba(56, 189, 248, 0.42)' },
+  ctaLabelDisabled: { color: inkMuted },
 });

@@ -7,7 +7,7 @@ import { TextInput } from '@/components/OMMTextInput';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { layout, slateNavy, accent, ink } from '@/constants/theme';
 /**
  * Raise a dispute — solid-bordered fields, PROPERTY ADDRESS label.
  */
@@ -185,7 +185,7 @@ export default function RaiseDisputeScreen() {
             {({ pressed }) => (
               <>
                 <View style={[styles.checkbox, resolvedAttempt && styles.checkboxChecked, pressed && { opacity: 0.7 }]}>
-                  {resolvedAttempt ? <FontAwesome name="check" size={12} color="#fff" /> : null}
+                  {resolvedAttempt ? <FontAwesome name="check" size={12} color={ink} /> : null}
                 </View>
                 <Text style={[styles.checkLabel, pressed && { opacity: 0.7 }]}>I have attempted to resolve this directly with the other agent.</Text>
               </>
@@ -311,7 +311,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   checkboxChecked: {
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     borderColor: '#000000',
   },
   checkLabel: {
@@ -324,7 +324,7 @@ const styles = StyleSheet.create({
   cta: {
     height: 52,
     borderRadius: 12,
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   ctaText: {
     fontSize: 14,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
+    color: ink,
     letterSpacing: 0.2,
     textTransform: 'uppercase',
   },

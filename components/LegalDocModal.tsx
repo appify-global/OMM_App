@@ -131,6 +131,5 @@ const styles = StyleSheet.create({
   },
   closeBtnLabel: {
     textTransform: 'uppercase',
-    color: '#FFFFFF',
   },
 });

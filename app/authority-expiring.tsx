@@ -5,7 +5,7 @@ import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { borderHairline, Fonts, ink, inkMuted, palette } from '@/constants/theme';
+import { accent, borderHairline, Fonts, ink, inkMuted, palette, slateNavy } from '@/constants/theme';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
@@ -201,18 +201,18 @@ const styles = StyleSheet.create({
   chip: {
     height: 30,
     paddingHorizontal: 14,
-    borderRadius: 18,
+    borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  chipOn: { backgroundColor: ink },
+  chipOn: { backgroundColor: accent },
   chipOff: {
     backgroundColor: palette.white,
     borderWidth: 1,
     borderColor: borderHairline,
   },
   chipLabel: { fontSize: 13, fontFamily: Fonts.medium, color: inkMuted },
-  chipLabelOn: { color: palette.white },
+  chipLabelOn: { color: ink },
   metaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -224,7 +224,7 @@ const styles = StyleSheet.create({
   card: {
     minHeight: 144,
     backgroundColor: '#fff',
-    borderRadius: 14,
+    borderRadius: 11,
     borderWidth: FIELD_OUTLINE_WIDTH,
     borderColor: FIELD_OUTLINE_COLOR,
     paddingHorizontal: 16,
@@ -250,7 +250,7 @@ const styles = StyleSheet.create({
     height: 24,
     paddingHorizontal: 8,
     borderRadius: 4,
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     alignItems: 'center',
     justifyContent: 'center',
   },

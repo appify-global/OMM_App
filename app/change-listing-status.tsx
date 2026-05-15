@@ -4,7 +4,7 @@ import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { accent, layout } from '@/constants/theme';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 
 /**
@@ -12,7 +12,7 @@ import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
  * [Figma 1053:9353](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-9353&t=2eZigRM0BwNtC5wd-4)
  */
 
-const FIELD_RADIUS = 12;
+const FIELD_RADIUS = 7;
 
 const CARD_OUTLINE = {
   borderWidth: FIELD_OUTLINE_WIDTH,
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#000000',
+    backgroundColor: accent,
   },
   optionTextCol: { flex: 1, minWidth: 0 },
   optionTitle: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000', marginBottom: 6 },
@@ -151,14 +151,14 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   updateBtn: {
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     height: 52,
-    borderRadius: 12,
+    borderRadius: 9,
     alignItems: 'center',
     justifyContent: 'center',
   },
   updateBtnText: {
-    color: '#fff',
+    color: '#000000',
     fontSize: 14,
     fontFamily: 'Satoshi-Medium',
     letterSpacing: 0.45,

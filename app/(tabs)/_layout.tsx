@@ -7,6 +7,7 @@ import {
   TabListGlyph,
   TabProfileGlyph,
 } from "@/components/TabBarGlyphs";
+import { accent, frost, slateNavy } from "@/constants/theme";
 import { isAuthenticated } from "@/lib/auth-session";
 import type { BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
 import { PlatformPressable } from "@react-navigation/elements";
@@ -18,8 +19,8 @@ type TabName = "home" | "activities" | "add" | "list" | "profile";
 
 function TabBarIcon({ tab, focused }: { tab: TabName; focused: boolean }) {
   const inactive = TAB_ICON_INACTIVE;
-  /** REA-inspired light “selected” tray; glyphs stay dark on tint. */
-  const active = "#111111";
+  /** REA-inspired light “selected” tray; glyphs use accent when focused. */
+  const active = accent;
 
   const glyph = (color: string) => {
     switch (tab) {
@@ -82,7 +83,7 @@ export default function TabLayout() {
           flex: 1,
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "#fff",
+          backgroundColor: frost,
         }}>
         <ActivityIndicator color="#000000" />
       </View>
@@ -98,7 +99,7 @@ export default function TabLayout() {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: true,
-        tabBarActiveTintColor: "#111111",
+        tabBarActiveTintColor: slateNavy,
         tabBarInactiveTintColor: TAB_ICON_INACTIVE,
         tabBarLabelStyle: styles.tabBarLabel,
         tabBarButton: (p) => <TabBarButton {...p} />,
@@ -213,7 +214,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   slotActive: {
-    borderRadius: 14,
+    borderRadius: 9,
     backgroundColor: "rgba(17,17,17,0.07)",
   },
 });

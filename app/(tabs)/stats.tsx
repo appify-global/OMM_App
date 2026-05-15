@@ -21,12 +21,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
  * [Figma 1053:5705](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-5705)
  */
 
-import {
-    borderHairline,
-    fillWash,
-    inkSubtle,
-    palette,
-} from "@/constants/theme";
+import { accent, borderHairline, fillWash, frost, ink, inkSubtle, palette, slateNavy } from '@/constants/theme';
 import {
     DEMO_PRIMARY_LISTING_TITLE,
     DEMO_PRIMARY_STREET,
@@ -98,7 +93,7 @@ const ACTIVITIES: ActivityRow[] = [
     subtitle: "Offer $2.35m — vendor wants $2.42m walk-away.",
     time: "2m",
     sheetTitle: "M. Patel",
-    sheetSubtitle: `Selling agent · ${DEMO_PRIMARY_LISTING_TITLE}`,
+    sheetSubtitle: `Real Estate Agent · ${DEMO_PRIMARY_LISTING_TITLE}`,
     sheetBody:
       "Thanks for your offer. It is below what the seller will accept for this property. They are open to a counter closer to the list price.",
     sheetTime: "2 minutes ago",
@@ -420,7 +415,8 @@ export default function ActivitiesScreen() {
           <View
             style={[
               styles.sheet,
-              { paddingBottom: showCompose ? 12 : insets.bottom + 20 },
+              showCompose && styles.sheetCompose,
+              { paddingBottom: showCompose ? 0 : insets.bottom + 20 },
             ]}
           >
             <View style={styles.grabber} />
@@ -460,36 +456,38 @@ export default function ActivitiesScreen() {
             ) : null}
 
             {sheet?.view === "message-compose" ? (
-              <ScrollView
-                keyboardShouldPersistTaps="handled"
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.composeScroll}
-              >
-                <Text style={styles.sheetTitle}>{sheet.row.sheetTitle}</Text>
-                <Text style={styles.sheetMeta}>{sheet.row.sheetSubtitle}</Text>
-                <View style={styles.bubble}>
-                  <Text style={styles.bubbleText}>{sheet.row.sheetBody}</Text>
-                </View>
-                {sheet.row.sheetTime ? (
-                  <Text style={styles.sheetTime}>{sheet.row.sheetTime}</Text>
-                ) : null}
-                <Text style={styles.inputLabel}>Message</Text>
-                <TextInput
-                  value={draft}
-                  onChangeText={setDraft}
-                  style={styles.composeInput}
-                  multiline
-                  textAlignVertical="top"
-                  placeholderTextColor="rgba(0, 0, 0, 0.35)"
-                />
-                <View style={styles.composeToolbar}>
-                  <Pressable
-                    accessibilityRole="button"
-                    hitSlop={8}
-                    onPress={dismissSheet}
-                  >
-                    <Text style={styles.composeAttach}>Done</Text>
-                  </Pressable>
+              <View style={styles.composeRoot}>
+                <ScrollView
+                  keyboardShouldPersistTaps="handled"
+                  showsVerticalScrollIndicator={false}
+                  style={styles.composeScrollView}
+                  contentContainerStyle={styles.composeScroll}
+                >
+                  <Text style={styles.sheetTitle}>{sheet.row.sheetTitle}</Text>
+                  <Text style={styles.sheetMeta}>{sheet.row.sheetSubtitle}</Text>
+                  <View style={styles.bubble}>
+                    <Text style={styles.bubbleText}>{sheet.row.sheetBody}</Text>
+                  </View>
+                  {sheet.row.sheetTime ? (
+                    <Text style={styles.sheetTime}>{sheet.row.sheetTime}</Text>
+                  ) : (
+                    <View style={styles.composeTimeSpacer} />
+                  )}
+                  <Text style={styles.inputLabel}>Message</Text>
+                  <TextInput
+                    value={draft}
+                    onChangeText={setDraft}
+                    style={styles.composeInput}
+                    multiline
+                    textAlignVertical="top"
+                    placeholderTextColor="rgba(0, 0, 0, 0.35)"
+                  />
+                </ScrollView>
+                <View
+                  style={[
+                    styles.composeToolbar,
+                    { marginBottom: Math.max(insets.bottom, 8) },
+                  ]}>
                   <Pressable accessibilityRole="button" hitSlop={8}>
                     <Text style={styles.composeAttach}>Attachments</Text>
                   </Pressable>
@@ -497,16 +495,16 @@ export default function ActivitiesScreen() {
                     <Text style={styles.composeSend}>Send</Text>
                   </Pressable>
                 </View>
-              </ScrollView>
+              </View>
             ) : null}
 
             {sheet?.view === "inspection-summary" ? (
               <>
                 <Text style={styles.sheetTitle}>{sheet.row.sheetTitle}</Text>
                 <Text style={styles.sheetMeta}>{sheet.row.sheetSubtitle}</Text>
-                <Text style={styles.inspectionDetail}>
-                  {sheet.row.sheetBody}
-                </Text>
+                <View style={styles.bubble}>
+                  <Text style={styles.bubbleText}>{sheet.row.sheetBody}</Text>
+                </View>
                 <AppButton
                   variant="outlined"
                   onPress={() =>
@@ -621,7 +619,7 @@ export default function ActivitiesScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: palette.white },
+  screen: { flex: 1, backgroundColor: frost },
   headBlock: {
     paddingTop: 8,
     paddingBottom: 4,
@@ -640,19 +638,19 @@ const styles = StyleSheet.create({
   segment: {
     flexDirection: "row",
     height: 52,
-    borderRadius: 12,
+    borderRadius: 7,
     backgroundColor: fillWash,
     padding: 4,
     gap: 4,
   },
   segmentBtn: {
     flex: 1,
-    borderRadius: 10,
+    borderRadius: 5,
     alignItems: "center",
     justifyContent: "center",
   },
   segmentBtnOn: {
-    backgroundColor: palette.white,
+    backgroundColor: accent,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.06,
@@ -666,7 +664,7 @@ const styles = StyleSheet.create({
   },
   segmentLabelOn: {
     fontFamily: "Satoshi-Medium",
-    color: "#000000",
+    color: ink,
   },
   chipRowHost: {
     flexGrow: 0,
@@ -685,18 +683,18 @@ const styles = StyleSheet.create({
   chip: {
     height: 31,
     paddingHorizontal: 14,
-    borderRadius: 18,
+    borderRadius: 13,
     alignItems: "center",
     justifyContent: "center",
   },
-  chipOn: { backgroundColor: "#000000" },
+  chipOn: { backgroundColor: accent },
   chipOff: {
     backgroundColor: palette.white,
     borderWidth: 1,
     borderColor: borderHairline,
   },
   chipLabel: { fontSize: 13, fontFamily: "Satoshi-Medium", color: inkSubtle },
-  chipLabelOn: { color: "#fff" },
+  chipLabelOn: { color: ink },
   kicker: {
     marginTop: 8,
     marginBottom: 12,
@@ -760,6 +758,11 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     maxHeight: "92%",
   },
+  sheetCompose: {
+    backgroundColor: "#fefdfb",
+    paddingHorizontal: 28,
+    paddingTop: 12,
+  },
   grabber: {
     alignSelf: "center",
     width: 36,
@@ -786,58 +789,66 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   bubble: {
-    backgroundColor: "rgba(0, 0, 0, 0.04)",
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: fillWash,
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    marginBottom: 10,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "rgba(0, 0, 0, 0.08)",
   },
   bubbleText: {
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 23,
     color: "#000000",
   },
   sheetTime: {
     fontSize: 13,
     color: "rgba(0, 0, 0, 0.45)",
-    marginBottom: 20,
+    marginBottom: 22,
   },
-  inspectionDetail: {
-    fontSize: 15,
-    lineHeight: 22,
-    color: "#000000",
-    marginBottom: 24,
+  composeTimeSpacer: {
+    height: 6,
+    marginBottom: 16,
   },
-  composeScroll: { paddingBottom: 24 },
+  composeRoot: {
+    flexGrow: 1,
+    flexShrink: 1,
+    minHeight: 280,
+  },
+  composeScrollView: {
+    flexGrow: 1,
+    flexShrink: 1,
+  },
+  composeScroll: { paddingBottom: 12 },
   inputLabel: {
     fontSize: 13,
     color: "rgba(0, 0, 0, 0.5)",
-    marginBottom: 8,
+    marginBottom: 10,
   },
   composeInput: {
-    minHeight: 120,
+    minHeight: 132,
     borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.2)",
-    borderRadius: 12,
-    padding: 14,
+    borderColor: "rgba(0, 0, 0, 0.18)",
+    borderRadius: 10,
+    paddingVertical: 16,
+    paddingHorizontal: 16,
     fontSize: 15,
-    lineHeight: 22,
+    lineHeight: 23,
     color: "#000000",
     backgroundColor: "#fff",
-    marginBottom: 16,
+    marginBottom: 14,
   },
   composeToolbar: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    gap: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
     backgroundColor: "#ffffff",
-    borderRadius: 12,
+    borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(0, 0, 0, 0.1)",
+    borderColor: "rgba(0, 0, 0, 0.12)",
   },
   composeAttach: {
     fontSize: 15,
@@ -857,7 +868,7 @@ const styles = StyleSheet.create({
   },
   calCard: {
     backgroundColor: "#fff",
-    borderRadius: 14,
+    borderRadius: 9,
     borderWidth: 1,
     borderColor: "rgba(0, 0, 0, 0.1)",
     padding: 14,
@@ -895,11 +906,11 @@ const styles = StyleSheet.create({
     minHeight: 36,
     alignItems: "center",
     justifyContent: "center",
-    borderRadius: 10,
+    borderRadius: 5,
   },
   calCellSelected: {
-    backgroundColor: "#000000",
-    borderRadius: 10,
+    backgroundColor: accent,
+    borderRadius: 5,
   },
   calCellText: {
     fontSize: 14,
@@ -907,7 +918,7 @@ const styles = StyleSheet.create({
     color: "#000000",
   },
   calCellTextSelected: {
-    color: "#fff",
+    color: ink,
   },
   slotsKicker: {
     fontSize: 11,
@@ -919,15 +930,15 @@ const styles = StyleSheet.create({
   slotPill: {
     paddingVertical: 14,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: 7,
     backgroundColor: "#ffffff",
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "rgba(0, 0, 0, 0.12)",
     marginBottom: 8,
   },
   slotPillOn: {
-    backgroundColor: "#000000",
-    borderColor: "#000000",
+    backgroundColor: accent,
+    borderColor: accent,
   },
   slotPillText: {
     fontSize: 14,
@@ -935,7 +946,7 @@ const styles = StyleSheet.create({
     color: "#000000",
   },
   slotPillTextOn: {
-    color: "#fff",
+    color: ink,
   },
   slotFootnote: {
     fontSize: 12,
@@ -955,10 +966,10 @@ const styles = StyleSheet.create({
     zIndex: 50,
   },
   toastPill: {
-    backgroundColor: "#000000",
+    backgroundColor: slateNavy,
     paddingHorizontal: 18,
     paddingVertical: 14,
-    borderRadius: 14,
+    borderRadius: 9,
     maxWidth: "92%",
   },
   toastPillText: {

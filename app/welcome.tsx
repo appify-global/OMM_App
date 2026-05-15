@@ -13,6 +13,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { OAuthProviderCircles } from "@/components/oauth/OAuthProviderCircles";
+import { accent } from "@/constants/theme";
 
 /**
  * Welcome — [Figma: OMM / Welcome Screen](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1286-160)
@@ -224,14 +225,14 @@ const styles = StyleSheet.create({
     width: "100%",
     height: SIGN_UP_BTN_H,
     borderRadius: SIGN_UP_BTN_CORNER,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: accent,
     alignItems: "center",
     justifyContent: "center",
   },
   signUpBtnLabel: {
     fontSize: 14,
     fontFamily: "Satoshi-Medium",
-    color: "#454545",
+    color: "#000000",
     letterSpacing: -0.14,
   },
   oauthWrap: {

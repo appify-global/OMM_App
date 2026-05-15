@@ -7,7 +7,7 @@ import { Text } from '@/components/OMMText';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { accent, ink, layout, slateNavy } from '@/constants/theme';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 import {
   listDealsEligibleToWriteReview,
@@ -507,7 +507,7 @@ const styles = StyleSheet.create({
   },
   pendingCardActive: {
     borderRadius: CARD_R,
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 14,
@@ -610,7 +610,7 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   filterSeg: {
-    borderRadius: 18,
+    borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 7,
     minHeight: 31,
@@ -618,7 +618,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   filterSegActive: {
-    backgroundColor: '#000000',
+    backgroundColor: accent,
   },
   filterSegIdle: {
     backgroundColor: 'transparent',
@@ -629,7 +629,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   filterLabelOn: {
-    color: '#fff',
+    color: ink,
   },
   filterLabelOff: {
     color: 'rgba(0,0,0,0.45)',
@@ -683,7 +683,7 @@ const styles = StyleSheet.create({
   cta: {
     height: 52,
     borderRadius: 12,
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: SECTION_GAP,
@@ -694,7 +694,7 @@ const styles = StyleSheet.create({
   ctaText: {
     fontSize: 14,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
+    color: ink,
     letterSpacing: -0.35,
     textTransform: 'uppercase',
   },

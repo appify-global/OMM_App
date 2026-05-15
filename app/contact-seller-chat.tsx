@@ -1,10 +1,21 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState, Fragment } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
-import { Alert, Image, Modal, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  Alert,
+  Dimensions,
+  Image,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+  type LayoutRectangle,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
@@ -19,22 +30,33 @@ import {
 } from '@/lib/deal-acknowledgement';
 import { AGENT_IMG, PROPERTY_IMG_1 } from '@/lib/propertyImages';
 import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
+import { accent, ink, slateNavy, Fonts } from '@/constants/theme';
 
-const MENU_ITEMS_BEFORE: { key: string; label: string }[] = [
+/**
+ * Kebab overflow — exact labels + order from Figma KebabMenu 903:1697.
+ * [Message — Menu open](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=903-1586)
+ */
+const CHAT_MENU_ITEMS: { key: string; label: string; afterDivider?: boolean }[] = [
   { key: 'profile', label: 'View agent profile' },
   { key: 'reviews', label: 'View reviews' },
-  { key: 'acknowledge', label: 'Acknowledge transaction' },
   { key: 'mute', label: 'Mute notifications' },
   { key: 'dispute', label: 'Raise a dispute' },
+  { key: 'block', label: 'Block agent', afterDivider: true },
+  { key: 'report', label: 'Report conversation', afterDivider: true },
 ];
 
-const MENU_ITEMS_AFTER: { key: string; label: string }[] = [
-  { key: 'block', label: 'Block agent' },
-  { key: 'report', label: 'Report conversation' },
-];
-
-/** Header row height (avatar 44 + vertical padding 24). */
-const HEADER_CONTENT_H = 68;
+/** Kebab menu — scaled up from Figma 903:1697 for readability + touch targets. */
+const MENU_CARD_WIDTH = 296;
+const MENU_PAD_H = 22;
+const MENU_PAD_TOP = 18;
+const MENU_PAD_BOTTOM = 20;
+const MENU_INNER_WIDTH = MENU_CARD_WIDTH - MENU_PAD_H * 2;
+const MENU_RIGHT_INSET = 14;
+const MENU_ROW_H = 50;
+const MENU_ITEM_GAP = 8;
+const MENU_ANCHOR_GAP = 8;
+const MENU_FONT_SIZE = 19;
+const MENU_LINE_HEIGHT = 26;
 
 /**
  * Contact seller / agent thread.
@@ -49,7 +71,9 @@ export default function ContactSellerChatScreen() {
       ? propertyRefParam.trim()
       : DEMO_CHAT_PROPERTY_REF;
 
+  const menuAnchorRef = useRef<View>(null);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [menuAnchorRect, setMenuAnchorRect] = useState<LayoutRectangle | null>(null);
   const [deal, setDeal] = useState<DealAcknowledgementRecord | null>(null);
   const [ackBanner, setAckBanner] = useState<string | null>(null);
 
@@ -65,7 +89,33 @@ export default function ContactSellerChatScreen() {
 
   useFocusEffect(loadDeal);
 
-  const closeMenu = () => setMenuOpen(false);
+  const closeMenu = useCallback(() => {
+    setMenuOpen(false);
+    setMenuAnchorRect(null);
+  }, []);
+
+  const openMenu = useCallback(() => {
+    const node = menuAnchorRef.current;
+    const openWithRect = (rect: LayoutRectangle) => {
+      setMenuAnchorRect(rect);
+      setMenuOpen(true);
+    };
+    if (!node || typeof node.measureInWindow !== 'function') {
+      const win = Dimensions.get('window');
+      openWithRect({
+        x: win.width - MENU_RIGHT_INSET - 36,
+        y: insets.top + 12,
+        width: 36,
+        height: 44,
+      });
+      return;
+    }
+    requestAnimationFrame(() => {
+      node.measureInWindow((x, y, width, height) => {
+        openWithRect({ x, y, width, height });
+      });
+    });
+  }, [insets.top]);
 
   const openWriteReview = useCallback(() => {
     router.push({
@@ -88,10 +138,38 @@ export default function ContactSellerChatScreen() {
     }
   }, [propertyRef]);
 
-  const menuItemsBefore = MENU_ITEMS_BEFORE.filter((item) => {
-    if (item.key !== 'acknowledge') return true;
-    return deal != null && canViewerAcknowledgeDeal(deal);
-  });
+  const onMenuAction = useCallback(
+    (key: string) => {
+      closeMenu();
+      switch (key) {
+        case 'profile':
+          router.push('/agent-profile' as Href);
+          break;
+        case 'reviews':
+          router.push('/agent-reviews' as Href);
+          break;
+        case 'dispute':
+          router.push('/raise-dispute' as Href);
+          break;
+        case 'mute':
+          Alert.alert('Notifications muted', 'You will not receive push alerts for this thread.');
+          break;
+        case 'block':
+          Alert.alert('Agent blocked', 'This agent can no longer message you in OMM.');
+          break;
+        case 'report':
+          Alert.alert('Report submitted', 'Our team will review this conversation.');
+          break;
+        default:
+          break;
+      }
+    },
+    [closeMenu, router],
+  );
+
+  const menuTop =
+    menuAnchorRect != null ? menuAnchorRect.y + menuAnchorRect.height + MENU_ANCHOR_GAP : 0;
+  const menuLeft = Dimensions.get('window').width - MENU_CARD_WIDTH - MENU_RIGHT_INSET;
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -111,14 +189,16 @@ export default function ContactSellerChatScreen() {
           </Text>
           <Text style={styles.headerStatus}>ACTIVE NOW</Text>
         </View>
-        <Pressable
-          hitSlop={12}
-          accessibilityRole="button"
-          accessibilityLabel="More options"
-          style={styles.headerIcon}
-          onPress={() => setMenuOpen(true)}>
-          <FontAwesome name="ellipsis-v" size={18} color="#000000" />
-        </Pressable>
+        <View ref={menuAnchorRef} collapsable={false} style={styles.headerIcon}>
+          <Pressable
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="More options"
+            style={styles.headerKebabPressable}
+            onPress={openMenu}>
+            <FontAwesome name="ellipsis-v" size={18} color="#000000" />
+          </Pressable>
+        </View>
       </View>
 
       <Modal visible={menuOpen} transparent animationType="fade" onRequestClose={closeMenu}>
@@ -129,43 +209,35 @@ export default function ContactSellerChatScreen() {
             accessibilityRole="button"
             accessibilityLabel="Close menu"
           />
-          <View
-            pointerEvents="box-none"
-            style={[
-              StyleSheet.absoluteFillObject,
-              {
-                paddingTop: insets.top + HEADER_CONTENT_H + 4,
-                alignItems: 'flex-end',
-                paddingRight: 10,
-              },
-            ]}>
-            <View style={styles.menuCard} accessibilityViewIsModal>
-              {menuItemsBefore.map((item) => (
-                <Pressable
-                  key={item.key}
-                  onPress={() => {
-                    closeMenu();
-                    if (item.key === 'profile') router.push('/agent-profile' as Href);
-                    if (item.key === 'reviews') router.push('/agent-reviews' as Href);
-                    if (item.key === 'acknowledge') void onAcknowledge();
-                  }}
-                  style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowPressed]}
-                  accessibilityRole="button">
-                  <Text style={styles.menuRowText}>{item.label}</Text>
-                </Pressable>
-              ))}
-              <View style={styles.menuDivider} />
-              {MENU_ITEMS_AFTER.map((item) => (
-                <Pressable
-                  key={item.key}
-                  onPress={closeMenu}
-                  style={({ pressed }) => [styles.menuRow, pressed && styles.menuRowPressed]}
-                  accessibilityRole="button">
-                  <Text style={styles.menuRowText}>{item.label}</Text>
-                </Pressable>
-              ))}
+          {menuAnchorRect ? (
+            <View
+              pointerEvents="box-none"
+              style={[styles.menuPopover, { left: menuLeft, top: menuTop }]}>
+              <View style={styles.menuCard} accessibilityViewIsModal>
+                {CHAT_MENU_ITEMS.map((item, index) => {
+                  const prev = CHAT_MENU_ITEMS[index - 1];
+                  const showDivider =
+                    item.afterDivider === true && (prev == null || !prev.afterDivider);
+                  return (
+                    <Fragment key={item.key}>
+                      {showDivider ? <View style={styles.menuDivider} /> : null}
+                      <Pressable
+                        onPress={() => onMenuAction(item.key)}
+                        style={({ pressed }) => [
+                          styles.menuRow,
+                          pressed && styles.menuRowPressed,
+                        ]}
+                        accessibilityRole="button">
+                        <Text style={styles.menuRowText} numberOfLines={1}>
+                          {item.label}
+                        </Text>
+                      </Pressable>
+                    </Fragment>
+                  );
+                })}
+              </View>
             </View>
-          </View>
+          ) : null}
         </View>
       </Modal>
 
@@ -254,7 +326,7 @@ export default function ContactSellerChatScreen() {
           multiline
         />
         <Pressable style={styles.sendBtn} accessibilityRole="button" accessibilityLabel="Send">
-          <FontAwesome name="send" size={16} color="#fff" style={{ marginLeft: 2 }} />
+          <FontAwesome name="send" size={16} color={ink} style={{ marginLeft: 2 }} />
         </Pressable>
       </View>
     </View>
@@ -273,6 +345,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   headerIcon: { width: 36, alignItems: 'center', justifyContent: 'center' },
+  headerKebabPressable: {
+    width: '100%',
+    minHeight: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerAvatar: { width: 44, height: 44, borderRadius: 22 },
   headerText: { flex: 1, minWidth: 0 },
   headerTitle: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000' },
@@ -377,7 +455,7 @@ const styles = StyleSheet.create({
   msgOutWrap: { alignSelf: 'stretch', marginBottom: 20, alignItems: 'flex-end' },
   bubbleOut: {
     maxWidth: '88%',
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     borderRadius: 4,
     paddingVertical: 14,
     paddingHorizontal: 16,
@@ -439,7 +517,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 8,
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 4,
@@ -447,37 +525,72 @@ const styles = StyleSheet.create({
   menuRoot: { flex: 1 },
   menuScrim: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.45)',
+    /** MenuDim — #1a1a1a @ 32% (Figma 903:1696). */
+    backgroundColor: 'rgba(26, 26, 26, 0.32)',
   },
+  menuPopover: {
+    position: 'absolute',
+    width: MENU_CARD_WIDTH,
+  },
+  /** Kebab overflow menu — enlarged for legibility. */
   menuCard: {
-    minWidth: 248,
-    backgroundColor: '#fff',
+    width: MENU_CARD_WIDTH,
+    backgroundColor: '#fefdfb',
     borderRadius: 12,
-    paddingVertical: 6,
+    overflow: 'hidden',
+    paddingTop: MENU_PAD_TOP,
+    paddingBottom: MENU_PAD_BOTTOM,
+    paddingHorizontal: MENU_PAD_H,
+    alignItems: 'stretch',
+    gap: MENU_ITEM_GAP,
+    ...Platform.select({
+      web: {
+        display: 'flex',
+        flexDirection: 'column',
+        boxSizing: 'border-box',
+      },
+      default: {},
+    }),
     ...Platform.select({
       ios: {
         shadowColor: '#000',
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: { width: 0, height: 8 },
         shadowOpacity: 0.18,
-        shadowRadius: 12,
+        shadowRadius: 24,
       },
-      android: { elevation: 8 },
+      android: { elevation: 14 },
     }),
   },
   menuRow: {
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    width: '100%',
+    minWidth: MENU_INNER_WIDTH,
+    minHeight: MENU_ROW_H,
+    height: MENU_ROW_H,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    ...Platform.select({
+      web: {
+        display: 'flex',
+        alignSelf: 'stretch',
+      },
+      default: {},
+    }),
   },
   menuRowPressed: { backgroundColor: 'rgba(0, 0, 0, 0.06)' },
   menuRowText: {
-    fontSize: 15,
-    fontWeight: '400',
-    color: '#3a3a3c',
+    flex: 1,
+    width: '100%',
+    fontSize: MENU_FONT_SIZE,
+    fontFamily: Fonts.regular,
+    color: '#1a1a1a',
+    lineHeight: MENU_LINE_HEIGHT,
+    letterSpacing: -0.15,
   },
   menuDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: 'rgba(0, 0, 0, 0.2)',
+    width: '100%',
+    height: 1,
+    backgroundColor: '#f5f1ed',
     marginVertical: 4,
-    marginHorizontal: 12,
   },
 });

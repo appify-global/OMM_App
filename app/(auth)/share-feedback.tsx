@@ -8,7 +8,7 @@ import { TextInput } from '@/components/OMMTextInput';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { accent, ink, layout } from '@/constants/theme';
 
 const FIELD_H = 54;
 const FEEDBACK_BOX_H = 150;
@@ -251,7 +251,7 @@ const styles = StyleSheet.create({
   submitBtn: {
     height: 52,
     borderRadius: 12,
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   submitBtnText: {
     fontSize: 16,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
+    color: ink,
     letterSpacing: -0.2,
   },
 });

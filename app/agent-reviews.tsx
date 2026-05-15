@@ -5,7 +5,7 @@ import { Text } from '@/components/OMMText';
 import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { accent, ink, layout, slateNavy } from '@/constants/theme';
 /**
  * Agent reviews — full list & distribution.
  * [Figma 1053:6675](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-6675&t=2eZigRM0BwNtC5wd-4)
@@ -84,7 +84,7 @@ export default function AgentReviewsScreen() {
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 28 }]}>
         <View style={styles.summaryCard}>
           <Text style={styles.summaryName}>Anton Zhouk</Text>
-          <Text style={styles.summaryRole}>Selling agent · {DEMO_AGENT_AGENCY}</Text>
+          <Text style={styles.summaryRole}>Real Estate Agent · {DEMO_AGENT_AGENCY}</Text>
           <View style={styles.summaryRow}>
             <View style={styles.summaryLeft}>
               <Text style={styles.bigScore}>4.9</Text>
@@ -217,7 +217,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.1)',
     overflow: 'hidden',
   },
-  distFill: { height: '100%', borderRadius: 3, backgroundColor: '#000000' },
+  distFill: { height: '100%', borderRadius: 3, backgroundColor: slateNavy },
   distPct: { width: 32, fontSize: 10, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', textAlign: 'right' },
   chipsScroll: { marginBottom: 14, marginHorizontal: -layout.screenGutter },
   chipsInner: { paddingHorizontal: layout.screenGutter, gap: 8, flexDirection: 'row', alignItems: 'center' },
@@ -226,18 +226,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 20,
+    borderRadius: 15,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(0, 0, 0, 0.22)',
     backgroundColor: '#fff',
   },
   chipOn: {
-    backgroundColor: '#000000',
-    borderColor: '#000000',
+    backgroundColor: accent,
+    borderColor: accent,
     borderWidth: 1,
   },
   chipLabel: { fontSize: 11, fontFamily: 'Satoshi-Medium', color: '#000000', letterSpacing: 0.35 },
-  chipLabelOn: { color: '#fff' },
+  chipLabelOn: { color: ink },
   chipLabelPhotosMuted: { color: 'rgba(0, 0, 0, 0.42)' },
   chipChevron: { marginLeft: 4 },
   listMetaRow: {

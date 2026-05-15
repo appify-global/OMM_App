@@ -18,7 +18,7 @@ import Animated, {
 } from "react-native-reanimated";
 
 import { Text } from "@/components/OMMText";
-import { Fonts, ink, inkSubtle } from "@/constants/theme";
+import { Fonts, accent, controlRadius, ink, inkSubtle } from "@/constants/theme";
 import { hapticSelection } from "@/lib/haptics";
 
 export type GlassSegmentItem<K extends string> = {
@@ -39,7 +39,7 @@ export type GlassSegmentProps<K extends string> = {
 
 const PADDING = 4;
 const HEIGHT = 34;
-const RADIUS = 12;
+const RADIUS = controlRadius.glassSegment;
 const THUMB_RADIUS = RADIUS - 3;
 
 const AnimatedView = Animated.View;
@@ -212,7 +212,7 @@ const styles = StyleSheet.create({
   },
   thumbFill: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: "rgba(255, 255, 255, 0.96)",
+    backgroundColor: accent,
   },
   thumbTopHairline: {
     position: "absolute",

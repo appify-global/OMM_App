@@ -6,6 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
+import { slateNavy } from '@/constants/theme';
 
 type SavedItem = {
   name: string;
@@ -173,7 +174,7 @@ const styles = StyleSheet.create({
   newBadge: {
     alignSelf: 'flex-start',
     marginTop: 8,
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,

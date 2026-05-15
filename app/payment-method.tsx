@@ -26,7 +26,7 @@ import {
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { accent, ink, layout, slateNavy } from '@/constants/theme';
 import {
   AUTO_PAY_OPTIONS,
   PAYMENT_CARDS,
@@ -129,7 +129,8 @@ function OutlineShell({
           borderRadius,
           minHeight: height ?? minHeight ?? undefined,
           height: height ?? undefined,
-          overflow: elevated ? 'visible' : 'hidden',
+          /** Stroke is centered on the path; visible keeps bottom edge from being clipped. */
+          overflow: 'visible',
         },
         elevated && styles.dashElevated,
         style,
@@ -747,7 +748,7 @@ function AutoPaySheet({
                 <View style={styles.autoPayOptionInner}>
                   <Text style={styles.autoPayOptionLabel}>{opt}</Text>
                   {selected === opt ? (
-                    <FontAwesome name="check" size={16} color="#000000" />
+                    <FontAwesome name="check" size={16} color={accent} />
                   ) : (
                     <View style={styles.autoPayCheckSpacer} />
                   )}
@@ -1016,7 +1017,7 @@ const styles = StyleSheet.create({
     letterSpacing: 3,
   },
   defaultChip: {
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     paddingHorizontal: 15,
     paddingVertical: 6,
     borderRadius: 16,
@@ -1246,6 +1247,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     height: FIELD_INNER_H,
     justifyContent: 'center',
+    borderRadius: FIELD_ROW_R - STROKE_W,
+    overflow: 'hidden',
   },
   addCardInput: {
     width: '100%',
@@ -1253,6 +1256,7 @@ const styles = StyleSheet.create({
     fontFamily: 'Satoshi-Medium',
     color: '#000000',
     lineHeight: 22,
+    backgroundColor: 'transparent',
     paddingVertical: Platform.OS === 'ios' ? 2 : 0,
     margin: 0,
     ...(Platform.OS === 'android'
@@ -1266,6 +1270,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    borderRadius: FIELD_ROW_R - STROKE_W,
+    overflow: 'hidden',
   },
   autoPayOptionLabel: {
     fontSize: 16,
@@ -1314,7 +1320,7 @@ const styles = StyleSheet.create({
   },
   addCardBeforeCta: { height: 20 },
   addCardCta: {
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     borderRadius: 14,
     minHeight: 48,
     alignItems: 'center',
@@ -1324,7 +1330,7 @@ const styles = StyleSheet.create({
   addCardCtaLabel: {
     fontSize: 15,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
+    color: ink,
     letterSpacing: 0.35,
     textTransform: 'uppercase',
   },

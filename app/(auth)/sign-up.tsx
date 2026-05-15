@@ -26,6 +26,7 @@ import {
   LEGAL_TERMS_SIGNUP_MODAL_BODY,
 } from "@/lib/legal-docs";
 import { fieldShell } from "@/app/(tabs)/add/_shared";
+import { accent } from "@/constants/theme";
 import { isPermittedWorkEmail, workEmailValidationMessage } from "@/lib/work-email";
 
 const REFERRAL_BODY = `Draft for counsel. This Agency Referral Agreement covers referral or co-agency fees, GST treatment, disclosure expectations, and your obligation to record fees, confirmations, and trail items within OMM to support a Victorian compliance record.`;
@@ -33,8 +34,6 @@ const REFERRAL_BODY = `Draft for counsel. This Agency Referral Agreement covers 
 /** iOS-like filled controls (system gray 6) */
 const FIELD_FILL = "#F2F2F7";
 const SEPARATOR = "rgba(60, 60, 67, 0.29)";
-const IOS_BLUE = "#007AFF";
-
 const ROLE_OPTIONS = [
   "Real Estate Agent",
   "Buyer Agent",
@@ -668,7 +667,6 @@ export default function SignUpScreen() {
           style={styles.signUpPrimary}
           disabled={primaryDisabled}
           onPress={goNext}
-          textStyle={styles.signUpPrimaryLabel}
         >
           {primaryLabel}
         </AppButton>
@@ -869,7 +867,7 @@ const styles = StyleSheet.create({
   sheetDone: {
     fontSize: 17,
     fontFamily: "Satoshi-Medium",
-    color: IOS_BLUE,
+    color: accent,
   },
   selectSheetScroll: {
     flexGrow: 0,
@@ -895,7 +893,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingRight: 12,
   },
-  selectOptionTextSelected: { color: "#000000" },
+  selectOptionTextSelected: { color: accent },
   multiSheet: {
     backgroundColor: "#fff",
     borderTopLeftRadius: 16,
@@ -1019,9 +1017,5 @@ const styles = StyleSheet.create({
   },
   signUpPrimary: {
     marginTop: 20,
-  },
-  signUpPrimaryLabel: {
-    color: "#FFFFFF",
-    fontFamily: "Satoshi-Medium",
   },
 });

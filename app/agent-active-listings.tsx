@@ -15,7 +15,7 @@ import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 import { DEMO_AGENT_AGENCY } from '@/lib/melbourne-demo-locations';
 import { AGENT_IMG, PROPERTY_IMG_1, propertyImageAtIndex } from '@/lib/propertyImages';
-import { layout } from '@/constants/theme';
+import { accent, ink, layout, slateNavy } from '@/constants/theme';
 
 const CARD_R = 12;
 const AGENT_CARD_R = 10;
@@ -119,7 +119,7 @@ export default function AgentActiveListingsScreen() {
           </View>
           <View style={styles.agentText}>
             <Text style={styles.agentName}>Anton Zhouk</Text>
-            <Text style={styles.agentRole}>Selling agent · {DEMO_AGENT_AGENCY}</Text>
+            <Text style={styles.agentRole}>Real Estate Agent · {DEMO_AGENT_AGENCY}</Text>
           </View>
         </View>
 
@@ -220,7 +220,7 @@ const styles = StyleSheet.create({
     width: 16,
     height: 16,
     borderRadius: 8,
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   chip: {
     paddingHorizontal: 16,
     height: 32,
-    borderRadius: 16,
+    borderRadius: 11,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#fff',
@@ -252,8 +252,8 @@ const styles = StyleSheet.create({
     borderColor: '#ffffff',
   },
   chipOn: {
-    backgroundColor: '#000000',
-    borderColor: '#000000',
+    backgroundColor: accent,
+    borderColor: accent,
   },
   chipLabel: {
     fontSize: 11,
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.66,
   },
   chipLabelOn: {
-    color: '#fff',
+    color: ink,
     fontWeight: '400',
   },
   listMetaRow: {
@@ -311,10 +311,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 16,
     right: 16,
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     paddingHorizontal: 12,
     paddingVertical: 4,
-    borderRadius: 11,
+    borderRadius: 8,
     minHeight: 22,
     justifyContent: 'center',
   },

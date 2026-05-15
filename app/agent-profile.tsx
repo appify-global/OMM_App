@@ -1,11 +1,13 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { type Href, useRouter } from 'expo-router';
+import { useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { Image, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { SellerContactSheet } from '@/components/SellerContactSheet';
+import { accent, ink, layout, slateNavy } from '@/constants/theme';
 /**
  * Agent profile — from chat overflow "View agent profile".
  * [Figma 1053:6508](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-6508&t=2eZigRM0BwNtC5wd-4)
@@ -62,6 +64,7 @@ function SectionHeader({
 export default function AgentProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const [sellerContactOpen, setSellerContactOpen] = useState(false);
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -93,7 +96,7 @@ export default function AgentProfileScreen() {
             </View>
             <View style={styles.heroTextCol}>
               <Text style={styles.name}>Anton Zhouk</Text>
-              <Text style={styles.roleLine}>Selling agent</Text>
+              <Text style={styles.roleLine}>Real Estate Agent</Text>
               <Text style={styles.agencyLine}>{DEMO_AGENT_AGENCY}</Text>
               <View style={styles.starsRow}>
                 {[1, 2, 3, 4, 5].map((i) => (
@@ -118,7 +121,11 @@ export default function AgentProfileScreen() {
               accessibilityRole="button">
               <Text style={styles.msgBtnText}>MESSAGE</Text>
             </Pressable>
-            <Pressable style={[styles.callBtn, styles.ctaFlex]} accessibilityRole="button">
+            <Pressable
+              style={[styles.callBtn, styles.ctaFlex]}
+              onPress={() => setSellerContactOpen(true)}
+              accessibilityRole="button"
+              accessibilityLabel="Show seller email and phone">
               <Text style={styles.callBtnText}>CALL</Text>
             </Pressable>
           </View>
@@ -228,6 +235,11 @@ export default function AgentProfileScreen() {
           <FontAwesome name="chevron-right" size={14} color="rgba(0, 0, 0, 0.35)" />
         </Pressable>
       </ScrollView>
+
+      <SellerContactSheet
+        visible={sellerContactOpen}
+        onClose={() => setSellerContactOpen(false)}
+      />
     </View>
   );
 }
@@ -279,7 +291,7 @@ const styles = StyleSheet.create({
     width: 26,
     height: 26,
     borderRadius: 13,
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
@@ -300,13 +312,13 @@ const styles = StyleSheet.create({
   ctaRow: { flexDirection: 'row', gap: 12, width: '100%' },
   ctaFlex: { flex: 1 },
   msgBtn: {
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     height: 46,
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  msgBtnText: { color: '#fff', fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.4 },
+  msgBtnText: { color: ink, fontSize: 13, fontFamily: 'Satoshi-Medium', letterSpacing: 0.4 },
   callBtn: {
     height: 46,
     borderRadius: 12,

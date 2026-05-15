@@ -17,7 +17,7 @@ import { useTabBarOnScroll } from '@/lib/tab-bar-visibility';
  */
 
 import { AGENT_IMG } from '@/lib/propertyImages';
-import { layout } from '@/constants/theme';
+import { accent, frost, ink, layout, slateNavy } from '@/constants/theme';
 
 const SECTION_GAP = 24;
 const GROUP_R = 16;
@@ -148,7 +148,7 @@ export default function ProfileScreen() {
               onPress={() => Alert.alert('Profile photo', 'Photo picker would open here.')}
               accessibilityRole="button"
               accessibilityLabel="Change profile photo">
-              <FontAwesome name="camera" size={11} color="#fff" />
+              <FontAwesome name="camera" size={11} color={ink} />
             </Pressable>
           </View>
         </View>
@@ -245,7 +245,7 @@ export default function ProfileScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: '#fff' },
+  screen: { flex: 1, backgroundColor: frost },
   scrollInner: { paddingHorizontal: 32 },
   headerRow: {
     flexDirection: 'row',
@@ -288,7 +288,7 @@ const styles = StyleSheet.create({
     width: 24,
     height: 24,
     borderRadius: 12,
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,

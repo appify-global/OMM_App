@@ -1,10 +1,24 @@
 /**
- * Global design tokens — strict monochrome + Satoshi (regular / medium only).
+ * Global design tokens — monochrome base + Satoshi (regular / medium only).
  */
 export const palette = {
   black: '#000000',
   white: '#FFFFFF',
+  /** Selection / interactive accent — segments, chips, radios, tabs. Tailwind sky-400. */
+  accent: '#38BDF8',
+  /** Slate 800 — structural depth, filled CTAs, nav-style actions (not selection accent). */
+  slateNavy: '#1E293B',
+  /** Slate 50 — default app surface behind content (readable, cool-neutral). */
+  frost: '#F8FAFC',
 } as const;
+
+/** Re-export for ergonomic imports alongside `palette.*`. */
+export const accent = palette.accent;
+export const slateNavy = palette.slateNavy;
+export const frost = palette.frost;
+
+/** Default screen / scroll surface in light mode. Prefer over raw white for readability. */
+export const surfacePrimary = frost;
 
 /** UI text and ink surfaces use pure black; never blue-grey (#1c1c1e) in new code. */
 export const ink = palette.black;
@@ -35,6 +49,19 @@ export const space = {
 export const Fonts = {
   regular: 'Satoshi-Regular',
   medium: 'Satoshi-Medium',
+} as const;
+
+/**
+ * Corners on tappable controls — primary buttons, listing CTAs, segmented glass,
+ * wizard option shells (progressively tightened from original Figma radii).
+ */
+export const controlRadius = {
+  button: 7,
+  buttonCharcoal: 9,
+  listingCta: 9,
+  optionCell: 9,
+  glassSegment: 7,
+  liquidPill: 11,
 } as const;
 
 /**
@@ -117,8 +144,8 @@ export const system = {
   fillSecondary: 'rgba(120, 120, 128, 0.12)',
   /** Apple `.systemYellow` — review stars / warning accents. */
   yellow: '#FFCC00',
-  /** Apple `.systemBlue` — interactive accent (links, selected). */
-  blue: '#0A84FF',
+  /** Aligns with `accent` — links, tint, selected affordances (see `accent`). */
+  blue: palette.accent,
 } as const;
 
 /**

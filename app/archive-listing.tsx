@@ -4,7 +4,7 @@ import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { accent, ink, layout } from '@/constants/theme';
 import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 
@@ -148,7 +148,7 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   archiveBtn: {
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     height: 52,
     borderRadius: 12,
     alignItems: 'center',
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     marginTop: 14,
   },
   archiveBtnText: {
-    color: '#fff',
+    color: ink,
     fontSize: 14,
     fontFamily: 'Satoshi-Medium',
     letterSpacing: 0.45,

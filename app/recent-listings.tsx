@@ -11,7 +11,7 @@ import { ScreenHeader } from '@/components/ScreenHeader';
 import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { propertyImageAtIndex } from '@/lib/propertyImages';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
-import { layout } from '@/constants/theme';
+import { layout, slateNavy } from '@/constants/theme';
 
 const CARD_GAP = 14;
 const ROW_PAD = 16;
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  statusLive: { backgroundColor: '#000000' },
+  statusLive: { backgroundColor: slateNavy },
   statusSold: { backgroundColor: '#3a3a3a' },
   statusText: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: '#fff', letterSpacing: 0.35, textTransform: 'uppercase' },
   locRow: { flexDirection: 'row', alignItems: 'center', marginTop: 8, gap: 6 },

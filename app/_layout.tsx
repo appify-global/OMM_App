@@ -1,11 +1,12 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { DarkTheme, DefaultTheme, ThemeProvider, type Theme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
+import { frost } from '@/constants/theme';
 import { useColorScheme } from '@/components/useColorScheme';
 import { SavedListingsProvider } from '@/lib/saved-listings-context';
 
@@ -18,6 +19,15 @@ export const unstable_settings = {
 };
 
 SplashScreen.preventAutoHideAsync();
+
+const OmmLightTheme: Theme = {
+  ...DefaultTheme,
+  colors: {
+    ...DefaultTheme.colors,
+    background: frost,
+    card: frost,
+  },
+};
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
@@ -48,7 +58,7 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : OmmLightTheme}>
       <SavedListingsProvider>
         <Stack>
         <Stack.Screen name="welcome" options={{ headerShown: false }} />
@@ -57,10 +67,10 @@ function RootLayoutNav() {
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="account-settings" options={{ headerShown: false }} />
         <Stack.Screen name="payments-billing" options={{ headerShown: false }} />
-        <Stack.Screen name="gst-abn" options={{ headerShown: false, contentStyle: { backgroundColor: '#fff' } }} />
+        <Stack.Screen name="gst-abn" options={{ headerShown: false, contentStyle: { backgroundColor: frost } }} />
         <Stack.Screen
           name="payment-method"
-          options={{ headerShown: false, contentStyle: { backgroundColor: '#fff' } }}
+          options={{ headerShown: false, contentStyle: { backgroundColor: frost } }}
         />
         <Stack.Screen name="account-details" options={{ headerShown: false }} />
         <Stack.Screen name="payout-schedule" options={{ headerShown: false }} />

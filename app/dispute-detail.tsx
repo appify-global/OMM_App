@@ -6,7 +6,7 @@ import { Text } from '@/components/OMMText';
 import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { accent, ink, layout, slateNavy } from '@/constants/theme';
 import type { DisputeEvidenceFile, DisputeStatus } from '@/lib/disputes-mock';
 import { getDisputeDetail } from '@/lib/disputes-mock';
 
@@ -59,7 +59,7 @@ const badge = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
   },
   resolved: {
     borderRadius: 10,
@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
     width: THUMB,
     height: THUMB,
     borderRadius: 4,
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -456,7 +456,7 @@ const styles = StyleSheet.create({
   cta: {
     height: 52,
     borderRadius: 12,
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -464,7 +464,7 @@ const styles = StyleSheet.create({
   ctaText: {
     fontSize: 14,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
+    color: ink,
     letterSpacing: -0.35,
     textTransform: 'uppercase',
   },

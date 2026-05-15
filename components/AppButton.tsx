@@ -11,20 +11,18 @@ import {
   type ViewStyle,
 } from 'react-native';
 
-import { Fonts, ink, palette } from '@/constants/theme';
+import { Fonts, accent, ink, palette, controlRadius } from '@/constants/theme';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 
 /**
- * Primary CTAs — default **48** height; **charcoal** variants use **14px** corners per Figma onboarding.
- * [Figma 1053:323 Sign Up](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-323)
+ * Primary CTAs — default **48** height; accent fill + ink label (`charcoal` matches **filled** for forms).
  */
 export const APP_BUTTON_HEIGHT = 48;
 
 /** Shared corner radius for filled, outlined, and welcome secondary CTA variant. */
-export const APP_BUTTON_RADIUS = 12;
+export const APP_BUTTON_RADIUS = controlRadius.button;
 
-/** Figma primary dark CTA (Sign Up / Continue) — not the same as pure `ink`. */
-export const APP_BUTTON_CHARCOAL_RADIUS = 14;
+export const APP_BUTTON_CHARCOAL_RADIUS = controlRadius.buttonCharcoal;
 
 export type AppButtonVariant = 'filled' | 'outlined' | 'hairline' | 'charcoal' | 'charcoalSoft';
 
@@ -42,11 +40,11 @@ export type AppButtonProps = Omit<PressableProps, 'children' | 'style'> & {
 };
 
 /**
- * - **filled**: solid #000000, white label
+ * - **filled**: accent (`#38BDF8`), black (`ink`) label
  * - **outlined**: white, solid 1px #000000 border
  * - **hairline** (welcome secondary): white face, subtle hairline border + soft elevation — same tokens as form outlines.
- * - **charcoal**: Figma Sign Up / Continue — `#1C1C1E`, hairline border `rgba(60,60,67,0.14)`, 14px radius
- * - **charcoalSoft**: Figma modal CLOSE — `#2E2E2E`, 14px radius
+ * - **charcoal**: same visual as **filled** (accent face, ink label); subtle outline for parity with legacy screens
+ * - **charcoalSoft**: matches **filled** — accent face + ink label (modal closers, etc.)
  *
  * **iOS rendering note:** `Pressable` with a function-style prop can fail to paint backgrounds on
  * initial render (layout/hit-area is correct but the visual layer is blank). Fix: all static
@@ -202,7 +200,7 @@ const styles = StyleSheet.create({
     borderRadius: APP_BUTTON_CHARCOAL_RADIUS,
   },
   filled: {
-    backgroundColor: ink,
+    backgroundColor: accent,
   },
   outlined: {
     backgroundColor: palette.white,
@@ -217,21 +215,25 @@ const styles = StyleSheet.create({
     borderStyle: 'solid',
   },
   charcoal: {
-    backgroundColor: '#1C1C1E',
+    backgroundColor: accent,
     borderWidth: 1,
-    borderColor: 'rgba(60, 60, 67, 0.14)',
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
   charcoalSoft: {
-    backgroundColor: '#2E2E2E',
+    backgroundColor: accent,
+    borderWidth: 1,
+    borderColor: 'rgba(0, 0, 0, 0.08)',
   },
   /** Disabled charcoal CTAs stay clearly visible (no whole-control fade). */
   charcoalDisabled: {
-    backgroundColor: '#4A4A4C',
+    backgroundColor: 'rgba(56, 189, 248, 0.45)',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.2)',
+    borderColor: 'transparent',
   },
   charcoalSoftDisabled: {
-    backgroundColor: '#5C5C5C',
+    backgroundColor: 'rgba(56, 189, 248, 0.45)',
+    borderWidth: 1,
+    borderColor: 'transparent',
   },
   /** Absolutely-positioned overlay that flashes on press — never affects initial background. */
   pressedOverlay: {
@@ -247,7 +249,7 @@ const styles = StyleSheet.create({
     fontFamily: Fonts.medium,
   },
   textFilled: {
-    color: palette.white,
+    color: ink,
   },
   textOutlined: {
     color: ink,
@@ -256,11 +258,11 @@ const styles = StyleSheet.create({
     color: ink,
   },
   textCharcoal: {
-    color: palette.white,
+    color: ink,
   },
   textCharcoalSoft: {
-    color: palette.white,
-    fontSize: 13,
-    letterSpacing: 0.5,
+    color: ink,
+    fontSize: 14,
+    letterSpacing: -0.14,
   },
 });

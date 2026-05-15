@@ -4,7 +4,7 @@ import { Text } from '@/components/OMMText';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { frost, layout, slateNavy } from '@/constants/theme';
 /**
  * Your Matches — seller/buyer brief matches list.
  * [Figma 1053:7056](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-7056&t=gEfFuYKIwBHVUzXh-4)
@@ -140,13 +140,13 @@ const styles = StyleSheet.create({
   subtitle: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', marginTop: 4 },
   scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 16 },
   banner: {
-    backgroundColor: '#f3efe8',
+    backgroundColor: slateNavy,
     borderRadius: 14,
     padding: 16,
     marginBottom: 20,
   },
-  bannerTitle: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000', marginBottom: 8 },
-  bannerBody: { fontSize: 13, fontWeight: '400', color: 'rgba(0, 0, 0, 0.55)', lineHeight: 19 },
+  bannerTitle: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: frost, marginBottom: 8 },
+  bannerBody: { fontSize: 13, fontWeight: '400', color: 'rgba(248, 250, 252, 0.78)', lineHeight: 19 },
   sortRow: { alignItems: 'flex-end', marginBottom: 12 },
   sortText: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', letterSpacing: 0.2 },
   row: { flexDirection: 'row', alignItems: 'flex-start', gap: 14, paddingVertical: 14 },

@@ -9,7 +9,7 @@ import { TextInput } from '@/components/OMMTextInput';
 import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout } from '@/constants/theme';
+import { accent, ink, layout, slateNavy } from '@/constants/theme';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 import {
   canWriteReviewForDeal,
@@ -534,7 +534,7 @@ const styles = StyleSheet.create({
   },
   pendingCardActive: {
     borderRadius: CARD_R,
-    backgroundColor: '#000000',
+    backgroundColor: slateNavy,
     paddingHorizontal: 16,
     paddingTop: 16,
     paddingBottom: 14,
@@ -727,7 +727,7 @@ const styles = StyleSheet.create({
   publishBtn: {
     height: 52,
     borderRadius: 12,
-    backgroundColor: '#000000',
+    backgroundColor: accent,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
@@ -735,7 +735,7 @@ const styles = StyleSheet.create({
   publishText: {
     fontSize: 14,
     fontFamily: 'Satoshi-Medium',
-    color: '#fff',
+    color: ink,
     letterSpacing: -0.35,
     textTransform: 'uppercase',
   },

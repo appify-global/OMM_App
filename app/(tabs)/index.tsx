@@ -43,6 +43,7 @@ import { VIEW_LIVE_LISTING_ID } from "@/lib/saved-listings";
 import { useSavedListings } from "@/lib/saved-listings-context";
 
 import { fieldShell } from "./add/_shared";
+import { accent, frost, ink, slateNavy } from '@/constants/theme';
 
 function SectionHeader({
   title,
@@ -1131,9 +1132,9 @@ export default function HomeScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: "#fff" },
-  /** Buying tab: subtle grouped background so listing cards read like App Store tiles */
-  screenBuying: { backgroundColor: "#f5f5f7" },
+  screen: { flex: 1, backgroundColor: frost },
+  /** Buying tab: grouped surface — same frost base as selling for palette cohesion */
+  screenBuying: { backgroundColor: frost },
   scrollContent: { paddingHorizontal: 20 },
   topRow: {
     flexDirection: "row",
@@ -1151,7 +1152,7 @@ const styles = StyleSheet.create({
   segment: {
     flexDirection: "row",
     backgroundColor: "rgba(0,0,0,0.06)",
-    borderRadius: 14,
+    borderRadius: 9,
     padding: 4,
     marginBottom: 20,
   },
@@ -1159,7 +1160,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     alignItems: "center",
-    borderRadius: 11,
+    borderRadius: 6,
   },
   segmentActive: {
     backgroundColor: "#fff",
@@ -1198,13 +1199,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     minWidth: 88,
     backgroundColor: "transparent",
-    borderRadius: 12,
+    borderRadius: 7,
   },
   quickLinkChipPressed: { opacity: 0.88 },
   quickLinkChipIconWrap: {
     width: 48,
     height: 48,
-    borderRadius: 12,
+    borderRadius: 7,
     backgroundColor: "rgba(17,17,17,0.065)",
     alignItems: "center",
     justifyContent: "center",
@@ -1263,7 +1264,7 @@ const styles = StyleSheet.create({
   hero: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#000000",
+    backgroundColor: slateNavy,
     borderRadius: 16,
     padding: 20,
     marginBottom: 28,
@@ -1426,13 +1427,13 @@ const styles = StyleSheet.create({
     marginBottom: 18,
   },
   sellerNetworkCta: {
-    backgroundColor: "#000000",
+    backgroundColor: accent,
     paddingVertical: 14,
     borderRadius: 12,
     alignItems: "center",
   },
   sellerNetworkCtaText: {
-    color: "#fff",
+    color: ink,
     fontSize: 14,
     fontFamily: "Satoshi-Medium",
   },
@@ -1710,7 +1711,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   authCarouselDays: {
-    backgroundColor: "#000000",
+    backgroundColor: slateNavy,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
@@ -1775,7 +1776,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 12,
     left: 12,
-    backgroundColor: "#000000",
+    backgroundColor: slateNavy,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,
@@ -1961,7 +1962,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   newBadge: {
-    backgroundColor: "#000000",
+    backgroundColor: slateNavy,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
@@ -1989,7 +1990,7 @@ const styles = StyleSheet.create({
   saveBanner: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#000000",
+    backgroundColor: slateNavy,
     borderRadius: 14,
     padding: 16,
     marginBottom: 20,
@@ -2049,7 +2050,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     top: 6,
     left: 6,
-    backgroundColor: "#000000",
+    backgroundColor: slateNavy,
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 4,
@@ -2059,7 +2060,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     bottom: 6,
     left: 6,
-    backgroundColor: "#000000",
+    backgroundColor: slateNavy,
     paddingHorizontal: 6,
     paddingVertical: 3,
     borderRadius: 4,
