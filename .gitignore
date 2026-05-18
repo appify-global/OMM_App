@@ -42,7 +42,6 @@ yarn-error.*
 .env
 .env*.local
 apps/web/.env
-apps/mobile/.env
 
 # typescript
 *.tsbuildinfo

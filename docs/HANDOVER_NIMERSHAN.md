@@ -4,9 +4,9 @@
 
 | Path | Purpose |
 |------|---------|
-| [`apps/web`](../apps/web) | Next.js — marketing, authenticated `/app` workspace, `/api/mobile/*` JSON for the Expo app |
-| [`apps/mobile`](../apps/mobile) | Expo React Native — native parity UI, Clerk, calls web APIs with `Authorization: Bearer` |
-| [`packages/shared`](../packages/shared) | Shared TypeScript types for mobile API payloads |
+| [`apps/web`](../apps/web) | Next.js — marketing, authenticated `/app` workspace, Drizzle + Postgres. Exposes **`/api/mobile/*`** JSON for the Expo app (same DB loaders as server components where applicable). |
+| [`app/`](../app/) (repo root) | Expo Router + NativeWind — primary native client; uses Clerk Expo and **`EXPO_PUBLIC_API_URL`** to reach the Next app. |
+| [`packages/shared`](../packages/shared) | Shared TypeScript surface for **`/api/mobile/*`** payloads (keep aligned with web route handlers). |
 
 ## Run web locally
 
@@ -18,55 +18,53 @@ npm run dev
 
 Next listens on **port 3101** by default (`apps/web/package.json`).
 
-## Native UI vs web
+## Native vs web UI
 
-Mobile reuses the same **design tokens** as [`apps/web/app/globals.css`](../apps/web/app/globals.css) (`apps/mobile/src/theme/tokens.ts`) and React Native primitives in [`apps/mobile/src/components/ui/`](../apps/mobile/src/components/ui/) (`Screen`, `AppText`, `Button`, `Card`, `TextField`) so styling stays aligned while staying on RN components.
+Marketing and authenticated **web UI** lives under `apps/web`. The native app (`app/` at repo root) is a separate React Native codebase (Expo Router) that should stay visually aligned with web product decisions via shared tokens/design language as you evolve both.
 
-Marketing **images** mirror the web home: [`hero-poster.jpg`](../apps/web/public/hero-poster.jpg) and store badges are copied under `apps/mobile/assets/`; listing and blog cards use the same Unsplash URLs as [`apps/web/app/page.tsx`](../apps/web/app/page.tsx). **`expo-image`** loads remote and local assets efficiently (not WebView). When the web hero poster changes, copy the file into `apps/mobile/assets/` again.
-
-## Run mobile locally
+## Run mobile locally (root Expo app)
 
 ```sh
 npm run dev:mobile
 ```
 
-`dev:mobile` runs Expo with **`--localhost`**, so the **iOS Simulator** and Metro use `127.0.0.1` (avoids broken `exp://` URLs when Personal Hotspot picks the wrong interface). For a **physical device** or Expo Go on Wi‑Fi, use `npm run dev:mobile:lan` instead (and set `EXPO_PUBLIC_API_URL` to your Mac’s LAN IP, not `127.0.0.1`).
+`dev:mobile` runs **`expo start --localhost`** so simulator + Metro resolve `127.0.0.1` cleanly. For a **physical device** or Expo Go on Wi‑Fi, use **`npm run dev:mobile:lan`** (`expo start`) and set **`EXPO_PUBLIC_API_URL`** to your Mac’s **LAN IP** (not `127.0.0.1`).
 
-Configure `apps/mobile/.env` from [`apps/mobile/.env.example`](../apps/mobile/.env.example):
+### Env (mobile)
 
-- `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` — must match web `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`.
-- `EXPO_PUBLIC_API_URL` — e.g. `http://127.0.0.1:3101` or your LAN IP for a physical device.
+Configure **repo root** `.env` (see [`../.env.example`](../.env.example)):
+
+- **`EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`** — must match web **`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`** (same Clerk application).
+- **`EXPO_PUBLIC_API_URL`** — local: **`http://127.0.0.1:3101`**; device: **`http://<LAN-IP>:3101`**; prod: **`https://<your-deployment>`** origin only.
 
 ## Environment (web)
 
-Copy [`.env.example`](../.env.example) to `apps/web/.env` (or set on Railway). Required for mobile APIs:
+Copy [`.env.example`](../.env.example) hints into **`apps/web/.env`** (and Railway vars). Required for mobile APIs:
 
-- `CLERK_SECRET_KEY` — verifies Bearer tokens on `/api/mobile/*`.
+- **`CLERK_SECRET_KEY`** — verifies Bearer tokens on **`/api/mobile/*`** (must match the same Clerk app as publishable keys above).
 
-## Mobile HTTP API
+## Mobile HTTP API (`/api/mobile/*`)
 
-Route handlers under `apps/web/app/api/mobile/` call the same loaders as RSC pages (e.g. `loadHomePageData`). Middleware skips cookie `auth.protect()` for `/api/mobile/*`; each handler uses `getUserIdFromMobileRequest` (`Authorization: Bearer` session JWT from Expo).
+Route handlers under **`apps/web/app/api/mobile/`** implement JSON for authenticated native clients. Middleware skips cookie **`auth.protect()`** for **`/api/mobile/*`**; each handler validates **`Authorization: Bearer`** via **`getUserIdFromMobileRequest`** (`apps/web/src/lib/mobile-bearer-auth.ts`).
 
 ## EAS / stores
 
-- [`apps/mobile/eas.json`](../apps/mobile/eas.json) defines `development`, `preview`, and `production` profiles.
-- Set a real Expo project id in [`apps/mobile/app.json`](../apps/mobile/app.json) → `expo.extra.eas.projectId` (replace placeholder).
-- Install EAS CLI: `npm run eas:build -w apps/mobile` or `npx eas-cli` from `apps/mobile`.
+- [`eas.json`](../eas.json) — **`development`**, **`preview`**, **`production`** build profiles at repo root.
+- Set a real Expo project id in **`app.json`** → **`expo.extra.eas.projectId`** (replace placeholder).
+- EAS CLI: `npx eas-cli` from repo root (`eas build …` targets this app).
 
 ## Mobile using the same backend as Railway
 
-The deployed Next app on Railway is the same backend the native app talks to (`/api/mobile/*`). Use **the same values Railway already has**, wired through Expo’s public env vars:
+The deployed Next app is the backend the native app talks to (**`/api/mobile/*`**). Mirror Railway web env into Expo/EAS:
 
 | Railway (web) | Mobile (Expo / EAS) | Notes |
 |---------------|---------------------|--------|
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | **Same string** — one Clerk “application”; copy from Railway’s service variables (or Clerk dashboard). |
-| Public site URL (e.g. `https://your-app.up.railway.app`) | `EXPO_PUBLIC_API_URL` | Set to the **origin only** (no trailing slash), e.g. `https://your-app.up.railway.app`. |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | **Same string** — one Clerk application. |
+| Public site URL (e.g. `https://your-app.up.railway.app`) | `EXPO_PUBLIC_API_URL` | **Origin only**, no trailing slash. |
 
-**Local dev:** keep `EXPO_PUBLIC_API_URL=http://127.0.0.1:3101` (or LAN IP for a device). The Clerk key can stay only in `apps/web/.env` — see [`apps/mobile/app.config.js`](../apps/mobile/app.config.js).
+**EAS:** define **`EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`** and **`EXPO_PUBLIC_API_URL`** for preview/production build profiles ([EAS environment variables](https://docs.expo.dev/eas/environment-variables/)).
 
-**EAS builds (preview / production):** define those two variables for the build environment in [EAS Environment variables](https://docs.expo.dev/eas/environment-variables/) (Expo dashboard or `eas env:create`). They are not read from Railway automatically; **duplicate the same publishable key and set the API URL to your Railway hostname** so the installed app hits production.
-
-**Clerk:** In the Clerk dashboard, ensure **allowed origins / redirect URLs** include your Railway URL and any Expo auth redirect URIs you use (see Clerk’s Expo docs) so sign-in works against the same Clerk instance.
+**Clerk:** allowed origins / redirect URLs must include your Railway hostname and Clerk’s Expo redirect URI patterns.
 
 ## Deploy (Railway)
 
