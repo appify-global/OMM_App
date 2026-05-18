@@ -8,6 +8,14 @@ node_modules/
 dist/
 web-build/
 expo-env.d.ts
+apps/*/.expo/
+apps/*/dist/
+apps/*/web-build/
+apps/*/expo-env.d.ts
+
+# Next.js
+apps/*/.next/
+apps/*/out/
 
 # Native
 .kotlin/
@@ -33,6 +41,8 @@ yarn-error.*
 # local env files
 .env
 .env*.local
+apps/web/.env
+apps/mobile/.env
 
 # typescript
 *.tsbuildinfo
@@ -40,3 +50,5 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+apps/*/ios
+apps/*/android
