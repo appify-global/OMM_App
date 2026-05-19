@@ -1,10 +1,21 @@
+import { useUser } from '@clerk/expo';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  View,
+} from 'react-native';
 import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -72,17 +83,81 @@ function DashedFieldShell({
   );
 }
 
+/** Display name for the form: full name, or first + last, or derived from email. */
+function displayNameFromSessionUser(user: NonNullable<ReturnType<typeof useUser>['user']>): string {
+  const full = user.fullName?.trim();
+  if (full) return full;
+  const pair = `${user.firstName?.trim() ?? ''} ${user.lastName?.trim() ?? ''}`.trim();
+  if (pair) return pair;
+  const email = user.primaryEmailAddress?.emailAddress;
+  if (email) {
+    const local = email.split('@')[0]?.replace(/[._]/g, ' ').trim();
+    if (local) return local.replace(/\b\w/g, (c) => c.toUpperCase());
+    return email;
+  }
+  return '';
+}
+
 export default function AccountSettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { user, isLoaded } = useUser();
+
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [pushMessages, setPushMessages] = useState(true);
+  const [hydrated, setHydrated] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const onSave = () => {
-    Alert.alert('Saved', 'Your account settings were updated.');
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (!user) {
+      setHydrated(true);
+      return;
+    }
+    setDisplayName(displayNameFromSessionUser(user));
+    setEmail(user.primaryEmailAddress?.emailAddress ?? '');
+    setPhone(user.primaryPhoneNumber?.phoneNumber ?? '');
+    setHydrated(true);
+  }, [isLoaded, user]);
+
+  const onSave = async () => {
+    if (!user) {
+      Alert.alert('Not signed in', 'Sign in again to update your account.');
+      return;
+    }
+    setSaving(true);
+    try {
+      const trimmed = displayName.trim();
+      const parts = trimmed.split(/\s+/).filter(Boolean);
+      const firstName = parts[0] ?? '';
+      const lastName = parts.slice(1).join(' ');
+      await user.update({ firstName, lastName });
+      Alert.alert('Saved', 'Your display name was updated.');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Could not save changes.';
+      Alert.alert('Could not save', message);
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (!isLoaded || !hydrated) {
+    return (
+      <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
+        <ActivityIndicator color="#000000" />
+      </View>
+    );
+  }
+
+  if (!user) {
+    return (
+      <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
+        <Text style={styles.muted}>Sign in to view account settings.</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -120,39 +195,49 @@ export default function AccountSettingsScreen() {
                 onChangeText={setDisplayName}
                 style={styles.input}
                 placeholder="Display name"
-                autoCapitalize="characters"
+                autoCapitalize="words"
                 autoCorrect={false}
                 placeholderTextColor="rgba(0, 0, 0, 0.45)"
+                editable={!saving}
               />
             </DashedFieldShell>
           </View>
 
           <View style={styles.blockGap}>
             <Text style={styles.label10}>Email</Text>
+            <Text style={styles.helperMuted}>
+              We show the email on your account. To change it, contact support or your agency admin — updates require a
+              verification step.
+            </Text>
             <DashedFieldShell height={FIELD_H} borderRadius={4}>
               <TextInput
                 value={email}
-                onChangeText={setEmail}
-                style={styles.input}
+                style={[styles.input, styles.inputReadOnly]}
                 placeholder="Email"
                 autoCapitalize="none"
                 keyboardType="email-address"
                 autoCorrect={false}
                 placeholderTextColor="rgba(0, 0, 0, 0.45)"
+                editable={false}
+                selectTextOnFocus={false}
               />
             </DashedFieldShell>
           </View>
 
           <View style={styles.blockGap}>
             <Text style={styles.label10}>Phone</Text>
+            <Text style={styles.helperMuted}>
+              We show the mobile number on your account if one is on file. Contact support to add or update it.
+            </Text>
             <DashedFieldShell height={FIELD_H} borderRadius={4}>
               <TextInput
                 value={phone}
-                onChangeText={setPhone}
-                style={styles.input}
-                placeholder="Phone"
+                style={[styles.input, styles.inputReadOnly]}
+                placeholder="No phone on file"
                 keyboardType="phone-pad"
                 placeholderTextColor="rgba(0, 0, 0, 0.45)"
+                editable={false}
+                selectTextOnFocus={false}
               />
             </DashedFieldShell>
           </View>
@@ -179,12 +264,15 @@ export default function AccountSettingsScreen() {
           </View>
 
           <Pressable
-            onPress={onSave}
-            style={styles.saveBtn}
+            onPress={() => void onSave()}
+            disabled={saving}
+            style={[styles.saveBtn, saving && styles.saveBtnDisabled]}
             accessibilityRole="button"
             accessibilityLabel="Save changes">
             {({ pressed }) => (
-              <Text style={[styles.saveBtnText, pressed && { opacity: 0.72 }]}>SAVE CHANGES</Text>
+              <Text style={[styles.saveBtnText, (pressed || saving) && { opacity: 0.72 }]}>
+                {saving ? 'SAVING…' : 'SAVE CHANGES'}
+              </Text>
             )}
           </Pressable>
         </ScrollView>
@@ -195,6 +283,14 @@ export default function AccountSettingsScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
+  centered: { justifyContent: 'center', alignItems: 'center' },
+  muted: {
+    fontSize: 14,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0,0,0,0.55)',
+    paddingHorizontal: layout.screenGutter,
+    textAlign: 'center',
+  },
   flex: { flex: 1 },
   navBar: {
     flexDirection: 'row',
@@ -216,6 +312,13 @@ const styles = StyleSheet.create({
   },
   blockGap: {
     marginBottom: 24,
+  },
+  helperMuted: {
+    fontSize: 12,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.45)',
+    lineHeight: 17,
+    marginBottom: 8,
   },
   label10: {
     fontSize: 10,
@@ -250,6 +353,9 @@ const styles = StyleSheet.create({
     paddingVertical: Platform.select({ ios: 14, default: 12 }),
     margin: 0,
   },
+  inputReadOnly: {
+    color: 'rgba(0, 0, 0, 0.72)',
+  },
   notifBlock: {
     marginBottom: 24,
   },
@@ -280,6 +386,9 @@ const styles = StyleSheet.create({
     backgroundColor: accent,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  saveBtnDisabled: {
+    opacity: 0.65,
   },
   saveBtnText: {
     fontSize: 14,

@@ -1,9 +1,13 @@
+import { ClerkProvider } from '@clerk/expo';
+import { tokenCache } from '@clerk/expo/token-cache';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider, type Theme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import * as WebBrowser from 'expo-web-browser';
 import { useEffect } from 'react';
+import { Platform } from 'react-native';
 import 'react-native-reanimated';
 
 import { frost } from '@/constants/theme';
@@ -19,6 +23,20 @@ export const unstable_settings = {
 };
 
 SplashScreen.preventAutoHideAsync();
+
+if (Platform.OS !== 'web') {
+  WebBrowser.maybeCompleteAuthSession();
+}
+
+function requireClerkPublishableKey(): string {
+  const key = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
+  if (!key) {
+    throw new Error('Add EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY to your .env file');
+  }
+  return key;
+}
+
+const clerkPublishableKey = requireClerkPublishableKey();
 
 const OmmLightTheme: Theme = {
   ...DefaultTheme,
@@ -58,9 +76,10 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : OmmLightTheme}>
-      <SavedListingsProvider>
-        <Stack>
+    <ClerkProvider publishableKey={clerkPublishableKey} tokenCache={tokenCache}>
+      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : OmmLightTheme}>
+        <SavedListingsProvider>
+          <Stack>
         <Stack.Screen name="welcome" options={{ headerShown: false }} />
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -108,8 +127,9 @@ function RootLayoutNav() {
         <Stack.Screen name="add-dispute-response" options={{ headerShown: false }} />
         <Stack.Screen name="raise-dispute" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        </Stack>
-      </SavedListingsProvider>
-    </ThemeProvider>
+          </Stack>
+        </SavedListingsProvider>
+      </ThemeProvider>
+    </ClerkProvider>
   );
 }

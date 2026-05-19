@@ -1,54 +1,169 @@
+import { useClerk, useSignIn, useSSO } from '@clerk/expo';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Link, useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
-import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View, Alert } from 'react-native';
+import {
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppButton } from '@/components/AppButton';
 import { OAuthProviderCircles } from '@/components/oauth/OAuthProviderCircles';
-import { setAuthenticated } from '@/lib/auth-session';
-import {
-  isPermittedWorkEmail,
-  workEmailValidationMessage,
-  workEmailValidationMessageFromOAuth,
-} from '@/lib/work-email';
 import { layout } from '@/constants/theme';
+import { clerkFieldError, clerkFinalizeNavigate, completeSSOFlow } from '@/lib/clerk-auth';
 import { FIELD_OUTLINE_COLOR } from '@/lib/field-outline';
+import { isPermittedWorkEmail, workEmailValidationMessage } from '@/lib/work-email';
+
+type Mode = 'password' | 'verify-email';
 
 export default function SignInScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { signIn, errors, fetchStatus } = useSignIn();
+  const { signOut } = useClerk();
+  const { startSSOFlow } = useSSO();
 
+  const [mode, setMode] = useState<Mode>('password');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+
+  const busy = fetchStatus === 'fetching';
 
   const onSubmit = async () => {
-    // TODO: wire Clerk / API auth — session flag gates (tabs) until then
-    await setAuthenticated();
-    router.replace('/(tabs)');
-  };
-
-  const onOAuthContinue = async () => {
-    // TODO(Clerk): const oauthEmail = session.user?.primaryEmailAddress?.emailAddress;
-    const oauthEmail = undefined as string | undefined;
-
-    const oauthDeny = workEmailValidationMessageFromOAuth(oauthEmail);
-    if (oauthDeny) {
-      Alert.alert('Work email required', oauthDeny);
+    setSubmitError(null);
+    const workErr = workEmailValidationMessage(email);
+    if (workErr) {
+      setSubmitError(workErr);
       return;
     }
 
-    await setAuthenticated();
-    router.replace('/(tabs)');
+    const { error } = await signIn.password({
+      emailAddress: email.trim(),
+      password,
+    });
+    if (error) {
+      setSubmitError(error.message ?? 'Sign in failed. Check your email and password.');
+      return;
+    }
+
+    if (signIn.status === 'complete') {
+      await signIn.finalize({
+        navigate: (args) => clerkFinalizeNavigate(router, args),
+      });
+      return;
+    }
+
+    if (signIn.status === 'needs_client_trust') {
+      const emailCodeFactor = signIn.supportedSecondFactors?.find(
+        (factor) => factor.strategy === 'email_code',
+      );
+      if (emailCodeFactor) {
+        await signIn.mfa.sendEmailCode();
+        setMode('verify-email');
+      } else {
+        setSubmitError('Additional verification is required. Try again or contact support.');
+      }
+      return;
+    }
+
+    setSubmitError('Sign in could not be completed. Try again or contact support.');
+  };
+
+  const onVerify = async () => {
+    setSubmitError(null);
+    await signIn.mfa.verifyEmailCode({ code: code.trim() });
+
+    if (signIn.status === 'complete') {
+      await signIn.finalize({
+        navigate: (args) => clerkFinalizeNavigate(router, args),
+      });
+    } else {
+      setSubmitError('Verification failed. Check the code and try again.');
+    }
+  };
+
+  const onOAuth = async (strategy: 'oauth_google' | 'oauth_microsoft') => {
+    setSubmitError(null);
+    try {
+      const result = await startSSOFlow({ strategy });
+      await completeSSOFlow(result, router, signOut);
+    } catch {
+      setSubmitError('Sign in was cancelled or failed. Try again.');
+    }
   };
 
   const workEmailFieldError =
     email.trim().length > 0 ? workEmailValidationMessage(email) : null;
-  const canLogin = !!email.trim() && !!password && isPermittedWorkEmail(email);
+  const clerkEmailError = clerkFieldError(errors, 'identifier', 'emailAddress');
+  const clerkPasswordError = clerkFieldError(errors, 'password');
+  const clerkCodeError = clerkFieldError(errors, 'code');
+  const canLogin = !!email.trim() && !!password && isPermittedWorkEmail(email) && !busy;
+
+  if (mode === 'verify-email') {
+    return (
+      <KeyboardAvoidingView
+        style={[styles.root, { paddingTop: insets.top }]}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <ScrollView
+          contentContainerStyle={[
+            styles.scrollContent,
+            { paddingHorizontal: layout.authGutter, paddingBottom: Math.max(insets.bottom, 16) + 24 },
+          ]}
+          keyboardShouldPersistTaps="handled">
+          <Text style={styles.title}>Verify your account</Text>
+          <Text style={styles.subtitle}>Enter the code we sent to your email.</Text>
+
+          <Text style={styles.label}>VERIFICATION CODE</Text>
+          <View style={styles.inputShell}>
+            <TextInput
+              style={styles.input}
+              value={code}
+              placeholder="123456"
+              placeholderTextColor="rgba(0, 0, 0, 0.45)"
+              onChangeText={setCode}
+              keyboardType="number-pad"
+              autoComplete="one-time-code"
+            />
+          </View>
+          {clerkCodeError ? <Text style={styles.fieldError}>{clerkCodeError}</Text> : null}
+          {submitError ? <Text style={styles.fieldError}>{submitError}</Text> : null}
+
+          <AppButton variant="filled" disabled={!code.trim() || busy} onPress={onVerify}>
+            Verify
+          </AppButton>
+          <Pressable
+            style={styles.secondaryLink}
+            onPress={() => void signIn.mfa.sendEmailCode()}
+            disabled={busy}>
+            <Text style={styles.forgotLink}>Send a new code</Text>
+          </Pressable>
+          <Pressable
+            style={styles.secondaryLink}
+            onPress={() => {
+              void signIn.reset();
+              setMode('password');
+              setCode('');
+            }}
+            disabled={busy}>
+            <Text style={styles.forgotLink}>Start over</Text>
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
 
   return (
     <KeyboardAvoidingView
@@ -87,10 +202,13 @@ export default function SignInScreen() {
               value={email}
               onChangeText={setEmail}
               maxLength={254}
+              editable={!busy}
             />
           </View>
           {workEmailFieldError ? (
             <Text style={styles.fieldError}>{workEmailFieldError}</Text>
+          ) : clerkEmailError ? (
+            <Text style={styles.fieldError}>{clerkEmailError}</Text>
           ) : null}
 
           <Text style={styles.label}>PASSWORD</Text>
@@ -103,6 +221,7 @@ export default function SignInScreen() {
               placeholderTextColor="rgba(0, 0, 0, 0.45)"
               value={password}
               onChangeText={setPassword}
+              editable={!busy}
             />
             <Pressable
               style={styles.eyeBtn}
@@ -113,6 +232,8 @@ export default function SignInScreen() {
               <FontAwesome name={showPassword ? 'eye' : 'eye-slash'} size={16} color="#000000" />
             </Pressable>
           </View>
+          {clerkPasswordError ? <Text style={styles.fieldError}>{clerkPasswordError}</Text> : null}
+          {submitError ? <Text style={styles.fieldError}>{submitError}</Text> : null}
 
           <View style={styles.rowBetween}>
             <Pressable
@@ -138,8 +259,8 @@ export default function SignInScreen() {
 
           <View style={styles.oauthWrap}>
             <OAuthProviderCircles
-              onGooglePress={onOAuthContinue}
-              onMicrosoftPress={onOAuthContinue}
+              onGooglePress={() => onOAuth('oauth_google')}
+              onMicrosoftPress={() => onOAuth('oauth_microsoft')}
               googleAccessibilityLabel="Sign in with Google"
               microsoftAccessibilityLabel="Sign in with Microsoft"
             />
@@ -210,7 +331,6 @@ const styles = StyleSheet.create({
     lineHeight: 14,
   },
   inputShell: { position: 'relative', marginBottom: 0 },
-  /** Figma: ~20px below work email field before PASSWORD label */
   inputShellEmail: { marginBottom: 20 },
   input: {
     height: 54,
@@ -269,6 +389,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Satoshi-Medium',
     color: '#000000',
     lineHeight: 20,
+  },
+  secondaryLink: {
+    alignItems: 'center',
+    marginTop: 14,
   },
   bottomBlock: {
     width: '100%',

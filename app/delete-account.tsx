@@ -8,6 +8,7 @@ import Svg, { Rect } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { accent, ink, layout } from '@/constants/theme';
+import { useClerk } from '@clerk/expo';
 import { clearAuthenticated } from '@/lib/auth-session';
 
 /**
@@ -68,8 +69,10 @@ function DashedShell({ borderRadius, children, contentStyle }: { borderRadius: n
 export default function DeleteAccountScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { signOut } = useClerk();
 
   const performDelete = async () => {
+    await signOut();
     await clearAuthenticated();
     router.replace('/welcome' as Href);
   };

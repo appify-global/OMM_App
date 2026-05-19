@@ -1,3 +1,4 @@
+import { useClerk, useSignUp } from "@clerk/expo";
 import { Text } from "@/components/OMMText";
 import { TextInput } from "@/components/OMMTextInput";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
@@ -16,11 +17,8 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppButton } from "@/components/AppButton";
 import { LegalDocModal } from "@/components/LegalDocModal";
-import {
-  setAuthenticated,
-  setUserRole,
-  type StoredUserRole,
-} from "@/lib/auth-session";
+import { clerkFieldError, clerkFinalizeNavigate } from "@/lib/clerk-auth";
+import { setUserRole, type StoredUserRole } from "@/lib/auth-session";
 import {
   LEGAL_PRIVACY_BODY,
   LEGAL_TERMS_SIGNUP_MODAL_BODY,
@@ -413,11 +411,18 @@ function SectionLabel({ children }: { children: string }) {
 
 const AUTH_PAD_H = 28;
 
+type SignUpPhase = "form" | "verify";
+
 export default function SignUpScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { signUp, errors, fetchStatus } = useSignUp();
+  const { signOut } = useClerk();
 
+  const [phase, setPhase] = useState<SignUpPhase>("form");
   const [step, setStep] = useState<1 | 2>(1);
+  const [verifyCode, setVerifyCode] = useState("");
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -452,18 +457,77 @@ export default function SignUpScreen() {
     municipalities.length > 0 &&
     !!agencyName.trim();
 
+  const busy = fetchStatus === "fetching";
+
+  const completeRegistration = async () => {
+    await setUserRole(role as StoredUserRole);
+    const fn = firstName.trim();
+    const ln = lastName.trim();
+    if (fn || ln) {
+      const { error: nameErr } = await signUp.update({
+        ...(fn ? { firstName: fn } : {}),
+        ...(ln ? { lastName: ln } : {}),
+      });
+      if (nameErr) {
+        console.warn('[sign-up] Name update:', nameErr.message ?? nameErr);
+      }
+    }
+    await signUp.finalize({
+      navigate: (args) => clerkFinalizeNavigate(router, args),
+    });
+  };
+
   const goNext = async () => {
-    if (step === 1 && canStep1) setStep(2);
-    else if (step === 2 && canStep2) {
-      await setUserRole(role as StoredUserRole);
-      await setAuthenticated();
-      router.replace("/(tabs)");
+    setSubmitError(null);
+    if (step === 1 && canStep1) {
+      setStep(2);
+      return;
+    }
+    if (step !== 2 || !canStep2) return;
+
+    const { error } = await signUp.password({
+      emailAddress: email.trim(),
+      password,
+    });
+    if (error) {
+      setSubmitError(error.message ?? "Could not create your account. Try again.");
+      return;
+    }
+
+    const needsEmailVerify =
+      signUp.status === "missing_requirements" &&
+      signUp.unverifiedFields.includes("email_address") &&
+      signUp.missingFields.length === 0;
+
+    if (needsEmailVerify) {
+      await signUp.verifications.sendEmailCode();
+      setPhase("verify");
+      return;
+    }
+
+    if (signUp.status === "complete") {
+      await completeRegistration();
+      return;
+    }
+
+    setSubmitError("Sign up could not be completed. Try again or contact support.");
+  };
+
+  const onVerifyEmail = async () => {
+    setSubmitError(null);
+    await signUp.verifications.verifyEmailCode({ code: verifyCode.trim() });
+    if (signUp.status === "complete") {
+      await completeRegistration();
+    } else {
+      setSubmitError("Verification failed. Check the code and try again.");
     }
   };
 
-  const primaryDisabled = step === 1 ? !canStep1 : !canStep2;
+  const primaryDisabled =
+    phase === "verify" ? !verifyCode.trim() || busy : step === 1 ? !canStep1 || busy : !canStep2 || busy;
 
-  const primaryLabel = "Sign Up";
+  const primaryLabel = phase === "verify" ? "Verify email" : "Sign Up";
+  const clerkCodeError = clerkFieldError(errors, "code");
 
   return (
     <KeyboardAvoidingView
@@ -478,7 +542,24 @@ export default function SignUpScreen() {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
       >
-        {step === 2 ? (
+        {phase === "verify" ? (
+          <Pressable
+            style={styles.backRow}
+            onPress={() => {
+              void signUp.reset();
+              void signOut();
+              setPhase("form");
+              setVerifyCode("");
+              setStep(2);
+            }}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="Go back"
+          >
+            <FontAwesome name="chevron-left" size={16} color="#000000" />
+            <Text style={styles.backText}>Back</Text>
+          </Pressable>
+        ) : step === 2 ? (
           <Pressable
             style={styles.backRow}
             onPress={() => setStep(1)}
@@ -491,12 +572,47 @@ export default function SignUpScreen() {
           </Pressable>
         ) : null}
 
-        <Text style={styles.step}>{step === 1 ? "STEP 01" : "STEP 02"}</Text>
+        <Text style={styles.step}>
+          {phase === "verify" ? "VERIFY" : step === 1 ? "STEP 01" : "STEP 02"}
+        </Text>
         <Text style={styles.screenTitle}>
-          {step === 1 ? "Create your account" : "Your role & location"}
+          {phase === "verify"
+            ? "Confirm your work email"
+            : step === 1
+              ? "Create your account"
+              : "Your role & location"}
         </Text>
 
-        {step === 1 ? (
+        {phase === "verify" ? (
+          <>
+            <Text style={styles.helper}>
+              We sent a verification code to {email.trim()}. Enter it below to finish creating
+              your account.
+            </Text>
+            <Text style={styles.sectionLabel}>VERIFICATION CODE *</Text>
+            <View style={styles.inputShell}>
+              <TextInput
+                style={styles.input}
+                value={verifyCode}
+                onChangeText={setVerifyCode}
+                keyboardType="number-pad"
+                placeholder="123456"
+                autoComplete="one-time-code"
+              />
+            </View>
+            {clerkCodeError ? <Text style={styles.fieldError}>{clerkCodeError}</Text> : null}
+            {submitError ? <Text style={styles.fieldError}>{submitError}</Text> : null}
+            <Pressable
+              onPress={() => void signUp.verifications.sendEmailCode()}
+              disabled={busy}
+              style={styles.resendRow}
+            >
+              <Text style={styles.resendLink}>Send a new code</Text>
+            </Pressable>
+          </>
+        ) : null}
+
+        {phase === "form" && step === 1 ? (
           <>
             <FormField
               label="FIRST NAME *"
@@ -609,7 +725,7 @@ export default function SignUpScreen() {
           </>
         ) : null}
 
-        {step === 2 ? (
+        {phase === "form" && step === 2 ? (
           <>
             <SelectField
               label="YOUR ROLE *"
@@ -662,16 +778,22 @@ export default function SignUpScreen() {
           </>
         ) : null}
 
+        {submitError && phase === "form" ? (
+          <Text style={styles.fieldError}>{submitError}</Text>
+        ) : null}
+
+        <View nativeID="clerk-captcha" />
+
         <AppButton
           variant="charcoal"
           style={styles.signUpPrimary}
           disabled={primaryDisabled}
-          onPress={goNext}
+          onPress={phase === "verify" ? onVerifyEmail : goNext}
         >
           {primaryLabel}
         </AppButton>
 
-        {step === 1 ? (
+        {phase === "form" && step === 1 ? (
           <View style={styles.footerCenter}>
             <Text style={styles.footerMuted}>Already have an account? </Text>
             <Link href="/sign-in" asChild>
@@ -778,6 +900,17 @@ const styles = StyleSheet.create({
     fontFamily: "Satoshi-Medium",
     color: "#C62828",
     lineHeight: 17,
+  },
+  resendRow: {
+    alignItems: "center",
+    marginTop: 8,
+    marginBottom: 12,
+  },
+  resendLink: {
+    fontSize: 13,
+    fontFamily: "Satoshi-Medium",
+    color: "#000000",
+    textDecorationLine: "underline",
   },
   workEmailHint: {
     marginTop: -10,

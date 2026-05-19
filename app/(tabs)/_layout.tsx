@@ -7,12 +7,11 @@ import {
   TabListGlyph,
   TabProfileGlyph,
 } from "@/components/TabBarGlyphs";
+import { useAuth } from "@clerk/expo";
 import { accent, frost, slateNavy } from "@/constants/theme";
-import { isAuthenticated } from "@/lib/auth-session";
 import type { BottomTabBarButtonProps } from "@react-navigation/bottom-tabs";
 import { PlatformPressable } from "@react-navigation/elements";
 import { Redirect, Tabs } from "expo-router";
-import { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, StyleSheet, View } from 'react-native';
 
 type TabName = "home" | "activities" | "add" | "list" | "profile";
@@ -59,24 +58,9 @@ function TabBarButton({ style, ...rest }: BottomTabBarButtonProps) {
 }
 
 export default function TabLayout() {
-  const [gate, setGate] = useState<"loading" | "authed" | "guest">("loading");
+  const { isSignedIn, isLoaded } = useAuth();
 
-  useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const ok = await isAuthenticated();
-        if (alive) setGate(ok ? "authed" : "guest");
-      } catch {
-        if (alive) setGate("guest");
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, []);
-
-  if (gate === "loading") {
+  if (!isLoaded) {
     return (
       <View
         style={{
@@ -89,7 +73,7 @@ export default function TabLayout() {
       </View>
     );
   }
-  if (gate === "guest") {
+  if (!isSignedIn) {
     return <Redirect href="/welcome" />;
   }
 

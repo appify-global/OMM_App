@@ -2,11 +2,12 @@ import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { type Href, useRouter } from 'expo-router';
 import type { ComponentProps, ReactNode } from 'react';
-import { Fragment } from 'react';
+import { Fragment, useMemo } from 'react';
 import { Text } from '@/components/OMMText';
 import { Alert, Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useClerk, useUser } from '@clerk/expo';
 import { clearAuthenticated } from '@/lib/auth-session';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 import { useTabBarOnScroll } from '@/lib/tab-bar-visibility';
@@ -87,10 +88,38 @@ function SectionMenuGroup({ children }: { children: ReactNode }) {
   return <View style={styles.sectionMenuGroup}>{children}</View>;
 }
 
+/** Display name from the signed-in user — falls back to email local-part then a neutral label. */
+function clerkDisplayName(user: ReturnType<typeof useUser>['user']): string {
+  if (!user) return 'Agent';
+  const full = user.fullName?.trim();
+  if (full) return full;
+  const fn = user.firstName?.trim() ?? '';
+  const ln = user.lastName?.trim() ?? '';
+  const pair = `${fn} ${ln}`.trim();
+  if (pair) return pair;
+  const email = user.primaryEmailAddress?.emailAddress;
+  if (email) {
+    const local = email.split('@')[0]?.replace(/[._]/g, ' ').trim();
+    if (local) {
+      return local.replace(/\b\w/g, (c) => c.toUpperCase());
+    }
+    return email;
+  }
+  return 'Agent';
+}
+
 export default function ProfileScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { signOut } = useClerk();
+  const { user, isLoaded } = useUser();
   const { onScroll } = useTabBarOnScroll();
+
+  const displayName = useMemo(() => clerkDisplayName(user ?? null), [user]);
+  const avatarSource =
+    user?.imageUrl != null && user.imageUrl.length > 0
+      ? { uri: user.imageUrl }
+      : AGENT_IMG;
 
   const tabBarPad = 100;
 
@@ -101,6 +130,7 @@ export default function ProfileScreen() {
         text: 'Log out',
         style: 'destructive',
         onPress: async () => {
+          await signOut();
           await clearAuthenticated();
           router.replace('/welcome' as Href);
         },
@@ -121,7 +151,7 @@ export default function ProfileScreen() {
         contentContainerStyle={[styles.scrollInner, { paddingBottom: insets.bottom + tabBarPad }]}>
         <View style={styles.headerRow}>
           <View style={styles.headerTextCol}>
-            <Text style={styles.userName}>John Lim</Text>
+            <Text style={styles.userName}>{isLoaded ? displayName : '…'}</Text>
             <View style={styles.ratingRow}>
               {[0, 1, 2, 3].map((i) => (
                 <FontAwesome
@@ -141,7 +171,7 @@ export default function ProfileScreen() {
               onPress={() => Alert.alert('Profile photo', 'Photo picker would open here.')}
               accessibilityRole="button"
               accessibilityLabel="Change profile photo">
-              <Image source={AGENT_IMG} style={styles.avatar} resizeMode="cover" />
+              <Image source={avatarSource} style={styles.avatar} resizeMode="cover" />
             </Pressable>
             <Pressable
               style={styles.cameraBtn}
