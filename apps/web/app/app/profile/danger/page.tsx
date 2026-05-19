@@ -32,7 +32,7 @@ export default function DangerZonePage() {
             </h1>
             <p className="page-lede">
               The end of the line. Closing your account removes your listings,
-              briefs, messages and reviews from PreMarket.
+              briefs, messages and reviews from OMM.
             </p>
           </div>
         </header>
@@ -138,7 +138,7 @@ export default function DangerZonePage() {
                     </span>
                   </legend>
                   <p className="subpage-fieldset-lede">
-                    Your candid feedback helps us make a better PreMarket for
+                    Your candid feedback helps us make a better OMM for
                     those who stay.
                   </p>
                   <div className="subpage-fieldset-body">

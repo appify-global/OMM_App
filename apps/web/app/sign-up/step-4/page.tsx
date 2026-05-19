@@ -39,7 +39,7 @@ export default function SignUpStep4() {
     <main className="auth-page">
       <header className="auth-masthead">
         <Link href="/" className="auth-wordmark">
-          PreMarket
+          Off the Market Match
         </Link>
         <p className="auth-issue">
           Vol. I &middot; Issue 04 &middot; Apply to join
@@ -177,7 +177,7 @@ export default function SignUpStep4() {
               className="dash-cta"
               disabled={!name || suburbs.length < 1}
             >
-              Enter PreMarket →
+              Enter OMM →
             </button>
           </footer>
         </form>

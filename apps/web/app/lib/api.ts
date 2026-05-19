@@ -1,5 +1,5 @@
 /**
- * PreMarket data layer
+ * OMM data layer
  * ---------------------
  * Every function here is async and returns typed data. Today they fall back
  * to curated mock data. Tomorrow they swap to a real API with a single edit

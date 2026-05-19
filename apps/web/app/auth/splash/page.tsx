@@ -7,7 +7,7 @@ export default function SplashPage() {
         <span className="sq sq--filled" />
         <span className="sq sq--filled" />
       </div>
-      <p className="splash-wordmark">PreMarket</p>
+      <p className="splash-wordmark">Off the Market Match</p>
       <p className="splash-tagline">
         <em>Off-market property,</em> before it reaches the listings.
       </p>

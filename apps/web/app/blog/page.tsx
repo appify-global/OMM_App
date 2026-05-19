@@ -4,8 +4,8 @@ import SiteFooter from "../components/SiteFooter";
 import { fetchPosts } from "../lib/api";
 
 export const metadata = {
-  title: "Blog — PreMarket",
-  description: "Field notes, agent practice and market letters from the PreMarket editors.",
+  title: "Blog — OMM",
+  description: "Field notes, agent practice and market letters from the OMM editors.",
 };
 
 export default async function BlogPage() {

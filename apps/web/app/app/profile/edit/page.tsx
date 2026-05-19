@@ -286,7 +286,7 @@ export default function EditProfilePage() {
                     }
                   />
                   <Field
-                    label="Joined PreMarket"
+                    label="Joined OMM"
                     value={String(agentProfile.joinedYear)}
                     onChange={() => undefined}
                     readOnly
@@ -535,7 +535,7 @@ export default function EditProfilePage() {
                 <span className="subpage-fieldset-title">Visibility</span>
               </legend>
               <p className="subpage-fieldset-lede">
-                Who can see your profile across PreMarket.
+                Who can see your profile across OMM.
               </p>
               <div className="subpage-fieldset-body">
                 <Toggle
@@ -554,7 +554,7 @@ export default function EditProfilePage() {
                 </p>
               ) : (
                 <p className="subpage-form-fineprint">
-                  Changes are visible across PreMarket within a minute.
+                  Changes are visible across OMM within a minute.
                 </p>
               )}
               <div className="subpage-form-actions">

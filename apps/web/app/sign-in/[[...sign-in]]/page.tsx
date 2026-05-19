@@ -6,7 +6,7 @@ export default function SignInPage() {
     <main className="auth-page">
       <header className="auth-masthead">
         <Link href="/" className="auth-wordmark">
-          PreMarket
+          Off the Market Match
         </Link>
         <p className="auth-issue">
           Vol. I &middot; Issue 04 &middot; Sign in
@@ -27,7 +27,7 @@ export default function SignInPage() {
             messages are waiting.
           </p>
           <p className="auth-side-foot">
-            New to PreMarket?{" "}
+            New to Off the Market Match?{" "}
             <Link href="/sign-up">Apply to join →</Link>
           </p>
         </div>

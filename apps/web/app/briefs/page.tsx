@@ -3,7 +3,7 @@ import SiteFooter from "../components/SiteFooter";
 import { fetchBriefs } from "../lib/api";
 
 export const metadata = {
-  title: "Buyer briefs — PreMarket",
+  title: "Buyer briefs — OMM",
   description: "Tell the private market what you want. Agents see briefs before they ever build a campaign.",
 };
 

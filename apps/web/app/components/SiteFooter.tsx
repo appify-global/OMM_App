@@ -35,7 +35,7 @@ export default function SiteFooter() {
 
       <section className="footer-base" aria-label="Company links">
         <p className="footer-imprint">
-          &copy; PreMarket Pty Ltd, Melbourne. All rights reserved.
+          &copy; Off the Market Match Pty Ltd, Melbourne. All rights reserved.
         </p>
         <nav aria-label="Footer navigation">
           {footerLinks.map((link) => (

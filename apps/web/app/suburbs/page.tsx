@@ -3,7 +3,7 @@ import SiteFooter from "../components/SiteFooter";
 import { fetchSuburbs } from "../lib/api";
 
 export const metadata = {
-  title: "Suburbs — PreMarket",
+  title: "Suburbs — OMM",
   description: "The private-market index — median, trend and active campaign count across Australia's premium suburbs.",
 };
 

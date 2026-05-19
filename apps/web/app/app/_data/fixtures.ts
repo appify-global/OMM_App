@@ -323,7 +323,7 @@ export const listingDetails: Record<string, ListingDetail> = {
       { src: "", caption: "Plate IV — Garden, P. Bangay" },
     ],
     agentName: "John Lockheart",
-    agentFirm: "PreMarket — Boroondara",
+    agentFirm: "OMM — Boroondara",
     campaignStartedDays: 9,
     inspections: [
       { day: "Sat 26 Apr", time: "11:00–11:30", rsvps: 14 },
@@ -355,7 +355,7 @@ export const listingDetails: Record<string, ListingDetail> = {
       { src: "", caption: "Plate III — Kitchen & breakfast room" },
     ],
     agentName: "John Lockheart",
-    agentFirm: "PreMarket — Bayside",
+    agentFirm: "OMM — Bayside",
     campaignStartedDays: 21,
     inspections: [{ day: "By appointment", time: "Private", rsvps: 0 }],
     privateInspections: 8,
@@ -533,7 +533,7 @@ export const myPostedBriefs: Brief[] = [
         agentFirm: "Buxton",
         hoursAgo: 9,
         snippet:
-          "Park St coming exclusively to PreMarket subscribers next Tuesday. Pre-inspections from Sunday.",
+          "Park St coming exclusively to OMM subscribers next Tuesday. Pre-inspections from Sunday.",
         matchId: "bm-14-park",
       },
     ],
@@ -847,14 +847,14 @@ export const threads: MessageThread[] = [
     category: "BRIEF",
     unread: false,
     preview:
-      "Park St coming exclusively to PreMarket subscribers next Tuesday.",
+      "Park St coming exclusively to OMM subscribers next Tuesday.",
     lastTime: "5D",
     messages: [
       {
         id: "jc-1",
         direction: "IN",
         body:
-          "Park St coming exclusively to PreMarket subscribers next Tuesday. Pre-inspections from Sunday.",
+          "Park St coming exclusively to OMM subscribers next Tuesday. Pre-inspections from Sunday.",
         time: "Sun 20 Apr",
         dateGroup: "SUN 20 APR",
       },
@@ -1020,7 +1020,7 @@ export const invoices: Invoice[] = [
     reference: "INV-20418",
     date: "12 Apr 2026",
     amount: "$2,450.00",
-    description: "PreMarket campaign · 1240 Park Ave",
+    description: "OMM campaign · 1240 Park Ave",
     status: "PAID",
   },
   {
@@ -1137,7 +1137,7 @@ export const disputeDetails: Record<string, DisputeDetail> = {
       {
         id: "dm-03",
         author: "MEDIATOR",
-        authorName: "PreMarket Trust & Safety",
+        authorName: "OMM Trust & Safety",
         posted: "23 Apr 2026 · 10:02am",
         body:
           "Both parties — please upload supporting evidence by Fri 25 Apr. We'll review and propose a fair allocation by Mon 28 Apr.",
@@ -1175,7 +1175,7 @@ export const disputeDetails: Record<string, DisputeDetail> = {
       {
         id: "dm-06",
         author: "MEDIATOR",
-        authorName: "PreMarket Trust & Safety",
+        authorName: "OMM Trust & Safety",
         posted: "01 Apr 2026 · 9:30am",
         body:
           "Closed by mutual agreement. Fees allocated 60% John Lim, 40% Sarah Lin.",
@@ -1204,7 +1204,7 @@ export const legalDocs: Record<string, LegalDoc> = {
     kicker: "III · Privacy & legal",
     updated: "Last updated 12 March 2026",
     intro:
-      "These terms govern your use of PreMarket. They are written in plain language because we believe a good agreement should be a readable one.",
+      "These terms govern your use of OMM. They are written in plain language because we believe a good agreement should be a readable one.",
     sections: [
       {
         title: "Your account",
@@ -1246,7 +1246,7 @@ export const legalDocs: Record<string, LegalDoc> = {
     kicker: "III · Privacy & legal",
     updated: "Last updated 02 February 2026",
     intro:
-      "PreMarket is a small community of working agents and serious buyers. These guidelines describe the conduct we expect from each other.",
+      "OMM is a small community of working agents and serious buyers. These guidelines describe the conduct we expect from each other.",
     sections: [
       {
         title: "Be candid, be respectful",

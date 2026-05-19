@@ -3,8 +3,8 @@ import SiteFooter from "../components/SiteFooter";
 import { fetchListings } from "../lib/api";
 
 export const metadata = {
-  title: "Listings — PreMarket",
-  description: "Private campaigns, quiet listings and off-market property, curated for PreMarket members.",
+  title: "Listings — OMM",
+  description: "Private campaigns, quiet listings and off-market property, curated for OMM members.",
 };
 
 export default async function ListingsPage() {

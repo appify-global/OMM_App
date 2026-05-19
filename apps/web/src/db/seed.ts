@@ -1,5 +1,5 @@
 /**
- * PreMarket — DB seed
+ * OMM — DB seed
  *
  * Ports the editorial fixtures into Postgres, in dependency order.
  * Idempotent: clears the DB first, then inserts.
@@ -538,7 +538,7 @@ async function seedNotifications() {
 }
 
 async function main() {
-  console.log("🌱 Seeding PreMarket Postgres…\n");
+  console.log("🌱 Seeding OMM Postgres…\n");
   try {
     await clearAll();
     await seedUsers();

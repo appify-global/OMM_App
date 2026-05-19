@@ -1,5 +1,5 @@
 /**
- * PreMarket — Drizzle schema
+ * OMM — Drizzle schema
  *
  * Top-level domain map:
  *   users           — synced from Clerk via webhook

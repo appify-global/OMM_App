@@ -10,12 +10,12 @@ export default function SiteHeader() {
   return (
     <header className="site-header">
       <div className="masthead-rule" aria-hidden="true">
-        <span>PreMarket &middot; The Private Network</span>
+        <span>Off the Market Match &middot; The Private Network</span>
         <span>{todayDateline()}</span>
         <span>Established Melbourne 2026</span>
       </div>
       <div className="masthead">
-        <Link className="brand" href="/" aria-label="PreMarket home">
+        <Link className="brand" href="/" aria-label="Off the Market Match home">
           <span className="brand-mark" aria-hidden="true">
             <span className="brand-mark-line" />
             <span className="brand-mark-glyphs">
@@ -24,9 +24,7 @@ export default function SiteHeader() {
             </span>
           </span>
           <span className="brand-wordmark">
-            <span className="brand-pre">Pre</span>
-            <span className="brand-market">Market</span>
-            <span className="brand-tld">.com.au</span>
+            <span className="brand-name">OMM</span>
           </span>
         </Link>
         <nav className="primary-nav" aria-label="Primary navigation">

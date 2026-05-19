@@ -15,7 +15,7 @@ export default function SignUpStep2() {
     <main className="auth-page">
       <header className="auth-masthead">
         <Link href="/" className="auth-wordmark">
-          PreMarket
+          Off the Market Match
         </Link>
         <p className="auth-issue">
           Vol. I &middot; Issue 04 &middot; Apply to join
@@ -32,7 +32,7 @@ export default function SignUpStep2() {
             Tell us who you <em>are</em>.
           </h1>
           <p className="auth-side-lede">
-            Your role on PreMarket. Agents will be verified against state
+            Your role on Off the Market Match. Agents will be verified against state
             licensing registers.
           </p>
           <ol className="auth-stepper" role="list">
@@ -117,7 +117,7 @@ export default function SignUpStep2() {
           ) : (
             <label className="subpage-field">
               <span className="subpage-field-label">
-                How did you hear about PreMarket? (optional)
+                How did you hear about Off the Market Match? (optional)
               </span>
               <input
                 type="text"

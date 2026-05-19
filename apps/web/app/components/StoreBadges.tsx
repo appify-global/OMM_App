@@ -8,7 +8,7 @@ export default function StoreBadges() {
 
   return (
     <>
-      <div className="store-badges" aria-label="Download the PreMarket app">
+      <div className="store-badges" aria-label="Download the OMM app">
         <button
           type="button"
           className="store-badge"

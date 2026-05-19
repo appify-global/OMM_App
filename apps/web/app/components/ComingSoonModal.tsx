@@ -99,7 +99,7 @@ export default function ComingSoonModal({ platform, onClose }: Props) {
           {title}
         </h2>
         <p className="modal-lede">
-          The PreMarket app is in private beta with a small cohort of agents and
+          The OMM app is in private beta with a small cohort of agents and
           buyers in Melbourne. Leave your email and we&rsquo;ll tell you the day
           it lands on {store}.
         </p>

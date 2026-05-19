@@ -2,8 +2,8 @@ import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 
 export const metadata = {
-  title: "About — PreMarket",
-  description: "PreMarket is a members' network for off-market Australian property.",
+  title: "About — OMM",
+  description: "OMM is a members' network for off-market Australian property.",
 };
 
 const principles = [
@@ -20,7 +20,7 @@ const principles = [
   {
     title: "Agents keep the relationship.",
     body:
-      "PreMarket introduces; we don&rsquo;t replace. Every conversation you have is with a vetted agent, not with us, and the relationship is yours to keep.",
+      "OMM introduces; we don&rsquo;t replace. Every conversation you have is with a vetted agent, not with us, and the relationship is yours to keep.",
   },
   {
     title: "Data stays private.",
@@ -56,7 +56,7 @@ export default function AboutPage() {
                 for the <em>private market</em>.
               </h1>
               <p className="page-lede">
-                PreMarket exists for the slice of the property market that
+                OMM exists for the slice of the property market that
                 doesn&rsquo;t want to be a property listing. Vendors who prefer
                 discretion, buyers who&rsquo;d rather have an introduction than
                 an inspection queue, and agents who&rsquo;d rather run a
@@ -89,7 +89,7 @@ export default function AboutPage() {
                 single photograph is taken.
               </p>
               <p>
-                PreMarket rebuilds that quiet path as a product. Vendors list
+                OMM rebuilds that quiet path as a product. Vendors list
                 privately; agents search verified buyer briefs; introductions
                 happen before the campaign ever goes public. The homes that
                 want to be shouted about still get shouted about, elsewhere.

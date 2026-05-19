@@ -55,7 +55,7 @@ export default function AccountSettingsPage() {
               Account <em>settings</em>.
             </h1>
             <p className="page-lede">
-              Your display name, contact details, and how PreMarket reaches you.
+              Your display name, contact details, and how OMM reaches you.
             </p>
           </div>
         </header>
@@ -70,7 +70,7 @@ export default function AccountSettingsPage() {
           <Fieldset
             kicker="i"
             title="Identity"
-            lede="How you appear to buyers, vendors and other agents on PreMarket."
+            lede="How you appear to buyers, vendors and other agents on OMM."
           >
             <Field
               label="Display name"

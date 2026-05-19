@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 
 export type Mode = "selling" | "buying";
 
-const STORAGE_KEY = "premarket.mode";
+const STORAGE_KEY = "omm.mode";
 
 export default function ModeToggle({
   mode,

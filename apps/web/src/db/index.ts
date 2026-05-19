@@ -1,5 +1,5 @@
 /**
- * PreMarket — Postgres client (Drizzle + node-postgres)
+ * OMM — Postgres client (Drizzle + node-postgres)
  *
  * Lazy-initialised so missing DATABASE_URL doesn't break:
  *   - Next.js build-time page data collection
@@ -16,9 +16,9 @@ import * as schema from "./schema";
 
 declare global {
   // eslint-disable-next-line no-var
-  var __premarketPgPool: Pool | undefined;
+  var __ommPgPool: Pool | undefined;
   // eslint-disable-next-line no-var
-  var __premarketDb: NodePgDatabase<typeof schema> | undefined;
+  var __ommDb: NodePgDatabase<typeof schema> | undefined;
 }
 
 function makePool(): Pool {
@@ -39,8 +39,8 @@ function makePool(): Pool {
 
 function getPool(): Pool {
   return (
-    globalThis.__premarketPgPool ??
-    (globalThis.__premarketPgPool = makePool())
+    globalThis.__ommPgPool ??
+    (globalThis.__ommPgPool = makePool())
   );
 }
 
@@ -53,8 +53,8 @@ export const db: NodePgDatabase<typeof schema> = new Proxy(
   {
     get(_target, prop, receiver) {
       const real =
-        globalThis.__premarketDb ??
-        (globalThis.__premarketDb = drizzle(getPool(), { schema }));
+        globalThis.__ommDb ??
+        (globalThis.__ommDb = drizzle(getPool(), { schema }));
       const value = Reflect.get(real, prop, receiver);
       return typeof value === "function" ? value.bind(real) : value;
     },

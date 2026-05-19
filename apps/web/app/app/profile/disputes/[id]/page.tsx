@@ -48,7 +48,7 @@ export default async function DisputeDetailPage({ params }: Params) {
           <Meta label="Listing" value={dispute.listing ?? "—"} />
           <Meta label="Amount at stake" value={dispute.amountAtStake ?? "—"} />
           <Meta label="Opened" value={dispute.openedOn} />
-          <Meta label="Mediator" value="PreMarket Trust & Safety" />
+          <Meta label="Mediator" value="OMM Trust & Safety" />
         </section>
 
         <section className="dispute-timeline">

@@ -50,7 +50,7 @@ export default function ContactSupportPage() {
             <p className="subpage-aside-kicker">Hours</p>
             <p className="subpage-aside-line">Mon — Fri · 8.30am — 6.00pm AEDT</p>
             <p className="subpage-aside-kicker">Direct</p>
-            <p className="subpage-aside-line">support@premarket.com.au</p>
+            <p className="subpage-aside-line">support@offmarketmatch.com</p>
           </aside>
         </header>
 

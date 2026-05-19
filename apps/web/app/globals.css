@@ -23,7 +23,7 @@
 }
 
 /* ============================================
-   Brand glyph — the PreMarket square
+   Brand glyph — the OMM square
    Filled = pre-market / private
    Outline = on-market / public
    ============================================ */
@@ -220,31 +220,12 @@ input {
   letter-spacing: -0.01em;
 }
 
-.brand-pre {
+.brand-name {
   font-family: "Fraunces", "GT Sectra", Georgia, serif;
-  font-weight: 360;
+  font-weight: 500;
   font-variation-settings: "opsz" 144, "SOFT" 0;
-  letter-spacing: -0.02em;
-  color: var(--ink);
-}
-
-.brand-market {
-  font-family: "Fraunces", "GT Sectra", Georgia, serif;
-  font-style: italic;
-  font-weight: 320;
-  font-variation-settings: "opsz" 144, "SOFT" 100;
-  letter-spacing: -0.01em;
+  letter-spacing: 0.08em;
   color: var(--forest);
-}
-
-.brand-tld {
-  font-family: "Fraunces", "GT Sectra", Georgia, serif;
-  font-weight: 360;
-  font-variation-settings: "opsz" 144, "SOFT" 0;
-  font-size: 0.58em;
-  letter-spacing: -0.01em;
-  color: var(--ink);
-  align-self: baseline;
 }
 
 .primary-nav {

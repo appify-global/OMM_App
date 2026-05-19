@@ -1,6 +1,6 @@
 # Unlisted
 
-Monorepo for the Unlisted product (PreMarket).
+Monorepo for the Unlisted product (OMM).
 
 ## Apps
 

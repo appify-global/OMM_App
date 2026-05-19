@@ -4,7 +4,7 @@ import "./globals.css";
 import MobileBottomNav from "./components/MobileBottomNav";
 
 export const metadata: Metadata = {
-  title: "PreMarket",
+  title: "OMM",
   description: "Off-market property, before it reaches the listings.",
   icons: {
     icon: [

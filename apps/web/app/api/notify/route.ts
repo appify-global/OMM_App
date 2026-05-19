@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     if (typeof email !== "string" || !email.includes("@")) {
       return NextResponse.json({ ok: false, error: "invalid_email" }, { status: 400 });
     }
-    console.info("[premarket] notify signup", { email, platform });
+    console.info("[omm] notify signup", { email, platform });
     return NextResponse.json({ ok: true });
   } catch {
     return NextResponse.json({ ok: false, error: "bad_request" }, { status: 400 });

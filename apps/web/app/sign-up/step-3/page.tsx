@@ -25,7 +25,7 @@ export default function SignUpStep3() {
     <main className="auth-page">
       <header className="auth-masthead">
         <Link href="/" className="auth-wordmark">
-          PreMarket
+          Off the Market Match
         </Link>
         <p className="auth-issue">
           Vol. I &middot; Issue 04 &middot; Apply to join

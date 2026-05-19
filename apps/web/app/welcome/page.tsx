@@ -8,7 +8,7 @@ export default function WelcomePage() {
       <main className="auth-page">
         <header className="auth-masthead">
           <Link href="/" className="auth-wordmark">
-            PreMarket
+            Off the Market Match
           </Link>
           <p className="auth-issue">
             Vol. I &middot; Issue 04 &middot; Off-market property, before it
@@ -27,7 +27,7 @@ export default function WelcomePage() {
             property.
           </h1>
           <p className="auth-hero-lede">
-            PreMarket is where Australia&rsquo;s most considered agents and
+            Off the Market Match is where Australia&rsquo;s most considered agents and
             buyers meet, before a listing ever goes public. Members only,
             verified credentials, no clutter.
           </p>

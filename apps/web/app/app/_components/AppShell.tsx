@@ -28,12 +28,12 @@ export default function AppShell({
     <>
       <header className="site-header">
         <div className="masthead-rule" aria-hidden="true">
-          <span>PreMarket &middot; Workspace</span>
+          <span>Off the Market Match &middot; Workspace</span>
           <span>{todayDateline()}</span>
           <span>Vol. I — Issue 04</span>
         </div>
         <div className="masthead">
-          <Link className="brand" href="/app" aria-label="PreMarket workspace">
+          <Link className="brand" href="/app" aria-label="Off the Market Match workspace">
             <span className="brand-mark" aria-hidden="true">
               <span className="brand-mark-line" />
               <span className="brand-mark-glyphs">
@@ -42,9 +42,7 @@ export default function AppShell({
               </span>
             </span>
             <span className="brand-wordmark">
-              <span className="brand-pre">Pre</span>
-              <span className="brand-market">Market</span>
-              <span className="brand-tld">.com.au</span>
+              <span className="brand-name">OMM</span>
             </span>
           </Link>
           <nav className="primary-nav" aria-label="Workspace navigation">
