@@ -7,8 +7,33 @@ export const metadata = {
   description: "Private campaigns, quiet listings and off-market property, curated for OMM members.",
 };
 
-export default async function ListingsPage() {
-  const listings = await fetchListings();
+type ListingsPageProps = {
+  searchParams: Promise<{ q?: string }>;
+};
+
+function matchesQuery(
+  listing: Awaited<ReturnType<typeof fetchListings>>[number],
+  q: string,
+) {
+  const needle = q.trim().toLowerCase();
+  if (!needle) return true;
+  const haystack = [
+    listing.address,
+    listing.suburb,
+    listing.state,
+    listing.postcode,
+    listing.agent,
+    listing.agency,
+  ]
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(needle);
+}
+
+export default async function ListingsPage({ searchParams }: ListingsPageProps) {
+  const { q } = await searchParams;
+  const allListings = await fetchListings();
+  const listings = q ? allListings.filter((l) => matchesQuery(l, q)) : allListings;
   const filters = ["All", "Private campaign", "Quiet listing", "Matched buyers", "Coming soon", "Open for inspection"];
 
   return (
@@ -29,6 +54,12 @@ export default async function ListingsPage() {
                 Every property below is being offered off-market or in quiet
                 campaign. Access is member-gated: request an introduction and
                 we&rsquo;ll bridge you to the agent or vendor directly.
+                {q ? (
+                  <>
+                    {" "}
+                    Showing results for <strong>{q}</strong>.
+                  </>
+                ) : null}
               </p>
             </div>
             <dl className="page-stats">
@@ -94,7 +125,7 @@ export default async function ListingsPage() {
                       <dd>{l.agent}</dd>
                     </div>
                   </dl>
-                  <a className="listing-cta" href="#">
+                  <a className="listing-cta" href="/sign-up">
                     Request access <span aria-hidden="true">→</span>
                   </a>
                 </div>

@@ -81,7 +81,7 @@ export default async function SuburbsPage() {
                       <a
                         href={`/suburbs/${s.slug}`}
                         style={{
-                          fontFamily: "Inter, system-ui, sans-serif",
+                          fontFamily: "var(--font-satoshi), ui-sans-serif, system-ui, sans-serif",
                           fontSize: 12,
                           fontWeight: 500,
                           letterSpacing: "0.04em",

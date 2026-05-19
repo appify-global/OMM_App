@@ -1,43 +1,55 @@
 import { SignIn } from "@clerk/nextjs";
+import Image from "next/image";
 import Link from "next/link";
+import { clerkAuthAppearance } from "../../../lib/clerk-appearance";
 
 export default function SignInPage() {
   return (
-    <main className="auth-page">
-      <header className="auth-masthead">
-        <Link href="/" className="auth-wordmark">
-          Off the Market Match
+    <main className="auth-find">
+      <header className="auth-find__header">
+        <Link href="/" className="auth-find__brand" aria-label="MATCH home">
+          <Image
+            src="/match-logo.png"
+            alt="MATCH"
+            width={118}
+            height={22}
+            priority
+            className="auth-find__logo"
+          />
         </Link>
-        <p className="auth-issue">
-          Vol. I &middot; Issue 04 &middot; Sign in
-        </p>
+        <Link href="/" className="auth-find__back">
+          Back to home
+        </Link>
       </header>
 
-      <section className="auth-shell">
-        <div className="auth-side">
-          <p className="section-kicker">
-            <span className="sq sq--filled sq--sm" aria-hidden="true" />
-            <span>I &middot; Sign in</span>
-          </p>
-          <h1 className="auth-side-title">
-            Welcome <em>back</em>.
+      <section className="auth-find__shell" aria-labelledby="sign-in-heading">
+        <div className="auth-find__copy">
+          <h1 id="sign-in-heading" className="auth-find__title">
+            Welcome back.
           </h1>
-          <p className="auth-side-lede">
-            Pick up where you left off &mdash; your listings, briefs and
-            messages are waiting.
+          <p className="auth-find__lede">
+            <span className="auth-find__lede-strong">
+              Your listings, briefs and messages.
+            </span>{" "}
+            <span className="auth-find__lede-soft">
+              Pick up where you left off.
+            </span>
           </p>
-          <p className="auth-side-foot">
-            New to Off the Market Match?{" "}
-            <Link href="/sign-up">Apply to join →</Link>
+          <p className="auth-find__foot">
+            New to MATCH?{" "}
+            <Link href="/sign-up" className="auth-find__foot-link">
+              Apply to join →
+            </Link>
           </p>
         </div>
 
-        <div className="auth-form">
+        <div className="auth-find__form">
           <SignIn
             routing="path"
             path="/sign-in"
             signUpUrl="/sign-up"
             forceRedirectUrl="/app"
+            appearance={clerkAuthAppearance}
           />
         </div>
       </section>
