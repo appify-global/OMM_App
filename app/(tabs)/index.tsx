@@ -1,6 +1,7 @@
 import { Text } from "@/components/OMMText";
 import { TextInput } from "@/components/OMMTextInput";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
+import { useAuth } from "@clerk/expo";
 import { useGlobalSearchParams, useRouter, type Href } from "expo-router";
 import { Fragment, useEffect, useRef, useState } from "react";
 import {
@@ -38,11 +39,18 @@ import {
   fetchAgentHomeMetrics,
   formatPipelineCommissionRangeDisplay,
 } from "@/lib/agent-home-metrics";
+import {
+  deriveAgentMetricsFromHome,
+  fetchMobileHome,
+  thumbnailIndexFromListingId,
+  type MobileHomeListing,
+  type MobileHomePayload,
+} from "@/lib/mobile-home-api";
 import { getAgentQuickLinksForHome } from "@/lib/agent-quick-links";
 import { VIEW_LIVE_LISTING_ID } from "@/lib/saved-listings";
 import { useSavedListings } from "@/lib/saved-listings-context";
 
-import { fieldShell } from "./add/_shared";
+import { fieldShell } from "@/components/list-add/flow-shared";
 import { accent, frost, ink, slateNavy } from '@/constants/theme';
 
 function SectionHeader({
@@ -579,9 +587,26 @@ function SellingPerformanceSlice({
 }
 
 /** Home — OMM [Figma area](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-1046&t=gEfFuYKIwBHVUzXh-4) */
+/** Subtitle shown under thumbnail rows / active stacks for a listing summary. */
+function activeListingSubtitle(l: MobileHomeListing): string {
+  const statusExtra =
+    l.status && !["ACTIVE"].includes(String(l.status).toUpperCase())
+      ? ` · ${l.status}`
+      : "";
+  const auth =
+    typeof l.authorityDaysLeft === "number"
+      ? ` · Authority ${Math.max(0, l.authorityDaysLeft)}d`
+      : "";
+  const soi = l.soiAttached ? "" : " · SOI pending";
+  return `${l.priceRange}${statusExtra}${auth}${soi}`;
+}
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { getToken, isLoaded, isSignedIn } = useAuth();
+  const getTokenRef = useRef(getToken);
+  getTokenRef.current = getToken;
   const search = useGlobalSearchParams<{
     openBuyingSearch?: string;
     homeSegment?: string;
@@ -598,17 +623,26 @@ export default function HomeScreen() {
   const [agentMetrics, setAgentMetrics] = useState<AgentHomeMetricsPayload>(
     FALLBACK_AGENT_HOME_METRICS,
   );
+  const [mobileHome, setMobileHome] = useState<MobileHomePayload | null>(null);
 
   useEffect(() => {
+    if (!isLoaded) return;
     let alive = true;
-    (async () => {
-      const next = await fetchAgentHomeMetrics(async () => null);
-      if (alive) setAgentMetrics(next);
+    const tokenGetter = async () => (await getTokenRef.current()) ?? null;
+    void (async () => {
+      const [metrics, home] = await Promise.all([
+        fetchAgentHomeMetrics(tokenGetter),
+        fetchMobileHome(tokenGetter),
+      ]);
+      if (!alive) return;
+      setAgentMetrics(deriveAgentMetricsFromHome(home, metrics));
+      setMobileHome(home);
     })();
     return () => {
       alive = false;
     };
-  }, []);
+    /** Clerk’s `getToken` identity churns often; anchor on stable auth/session signals. */
+  }, [isLoaded, isSignedIn]);
 
   /** Return to Home (e.g. listing published) on Selling. Query lives on `/(tabs)?homeSegment=…` — use global params. */
   useEffect(() => {
@@ -764,24 +798,38 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.hScroll}
             >
-              <AuthorityExpiringCarouselCard
-                address="45 Buckley St, Moonee Ponds VIC 3039"
-                daysLeft="6D LEFT"
-                subtitleLine="Moonee Ponds Villa"
-                soiPill="SOI ATTACHED"
-              />
-              <AuthorityExpiringCarouselCard
-                address="102 Glenhuntly Rd, Elsternwick VIC 3185"
-                daysLeft="11D LEFT"
-                subtitleLine="Elsternwick Corner Shop"
-                soiPill="SOI MISSING — ACTION NEEDED"
-              />
-              <AuthorityExpiringCarouselCard
-                address="17 Ferguson St, Williamstown VIC 3016"
-                daysLeft="16D LEFT"
-                subtitleLine="Williamstown Period"
-                soiPill="SOI ATTACHED"
-              />
+              {mobileHome?.selling.authorityExpiringSoon.length ? (
+                mobileHome.selling.authorityExpiringSoon.map((item) => (
+                  <AuthorityExpiringCarouselCard
+                    key={item.id}
+                    address={item.address}
+                    daysLeft={`${item.daysLeft}D LEFT`}
+                    subtitleLine={item.title}
+                    soiPill="AUTHORITY EXPIRING"
+                  />
+                ))
+              ) : (
+                <>
+                  <AuthorityExpiringCarouselCard
+                    address="45 Buckley St, Moonee Ponds VIC 3039"
+                    daysLeft="6D LEFT"
+                    subtitleLine="Moonee Ponds Villa"
+                    soiPill="SOI ATTACHED"
+                  />
+                  <AuthorityExpiringCarouselCard
+                    address="102 Glenhuntly Rd, Elsternwick VIC 3185"
+                    daysLeft="11D LEFT"
+                    subtitleLine="Elsternwick Corner Shop"
+                    soiPill="SOI MISSING — ACTION NEEDED"
+                  />
+                  <AuthorityExpiringCarouselCard
+                    address="17 Ferguson St, Williamstown VIC 3016"
+                    daysLeft="16D LEFT"
+                    subtitleLine="Williamstown Period"
+                    soiPill="SOI ATTACHED"
+                  />
+                </>
+              )}
             </ScrollView>
             <SectionHeader
               title="SOI expiring soon"
@@ -792,49 +840,111 @@ export default function HomeScreen() {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.hScrollDense}
             >
-              <ListingThumbRow
-                imageSource={propertyImageAtIndex(2)}
-                titleLine="83A Glen Iris Road"
-                subtitleLine="Glen Iris VIC"
-                onPress={() => router.push("/view-live-listing" as Href)}
-              />
-              <ListingThumbRow
-                imageSource={propertyImageAtIndex(0)}
-                titleLine="312 Church Street"
-                subtitleLine="Richmond VIC"
-                onPress={() =>
-                  router.push({ pathname: "/recent-listings", params: { mode: "live" } } as Href)
-                }
-              />
-              <ListingThumbRow
-                imageSource={PROPERTY_IMG_1}
-                titleLine="18 Marine Parade"
-                subtitleLine="Elwood VIC"
-                onPress={() =>
-                  router.push({ pathname: "/recent-listings", params: { mode: "live" } } as Href)
-                }
-              />
+              {mobileHome?.selling.soiReminderListings.length ? (
+                mobileHome.selling.soiReminderListings.map((item) => (
+                  <ListingThumbRow
+                    key={item.id}
+                    imageSource={propertyImageAtIndex(
+                      thumbnailIndexFromListingId(item.id),
+                    )}
+                    titleLine={item.titleLine}
+                    subtitleLine={
+                      item.needsSoi
+                        ? `${item.subtitleLine} · SOI needed`
+                        : item.subtitleLine
+                    }
+                    onPress={() =>
+                      router.push({
+                        pathname: "/view-live-listing" as Href,
+                        params: { listingId: item.id },
+                      } as Href)
+                    }
+                  />
+                ))
+              ) : (
+                <>
+                  <ListingThumbRow
+                    imageSource={propertyImageAtIndex(2)}
+                    titleLine="83A Glen Iris Road"
+                    subtitleLine="Glen Iris VIC"
+                    onPress={() =>
+                      router.push({ pathname: "/view-live-listing" } as Href)
+                    }
+                  />
+                  <ListingThumbRow
+                    imageSource={propertyImageAtIndex(0)}
+                    titleLine="312 Church Street"
+                    subtitleLine="Richmond VIC"
+                    onPress={() =>
+                      router.push({
+                        pathname: "/recent-listings",
+                        params: { mode: "live" },
+                      } as Href)
+                    }
+                  />
+                  <ListingThumbRow
+                    imageSource={PROPERTY_IMG_1}
+                    titleLine="18 Marine Parade"
+                    subtitleLine="Elwood VIC"
+                    onPress={() =>
+                      router.push({
+                        pathname: "/recent-listings",
+                        params: { mode: "live" },
+                      } as Href)
+                    }
+                  />
+                </>
+              )}
             </ScrollView>
             <SectionHeader
-              title="Your active listings"
+              title="Your listings"
               style={styles.sectionHeaderBeforeListingCard}
               onSeeAll={() =>
                 router.push({ pathname: "/recent-listings", params: { mode: "live" } } as Href)
               }
             />
             <View style={styles.activeListingStack}>
-              <ListingThumbRow
-                imageSource={PROPERTY_IMG_1}
-                titleLine={DEMO_PRIMARY_LISTING_TITLE}
-                subtitleLine="Brighton East VIC • Auth 14d left"
-                onPress={() => router.push("/view-live-listing" as Href)}
-              />
-              <ListingThumbRow
-                imageSource={PROPERTY_IMG_2}
-                titleLine="Carlton Warehouse Conversion"
-                subtitleLine="Carlton VIC • 4 leads · SOI OK"
-                onPress={() => router.push("/list" as Href)}
-              />
+              {!mobileHome ? (
+                <>
+                  <ListingThumbRow
+                    imageSource={PROPERTY_IMG_1}
+                    titleLine={DEMO_PRIMARY_LISTING_TITLE}
+                    subtitleLine="Brighton East VIC • Auth 14d left"
+                    onPress={() =>
+                      router.push("/view-live-listing" as Href)
+                    }
+                  />
+                  <ListingThumbRow
+                    imageSource={PROPERTY_IMG_2}
+                    titleLine="Carlton Warehouse Conversion"
+                    subtitleLine="Carlton VIC • 4 leads · SOI OK"
+                    onPress={() => router.push("/list" as Href)}
+                  />
+                </>
+              ) : mobileHome.selling.pipelineListings.length ? (
+                mobileHome.selling.pipelineListings.map((l) => (
+                  <ListingThumbRow
+                    key={l.id}
+                    imageSource={propertyImageAtIndex(
+                      thumbnailIndexFromListingId(l.id),
+                    )}
+                    titleLine={l.title}
+                    subtitleLine={activeListingSubtitle(l)}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/view-live-listing" as Href,
+                        params: {
+                          listingId: l.id,
+                          title: l.title,
+                          price: l.priceRange,
+                          beds: String(l.beds),
+                          baths: String(l.baths),
+                        },
+                      } as Href)
+                    }
+                  />
+                ))
+              ) : null}
             </View>
           </>
         ) : buyingSearchActive ? (
@@ -884,35 +994,59 @@ export default function HomeScreen() {
               />
             </View>
             <View style={styles.resultsHeader}>
-              <Text style={styles.resultsCount}>12 off-market matches</Text>
+              <Text style={styles.resultsCount}>
+                {mobileHome?.buying.offMarketMatches.length
+                  ? `${mobileHome.buying.offMarketMatches.length} off‑market matches`
+                  : '12 off-market matches'}
+              </Text>
               <Text style={styles.sortLink}>SORT • BEST MATCH</Text>
             </View>
-            <SearchMatchRow
-              name="Preston California Bungalow"
-              address="15 Miller St, Preston VIC 3072"
-              price="$2.1M — $2.3M"
-              specs="4 bedrooms · 3 bathrooms · 720m²"
-              match="92% MATCH"
-              imageSource={propertyImageAtIndex(0)}
-            />
-            <View style={styles.resultDivider} />
-            <SearchMatchRow
-              name="Sandringham Bay House"
-              address="72 Bay Rd, Sandringham VIC 3191"
-              price="$1.9M — $2.2M"
-              specs="3 bedrooms · 2 bathrooms · 420m²"
-              match="88% MATCH"
-              imageSource={propertyImageAtIndex(1)}
-            />
-            <View style={styles.resultDivider} />
-            <SearchMatchRow
-              name="Collingwood Workshop"
-              address="201 Smith St, Collingwood VIC 3066"
-              price="$1.6M — $1.85M"
-              specs="3 bedrooms · 2 bathrooms · 310m²"
-              match="85% MATCH"
-              imageSource={propertyImageAtIndex(2)}
-            />
+            {mobileHome?.buying.offMarketMatches.length ? (
+              mobileHome.buying.offMarketMatches.slice(0, 12).map((m, idx) => (
+                <Fragment key={`sm-${m.id}`}>
+                  {idx > 0 ? <View style={styles.resultDivider} /> : null}
+                  <SearchMatchRow
+                    name={m.title}
+                    address={`${m.priceRange} · ${m.status}`}
+                    price={m.priceRange}
+                    specs={`${m.beds} bedrooms · ${m.baths} bathrooms · ${m.landSqm}m²`}
+                    match={`${Math.min(99, Math.max(0, m.matchPercent))}% MATCH`}
+                    imageSource={propertyImageAtIndex(
+                      thumbnailIndexFromListingId(m.id),
+                    )}
+                  />
+                </Fragment>
+              ))
+            ) : (
+              <>
+                <SearchMatchRow
+                  name="Preston California Bungalow"
+                  address="15 Miller St, Preston VIC 3072"
+                  price="$2.1M — $2.3M"
+                  specs="4 bedrooms · 3 bathrooms · 720m²"
+                  match="92% MATCH"
+                  imageSource={propertyImageAtIndex(0)}
+                />
+                <View style={styles.resultDivider} />
+                <SearchMatchRow
+                  name="Sandringham Bay House"
+                  address="72 Bay Rd, Sandringham VIC 3191"
+                  price="$1.9M — $2.2M"
+                  specs="3 bedrooms · 2 bathrooms · 420m²"
+                  match="88% MATCH"
+                  imageSource={propertyImageAtIndex(1)}
+                />
+                <View style={styles.resultDivider} />
+                <SearchMatchRow
+                  name="Collingwood Workshop"
+                  address="201 Smith St, Collingwood VIC 3066"
+                  price="$1.6M — $1.85M"
+                  specs="3 bedrooms · 2 bathrooms · 310m²"
+                  match="85% MATCH"
+                  imageSource={propertyImageAtIndex(2)}
+                />
+              </>
+            )}
           </>
         ) : (
           <>
@@ -1057,21 +1191,38 @@ export default function HomeScreen() {
               title="Saved searches"
               onSeeAll={() => router.push("/saved-searches")}
             />
-            <SavedSearchCard
-              name="John Doe"
-              criteria="4+ bedrooms • House • $1.8M—2.4M"
-              badge="8 NEW"
-              alertsOn
-              meta="Yesterday"
-            />
-            <View style={{ height: 12 }} />
-            <SavedSearchCard
-              name="Footscray & Seddon"
-              criteria="3+ bedrooms • Townhouse • $2M—3M"
-              badge="2 NEW"
-              alertsOn={false}
-              meta="Paused 2d ago"
-            />
+            {mobileHome?.buying.savedSearches.length ? (
+              mobileHome.buying.savedSearches.map((s) => (
+                <View key={s.id}>
+                  <SavedSearchCard
+                    name={s.title}
+                    criteria={s.criteria}
+                    badge={s.newCount > 0 ? `${Math.min(s.newCount, 99)} NEW` : undefined}
+                    alertsOn={s.alertsOn}
+                    meta={s.alertsOn ? "Alerts on" : "Alerts muted"}
+                  />
+                  <View style={{ height: 12 }} />
+                </View>
+              ))
+            ) : (
+              <>
+                <SavedSearchCard
+                  name="John Doe"
+                  criteria="4+ bedrooms • House • $1.8M—2.4M"
+                  badge="8 NEW"
+                  alertsOn
+                  meta="Yesterday"
+                />
+                <View style={{ height: 12 }} />
+                <SavedSearchCard
+                  name="Footscray & Seddon"
+                  criteria="3+ bedrooms • Townhouse • $2M—3M"
+                  badge="2 NEW"
+                  alertsOn={false}
+                  meta="Paused 2d ago"
+                />
+              </>
+            )}
             {savedProperties.length > 0 ? (
               <>
                 <SectionHeader
@@ -1110,20 +1261,92 @@ export default function HomeScreen() {
                 router.push({ pathname: "/recent-listings", params: { mode: "listed" } } as Href)
               }
             />
-            <Pressable
-              onPress={() => router.push("/view-live-listing" as Href)}
-              accessibilityRole="button"
-              accessibilityLabel={`Open listing ${DEMO_PRIMARY_LISTING_TITLE}`}
-            >
-              <LargeListingCard
-                variant="buying"
-                title={DEMO_PRIMARY_LISTING_TITLE}
-                price="$2.0M — $2.2M"
-                badgeLeft="OFF-MARKET"
-                badgeRight="92% MATCH"
-                specParts={["4 bedrooms", "3 bathrooms", "650m²"]}
-              />
-            </Pressable>
+            {mobileHome?.buying.offMarketMatches.length ? (
+              <>
+                {mobileHome.buying.offMarketMatches.slice(0, 1).map((m) => (
+                  <Pressable
+                    key={m.id}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/view-live-listing" as Href,
+                        params: {
+                          listingId: m.id,
+                          title: m.title,
+                          price: m.priceRange,
+                          beds: String(m.beds),
+                          baths: String(m.baths),
+                        },
+                      } as Href)
+                    }
+                    accessibilityRole="button"
+                    accessibilityLabel={`Open listing ${m.title}`}
+                  >
+                    <LargeListingCard
+                      variant="buying"
+                      imageSource={propertyImageAtIndex(
+                        thumbnailIndexFromListingId(m.id),
+                      )}
+                      title={m.title}
+                      price={m.priceRange}
+                      badgeLeft={m.status}
+                      badgeRight={`${Math.min(99, Math.max(0, m.matchPercent))}% MATCH`}
+                      specParts={[
+                        `${m.beds} bedrooms`,
+                        `${m.baths} bathrooms`,
+                        `${m.landSqm}m²`,
+                      ]}
+                    />
+                  </Pressable>
+                ))}
+                {mobileHome.buying.offMarketMatches.length > 1 ? (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    contentContainerStyle={styles.hScroll}
+                  >
+                    {mobileHome.buying.offMarketMatches.slice(1, 10).map((m) => (
+                      <View key={`om-${m.id}`} style={{ marginRight: 12, width: 280 }}>
+                        <Pressable
+                          onPress={() =>
+                            router.push({
+                              pathname: "/view-live-listing" as Href,
+                              params: {
+                                listingId: m.id,
+                                title: m.title,
+                                price: m.priceRange,
+                              },
+                            } as Href)
+                          }
+                        >
+                          <ListingThumbRow
+                            imageSource={propertyImageAtIndex(
+                              thumbnailIndexFromListingId(m.id),
+                            )}
+                            titleLine={m.title}
+                            subtitleLine={`${m.priceRange} · ${m.status}`}
+                          />
+                        </Pressable>
+                      </View>
+                    ))}
+                  </ScrollView>
+                ) : null}
+              </>
+            ) : (
+              <Pressable
+                onPress={() => router.push("/view-live-listing" as Href)}
+                accessibilityRole="button"
+                accessibilityLabel={`Open listing ${DEMO_PRIMARY_LISTING_TITLE}`}
+              >
+                <LargeListingCard
+                  variant="buying"
+                  title={DEMO_PRIMARY_LISTING_TITLE}
+                  price="$2.0M — $2.2M"
+                  badgeLeft="OFF-MARKET"
+                  badgeRight="92% MATCH"
+                  specParts={["4 bedrooms", "3 bathrooms", "650m²"]}
+                />
+              </Pressable>
+            )}
           </>
         )}
       </ScrollView>

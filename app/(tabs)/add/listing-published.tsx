@@ -15,8 +15,8 @@ import {
   PL_MUTED,
   fieldShell,
   useListingFlowBottomPad,
-} from './_shared';
-import { useListingDraft } from './listing-draft-context';
+} from '@/components/list-add/flow-shared';
+import { useListingDraft } from '@/components/list-add/listing-draft-context';
 import { slateNavy } from '@/constants/theme';
 import { persistDemoLiveListingDisclosure } from '@/lib/demo-live-listing-disclosure';
 import { DEMO_PRIMARY_SUBURB_LINE } from '@/lib/melbourne-demo-locations';

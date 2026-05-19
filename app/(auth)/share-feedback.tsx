@@ -1,3 +1,4 @@
+import { useAuth } from '@clerk/expo';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useRouter } from 'expo-router';
@@ -5,7 +6,18 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
+
+import { postJsonApi } from '@/lib/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { accent, ink, layout } from '@/constants/theme';
@@ -67,15 +79,45 @@ function AttachBox() {
 export default function ShareFeedbackScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { getToken } = useAuth();
 
   const [topic, setTopic] = useState('');
   const [feedback, setFeedback] = useState('');
+  const [sending, setSending] = useState(false);
 
   const canSubmit = !!topic.trim() && !!feedback.trim();
 
-  const onSubmit = () => {
-    if (!canSubmit) return;
-    Alert.alert('Thank you', 'Your feedback has been submitted.');
+  const onSubmit = async () => {
+    if (!canSubmit || sending) return;
+    setSending(true);
+    try {
+      const result = await postJsonApi(
+        '/api/support/feedback',
+        getToken,
+        {
+          source: 'mobile',
+          topic: topic.trim(),
+          feedback: feedback.trim(),
+        },
+      );
+      if (!result.ok) {
+        const hint =
+          result.error === 'server_misconfigured'
+            ? 'Feedback email is not configured on the server yet.'
+            : result.status === 503
+              ? 'This action is temporarily unavailable. Try again later.'
+              : 'Could not submit feedback. Please try again.';
+        Alert.alert('Could not submit', hint);
+        return;
+      }
+      Alert.alert('Thank you', 'Your feedback has been submitted.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } catch {
+      Alert.alert('Could not submit', 'Check your connection and try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -136,15 +178,19 @@ export default function ShareFeedbackScreen() {
           </View>
 
           <Pressable
-            style={[styles.submitBtn, !canSubmit && styles.submitBtnDisabled]}
-            onPress={onSubmit}
-            disabled={!canSubmit}
+            style={[styles.submitBtn, (!canSubmit || sending) && styles.submitBtnDisabled]}
+            onPress={() => void onSubmit()}
+            disabled={!canSubmit || sending}
             accessibilityRole="button"
             accessibilityLabel="Submit feedback">
             {({ pressed }) => (
               <>
-                <Text style={styles.submitBtnText}>Submit feedback</Text>
-                {pressed && canSubmit ? (
+                {sending ? (
+                  <ActivityIndicator color={ink} />
+                ) : (
+                  <Text style={styles.submitBtnText}>Submit feedback</Text>
+                )}
+                {pressed && canSubmit && !sending ? (
                   <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 12 }]} />
                 ) : null}
               </>

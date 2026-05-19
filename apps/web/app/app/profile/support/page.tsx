@@ -1,7 +1,8 @@
 "use client";
 
+import { useUser } from "@clerk/nextjs";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import SiteFooter from "../../../components/SiteFooter";
 
 const TOPICS = [
@@ -15,10 +16,22 @@ const TOPICS = [
 ];
 
 export default function ContactSupportPage() {
+  const { user } = useUser();
   const [topic, setTopic] = useState(TOPICS[0]);
   const [subject, setSubject] = useState("");
   const [body, setBody] = useState("");
+  const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const addr = user?.primaryEmailAddress?.emailAddress?.trim();
+    if (addr) setEmail(addr);
+  }, [user?.primaryEmailAddress?.emailAddress]);
+
+  const canSubmit =
+    !!email.trim() && !!subject.trim() && !!body.trim() && body.length <= 2000;
 
   return (
     <>
@@ -61,8 +74,8 @@ export default function ContactSupportPage() {
               Thank you. We&rsquo;ll be in touch.
             </h2>
             <p className="subpage-success-lede">
-              Your note is in the queue. A confirmation has been sent to your
-              inbox with a reference number.
+              Your note is in the queue. We typically reply within one business
+              day.
             </p>
             <div className="subpage-form-actions">
               <button
@@ -72,6 +85,7 @@ export default function ContactSupportPage() {
                   setSent(false);
                   setSubject("");
                   setBody("");
+                  setFormError(null);
                 }}
               >
                 Send another
@@ -84,9 +98,40 @@ export default function ContactSupportPage() {
         ) : (
           <form
             className="subpage-form"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              setSent(true);
+              setFormError(null);
+              if (!canSubmit || submitting) return;
+              setSubmitting(true);
+              try {
+                const res = await fetch("/api/support/contact", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    source: "web",
+                    email: email.trim(),
+                    topic,
+                    subject: subject.trim(),
+                    message: body.trim(),
+                  }),
+                });
+                const data = (await res.json().catch(() => ({}))) as {
+                  error?: string;
+                };
+                if (!res.ok) {
+                  setFormError(
+                    data.error === "server_misconfigured" || res.status === 503
+                      ? "Support email isn’t configured on the server yet."
+                      : "Could not send your message. Try again.",
+                  );
+                  return;
+                }
+                setSent(true);
+              } catch {
+                setFormError("Network error. Try again.");
+              } finally {
+                setSubmitting(false);
+              }
             }}
           >
             <fieldset className="subpage-fieldset">
@@ -127,6 +172,22 @@ export default function ContactSupportPage() {
               </p>
               <div className="subpage-fieldset-body">
                 <label className="subpage-field">
+                  <span className="subpage-field-label">Email</span>
+                  <input
+                    type="email"
+                    className="subpage-field-input"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@work.com"
+                    required
+                    autoComplete="email"
+                    disabled={submitting}
+                  />
+                  <span className="subpage-field-hint">
+                    Pre-filled from your account when you&rsquo;re signed in.
+                  </span>
+                </label>
+                <label className="subpage-field">
                   <span className="subpage-field-label">Subject</span>
                   <input
                     type="text"
@@ -154,6 +215,12 @@ export default function ContactSupportPage() {
               </div>
             </fieldset>
 
+            {formError ? (
+              <p className="subpage-fieldset-lede" role="alert" style={{ color: "#b42318" }}>
+                {formError}
+              </p>
+            ) : null}
+
             <footer className="subpage-form-footer">
               <p className="subpage-form-fineprint">
                 By sending you agree to our{" "}
@@ -163,8 +230,12 @@ export default function ContactSupportPage() {
                 <Link href="/app/profile" className="dash-cta is-ghost">
                   Cancel
                 </Link>
-                <button type="submit" className="dash-cta">
-                  Send to support
+                <button
+                  type="submit"
+                  className="dash-cta"
+                  disabled={!canSubmit || submitting}
+                >
+                  {submitting ? "Sending…" : "Send to support"}
                 </button>
               </div>
             </footer>

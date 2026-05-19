@@ -264,6 +264,10 @@ export default function SignInScreen() {
               googleAccessibilityLabel="Sign in with Google"
               microsoftAccessibilityLabel="Sign in with Microsoft"
             />
+            <Text style={styles.oauthHint}>
+              Use your agency or corporate Google or Microsoft account — personal Gmail or Outlook.com are not
+              accepted.
+            </Text>
           </View>
 
           <View style={styles.footer}>
@@ -402,6 +406,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 22,
     marginBottom: 10,
+  },
+  oauthHint: {
+    marginTop: 12,
+    paddingHorizontal: layout.screenGutter,
+    fontSize: 12,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(60, 60, 67, 0.72)',
+    lineHeight: 17,
+    textAlign: 'center',
+    maxWidth: 320,
+    alignSelf: 'center',
   },
   footer: {
     flexDirection: 'row',

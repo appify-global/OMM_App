@@ -25,8 +25,8 @@ import {
   PublishStepHeader,
   fieldShell,
   useListingFlowBottomPad,
-} from './_shared';
-import { useListingDraft } from './listing-draft-context';
+} from '@/components/list-add/flow-shared';
+import { useListingDraft } from '@/components/list-add/listing-draft-context';
 
 const COMMISSION_ASSUMPTION_PRESETS = [2.0, 2.2, 2.5, 2.75, 3.0] as const;
 

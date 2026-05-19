@@ -1,8 +1,10 @@
 import { Text } from "@/components/OMMText";
+import { useClerk, useSSO } from "@clerk/expo";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
+  Alert,
   Image,
   ImageBackground,
   Platform,
@@ -14,6 +16,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { OAuthProviderCircles } from "@/components/oauth/OAuthProviderCircles";
 import { accent } from "@/constants/theme";
+import { completeSSOFlow } from "@/lib/clerk-auth";
 
 /**
  * Welcome — [Figma: OMM / Welcome Screen](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1286-160)
@@ -23,6 +26,20 @@ import { accent } from "@/constants/theme";
 export default function WelcomeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { signOut } = useClerk();
+  const { startSSOFlow } = useSSO();
+
+  const onOAuth = async (strategy: "oauth_google" | "oauth_microsoft") => {
+    try {
+      const result = await startSSOFlow({ strategy });
+      await completeSSOFlow(result, router, signOut);
+    } catch {
+      Alert.alert(
+        "Sign in",
+        "Sign in was cancelled or could not be completed. Try again.",
+      );
+    }
+  };
 
   return (
     <View style={styles.root}>
@@ -95,11 +112,15 @@ export default function WelcomeScreen() {
 
               <View style={styles.oauthWrap}>
                 <OAuthProviderCircles
-                  onGooglePress={() => router.push("/sign-up")}
-                  onMicrosoftPress={() => router.push("/sign-up")}
+                  onGooglePress={() => void onOAuth("oauth_google")}
+                  onMicrosoftPress={() => void onOAuth("oauth_microsoft")}
                   googleAccessibilityLabel="Sign Up with Google"
                   microsoftAccessibilityLabel="Sign Up with Microsoft Account"
                 />
+                <Text style={styles.oauthHint}>
+                  Work email only — agency or corporate Google / Microsoft. Personal Gmail and Outlook.com are not
+                  accepted.
+                </Text>
               </View>
             </View>
 
@@ -239,6 +260,17 @@ const styles = StyleSheet.create({
     width: "100%",
     alignItems: "center",
     marginBottom: WELCOME_OAUTH_TO_FOOTER_GAP,
+  },
+  oauthHint: {
+    marginTop: 10,
+    paddingHorizontal: 20,
+    fontSize: 12,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(60, 60, 67, 0.72)",
+    lineHeight: 17,
+    textAlign: "center",
+    maxWidth: 320,
+    alignSelf: "center",
   },
   footerRow: {
     flexDirection: "row",

@@ -1,6 +1,8 @@
 import { SignIn } from "@clerk/nextjs";
 import Link from "next/link";
 
+import { WorkEmailAuthNotice } from "../../components/WorkEmailAuthNotice";
+
 export default function SignInPage() {
   return (
     <main className="auth-page">
@@ -33,6 +35,7 @@ export default function SignInPage() {
         </div>
 
         <div className="auth-form">
+          <WorkEmailAuthNotice />
           <SignIn
             routing="path"
             path="/sign-in"

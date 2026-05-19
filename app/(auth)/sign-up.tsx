@@ -23,7 +23,7 @@ import {
   LEGAL_PRIVACY_BODY,
   LEGAL_TERMS_SIGNUP_MODAL_BODY,
 } from "@/lib/legal-docs";
-import { fieldShell } from "@/app/(tabs)/add/_shared";
+import { fieldShell } from "@/components/list-add/flow-shared";
 import { accent } from "@/constants/theme";
 import { isPermittedWorkEmail, workEmailValidationMessage } from "@/lib/work-email";
 

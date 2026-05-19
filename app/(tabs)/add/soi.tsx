@@ -16,7 +16,7 @@ import {
   PublishStepHeader,
   fieldShell,
   useListingFlowBottomPad,
-} from './_shared';
+} from '@/components/list-add/flow-shared';
 import { DEMO_SOI_SUBURB_POSTCODE } from '@/lib/melbourne-demo-locations';
 import { slateNavy } from '@/constants/theme';
 import {

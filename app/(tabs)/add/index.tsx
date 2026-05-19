@@ -30,13 +30,13 @@ import {
   PublishStepHeader,
   fieldShell,
   useListingFlowBottomPad,
-} from "./_shared";
+} from "@/components/list-add/flow-shared";
 
 import {
   ADDRESS_DISCLOSURE_LABELS,
   useListingDraft,
   type AddressDisclosureChoice,
-} from "./listing-draft-context";
+} from "@/components/list-add/listing-draft-context";
 
 const ADDRESS_DISCLOSURE_OPTIONS = Object.keys(
   ADDRESS_DISCLOSURE_LABELS,

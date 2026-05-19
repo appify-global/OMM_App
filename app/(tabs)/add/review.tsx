@@ -12,8 +12,8 @@ import {
   PL_CTA,
   PublishStepHeader,
   useListingFlowBottomPad,
-} from './_shared';
-import { useListingDraft } from './listing-draft-context';
+} from '@/components/list-add/flow-shared';
+import { useListingDraft } from '@/components/list-add/listing-draft-context';
 import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
 import { DEMO_PRIMARY_SUBURB_LINE } from '@/lib/melbourne-demo-locations';
 

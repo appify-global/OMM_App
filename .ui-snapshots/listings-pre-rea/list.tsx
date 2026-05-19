@@ -17,7 +17,7 @@ import {
 } from "@/lib/melbourne-demo-locations";
 import { PROPERTY_IMG_1 } from "@/lib/propertyImages";
 
-import { fieldShell } from "./add/_shared";
+import { fieldShell } from "@/components/list-add/flow-shared";
 
 type TabKey = "live" | "contract" | "draft" | "sold";
 

@@ -5,7 +5,19 @@ import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useAuth } from '@clerk/expo';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
+
+import { postJsonApi } from '@/lib/api';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { accent, ink, layout, slateNavy } from '@/constants/theme';
@@ -57,17 +69,49 @@ function FieldBlock({
 export default function ContactSupportScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { getToken } = useAuth();
 
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
 
   const canSend = !!fullName.trim() && !!email.trim() && !!message.trim();
 
-  const onSend = () => {
-    if (!canSend) return;
-    Alert.alert('Message sent', 'We will reply within one business day.');
+  const onSend = async () => {
+    if (!canSend || sending) return;
+    setSending(true);
+    try {
+      const result = await postJsonApi(
+        '/api/support/contact',
+        getToken,
+        {
+          source: 'mobile',
+          fullName: fullName.trim(),
+          email: email.trim(),
+          phone: phone.trim() || undefined,
+          message: message.trim(),
+        },
+      );
+      if (!result.ok) {
+        const hint =
+          result.error === 'server_misconfigured'
+            ? 'Support email is not configured on the server yet.'
+            : result.status === 503
+              ? 'Support is temporarily unavailable. Try again later.'
+              : 'Could not send your message. Please try again.';
+        Alert.alert('Could not send', hint);
+        return;
+      }
+      Alert.alert('Message sent', 'We will reply within one business day.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } catch {
+      Alert.alert('Could not send', 'Check your connection and try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -195,15 +239,19 @@ export default function ContactSupportScreen() {
           <View style={{ height: 8 }} />
 
           <Pressable
-            style={[styles.sendBtn, !canSend && styles.sendBtnDisabled]}
-            onPress={onSend}
-            disabled={!canSend}
+            style={[styles.sendBtn, (!canSend || sending) && styles.sendBtnDisabled]}
+            onPress={() => void onSend()}
+            disabled={!canSend || sending}
             accessibilityRole="button"
             accessibilityLabel="Send message">
             {({ pressed }) => (
               <>
-                <Text style={styles.sendBtnText}>Send message</Text>
-                {pressed && canSend ? (
+                {sending ? (
+                  <ActivityIndicator color={ink} />
+                ) : (
+                  <Text style={styles.sendBtnText}>Send message</Text>
+                )}
+                {pressed && canSend && !sending ? (
                   <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.12)', borderRadius: 12 }]} />
                 ) : null}
               </>

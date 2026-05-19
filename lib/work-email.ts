@@ -64,15 +64,17 @@ export function isPermittedWorkEmail(raw: string): boolean {
 }
 
 /**
- * OAuth / Clerk: run when the IdP returns a primary email.
- * Returns `null` if no email was supplied (caller should skip UI validation until auth is wired).
- * Otherwise returns the same user-facing message as manual entry, or `null` if allowed.
+ * OAuth / Clerk (mobile native): same blocked domains and copy as `workEmailValidationMessage`.
+ * Used after Google / Microsoft SSO so IdP email matches agency / corporate policy (not Gmail, outlook.com, etc.).
+ *
+ * - Missing email → deny (same policy as “work email only”).
+ * - Personal / webmail domains → same copy as manual entry.
  */
 export function workEmailValidationMessageFromOAuth(
   emailFromIdp: string | null | undefined,
 ): string | null {
   if (emailFromIdp == null || String(emailFromIdp).trim() === '') {
-    return null;
+    return "We couldn't verify a work email from this sign-in. Use your agency or corporate Google or Microsoft account, or sign in with your work email and password.";
   }
   return workEmailValidationMessage(String(emailFromIdp));
 }

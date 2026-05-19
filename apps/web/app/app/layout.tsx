@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { WorkEmailSessionGuard } from "../components/WorkEmailSessionGuard";
 import { getUnreadNotificationCount, getCurrentUser } from "@/db/queries";
 import { getAppUserId } from "@/lib/auth-user";
 
@@ -17,11 +18,14 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const u = await getCurrentUser(userId);
   const unread = await getUnreadNotificationCount(userId);
   return (
-    <AppShell
-      userInitials={initialsFromName(u?.name)}
-      hasUnreadNotifications={unread > 0}
-    >
-      {children}
-    </AppShell>
+    <>
+      <WorkEmailSessionGuard />
+      <AppShell
+        userInitials={initialsFromName(u?.name)}
+        hasUnreadNotifications={unread > 0}
+      >
+        {children}
+      </AppShell>
+    </>
   );
 }

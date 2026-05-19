@@ -22,3 +22,22 @@ export async function apiFetch(
     headers,
   });
 }
+
+/** POST JSON to the Next.js API (e.g. `/api/support/*`). Auth header added when a Clerk token exists. */
+export async function postJsonApi(
+  path: string,
+  getToken: () => Promise<string | null>,
+  body: Record<string, unknown>,
+): Promise<
+  { ok: true; status: number } | { ok: false; error: string; status: number }
+> {
+  const res = await apiFetch(path, getToken, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+  const data = (await res.json().catch(() => ({}))) as { error?: string };
+  if (!res.ok) {
+    return { ok: false, error: data.error ?? 'request_failed', status: res.status };
+  }
+  return { ok: true, status: res.status };
+}

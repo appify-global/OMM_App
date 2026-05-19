@@ -87,6 +87,23 @@ function mapListingToFixtureShape(l: ListingRow): Listing {
   };
 }
 
+function draftFixtureToListingShape(d: DraftListing): Listing {
+  return {
+    id: d.id,
+    title: d.title,
+    address: d.address,
+    priceRange: "—",
+    status: "DRAFT",
+    authorityDaysLeft: null,
+    beds: 0,
+    baths: 0,
+    landSqm: 0,
+    views7d: 0,
+    leads: 0,
+    soiAttached: false,
+  };
+}
+
 function mapDbBrief(b: BriefRow, ownerSide: "BUYER" | "SELLER" = "BUYER"): Brief {
   const postedDays = Math.max(
     0,
@@ -169,6 +186,16 @@ export type HomePageLoaderData = {
     buyerMatches: typeof buyerMatches;
     totalViews7d: number;
     transactionsAwaitingReviewCount: number;
+    draftCount: number;
+    preMarketCount: number;
+    soiReminderListings: {
+      id: string;
+      titleLine: string;
+      subtitleLine: string;
+      needsSoi: boolean;
+    }[];
+    /** LIVE + PRE_MARKET + drafts; mobile home shelf (newest first). */
+    homePipelineListings: Listing[];
   };
   buying: {
     savedSearches: typeof savedSearches;
@@ -195,6 +222,21 @@ export async function loadHomePageData(
         buyerMatches,
         totalViews7d: activeListings.reduce((s, l) => s + l.views7d, 0),
         transactionsAwaitingReviewCount,
+        draftCount: draftListings.length,
+        preMarketCount: 2,
+        soiReminderListings: activeListings
+          .filter((l) => !l.soiAttached)
+          .slice(0, 5)
+          .map((l) => ({
+            id: l.id,
+            titleLine: l.title,
+            subtitleLine: l.address.replace(/\s+/g, " ").trim(),
+            needsSoi: true,
+          })),
+        homePipelineListings: [
+          ...activeListings,
+          ...draftListings.slice(0, 8).map(draftFixtureToListingShape),
+        ].slice(0, 15),
       },
       buying: {
         savedSearches,
@@ -267,6 +309,43 @@ export async function loadHomePageData(
         )
       : savedSearches;
 
+  const homePipeRows = [...grouped.active, ...grouped.offMarket, ...grouped.draft];
+  homePipeRows.sort(
+    (a, b) => (+b.updatedAt || 0) - (+a.updatedAt || 0),
+  );
+  const homePipelineListingsDb = homePipeRows
+    .slice(0, 15)
+    .map(mapListingToFixtureShape);
+
+  const reminderPool = [...grouped.active, ...grouped.offMarket].sort(
+    (a, b) => (+b.updatedAt || 0) - (+a.updatedAt || 0),
+  );
+  const soiReminderListingsRaw = reminderPool
+    .filter(
+      (l) =>
+        !l.soiUrl ||
+        (l.authorityExpiresAt !== null &&
+          (daysFrom(l.authorityExpiresAt) ?? 99) <= 21),
+    )
+    .slice(0, 6);
+  const soiReminderListingsMapped =
+    soiReminderListingsRaw.length > 0
+      ? soiReminderListingsRaw.map((l) => ({
+          id: l.id,
+          titleLine: (l.address || l.title).replace(/\s+/g, " ").trim(),
+          subtitleLine:
+            `${l.suburb}${l.postcode?.trim() ? ` ${l.postcode.trim()}` : ""}${l.state ? ` · ${l.state}` : ""}`.trim() ||
+            l.address,
+          needsSoi: !l.soiUrl,
+        }))
+      : reminderPool.slice(0, 4).map((l) => ({
+          id: l.id,
+          titleLine: (l.address || l.title).replace(/\s+/g, " ").trim(),
+          subtitleLine:
+            `${l.suburb}${l.postcode?.trim() ? ` ${l.postcode.trim()}` : ""}${l.state ? ` · ${l.state}` : ""}`.trim(),
+          needsSoi: !l.soiUrl,
+        }));
+
   return {
     userFirstName: first,
     selling: {
@@ -277,6 +356,19 @@ export async function loadHomePageData(
       buyerMatches: bm.length ? bm : buyerMatches,
       totalViews7d: totalViews7d || 500,
       transactionsAwaitingReviewCount,
+      draftCount: grouped.draft.length,
+      preMarketCount: grouped.offMarket.length,
+      soiReminderListings:
+        soiReminderListingsMapped.length > 0
+          ? soiReminderListingsMapped
+          : activeListings.slice(0, 3).map((l) => ({
+              id: l.id,
+              titleLine: l.title,
+              subtitleLine: l.address,
+              needsSoi: !l.soiAttached,
+            })),
+      homePipelineListings:
+        homePipelineListingsDb.length > 0 ? homePipelineListingsDb : activeListings,
     },
     buying: {
       savedSearches: savedOut,

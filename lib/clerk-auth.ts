@@ -36,7 +36,25 @@ export type SSOFlowResult = {
   authSessionResult?: { type: string } | null;
 };
 
-/** Google / Microsoft SSO with work-email policy. Returns true when session is active. */
+/** Best-effort primary email from Clerk resources after Google / Microsoft OAuth (Expo). */
+export function primaryEmailFromSsoResult(result: SSOFlowResult): string | null {
+  const su = result.signUp as { emailAddress?: string | null } | undefined;
+  const fromSignUp = typeof su?.emailAddress === 'string' ? su.emailAddress.trim() : '';
+  if (fromSignUp.includes('@')) return fromSignUp;
+
+  const si = result.signIn as { identifier?: string | null } | undefined;
+  const id = typeof si?.identifier === 'string' ? si.identifier.trim() : '';
+  if (id.includes('@')) return id;
+
+  return null;
+}
+
+/** Native app only: same domain rules as email sign-up (`lib/work-email.ts`). Skip on Expo web. */
+function shouldEnforceWorkEmailForOAuth(): boolean {
+  return Platform.OS === 'ios' || Platform.OS === 'android';
+}
+
+/** Google / Microsoft SSO with work-email policy on iOS/Android only. Returns true when session is active. */
 export async function completeSSOFlow(
   result: SSOFlowResult,
   router: RouterLike,
@@ -46,16 +64,18 @@ export async function completeSSOFlow(
     return false;
   }
 
-  const email = result.signUp?.emailAddress ?? result.signIn?.identifier ?? null;
-  const oauthDeny = workEmailValidationMessageFromOAuth(email);
-  if (oauthDeny) {
-    Alert.alert('Work email required', oauthDeny);
-    try {
-      await signOut();
-    } catch {
-      /* session may not exist yet */
+  if (shouldEnforceWorkEmailForOAuth()) {
+    const email = primaryEmailFromSsoResult(result);
+    const oauthDeny = workEmailValidationMessageFromOAuth(email);
+    if (oauthDeny) {
+      Alert.alert('Work email required', oauthDeny);
+      try {
+        await signOut();
+      } catch {
+        /* session may not exist yet */
+      }
+      return false;
     }
-    return false;
   }
 
   if (result.createdSessionId && result.setActive) {

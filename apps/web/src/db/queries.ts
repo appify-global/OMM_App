@@ -7,6 +7,8 @@
 
 import "server-only";
 
+import { randomBytes } from "node:crypto";
+
 import { and, desc, eq, not, sql } from "drizzle-orm";
 
 import { db, schema } from "./index";
@@ -283,4 +285,120 @@ export async function getOffMarketListingsPublic(limit = 8) {
     .where(eq(schema.listings.status, "PRE_MARKET"))
     .orderBy(desc(schema.listings.updatedAt))
     .limit(limit);
+}
+
+/** Mobile create-listing payloads (validated again in route). */
+export type MobileListingMediaInput = {
+  kind: "PHOTO" | "FLOOR_PLAN" | "VIDEO" | "SOI_PDF";
+  url: string;
+  caption?: string | null;
+  position?: number;
+};
+
+export type MobileCreateListingInput = {
+  title?: string | null;
+  address: string;
+  suburb: string;
+  state?: string | null;
+  postcode?: string | null;
+  bedrooms?: number | null;
+  bathrooms?: number | null;
+  carSpaces?: number | null;
+  landSizeSqm?: number | null;
+  buildingSizeSqm?: number | null;
+  /** Whole AUD amounts (stored as decimals). */
+  priceFromAud?: number | null;
+  priceToAud?: number | null;
+  priceDisplay?: string | null;
+  description?: string | null;
+  features?: string[];
+  inspectionTimes?: { at: string; label: string }[];
+  status?: "DRAFT" | "PRE_MARKET" | "LIVE";
+  soiUrl?: string | null;
+  soiKind?: string | null;
+  media?: MobileListingMediaInput[];
+};
+
+function newListingId(): string {
+  return `lst-${randomBytes(12).toString("hex")}`;
+}
+
+function newMediaId(): string {
+  return `lmd-${randomBytes(8).toString("hex")}`;
+}
+
+/** Insert listing + optional media. Returns listing id or `null` if no DATABASE_URL. */
+export async function createListingForAgent(
+  agentId: string,
+  input: MobileCreateListingInput,
+): Promise<string | null> {
+  if (!HAS_DB) return null;
+
+  const id = newListingId();
+  const status = input.status ?? "DRAFT";
+  const address = input.address.trim();
+  const suburb = input.suburb.trim();
+  const title =
+    (input.title?.trim() || `${address}, ${suburb}`).slice(0, 500);
+  const now = new Date();
+  const publishedAt = status === "LIVE" ? now : null;
+
+  await db.transaction(async (tx) => {
+    await tx.insert(schema.listings).values({
+      id,
+      agentId,
+      title,
+      address,
+      suburb,
+      state: (input.state?.trim() || "VIC").slice(0, 24),
+      postcode: input.postcode?.trim()?.slice(0, 16) ?? null,
+      status,
+      bedrooms: input.bedrooms ?? null,
+      bathrooms: input.bathrooms ?? null,
+      carSpaces: input.carSpaces ?? null,
+      landSizeSqm: input.landSizeSqm ?? null,
+      buildingSizeSqm: input.buildingSizeSqm ?? null,
+      priceFrom:
+        input.priceFromAud != null ? String(Math.round(input.priceFromAud)) : null,
+      priceTo:
+        input.priceToAud != null ? String(Math.round(input.priceToAud)) : null,
+      priceDisplay: input.priceDisplay?.trim()?.slice(0, 240) ?? null,
+      description: input.description?.trim() ?? null,
+      features: Array.isArray(input.features) ? input.features : [],
+      inspectionTimes: Array.isArray(input.inspectionTimes)
+        ? input.inspectionTimes
+        : [],
+      soiUrl: input.soiUrl?.trim() ?? null,
+      soiKind: input.soiKind?.trim() ?? null,
+      publishedAt,
+      updatedAt: now,
+    });
+
+    const mediaRows = Array.isArray(input.media) ? input.media : [];
+    let pos = 0;
+    for (const m of mediaRows) {
+      const url = typeof m.url === "string" ? m.url.trim() : "";
+      if (!url || url.length > 2048) continue;
+      const kind = m.kind;
+      if (
+        kind !== "PHOTO" &&
+        kind !== "FLOOR_PLAN" &&
+        kind !== "VIDEO" &&
+        kind !== "SOI_PDF"
+      ) {
+        continue;
+      }
+      await tx.insert(schema.listingMedia).values({
+        id: newMediaId(),
+        listingId: id,
+        kind,
+        url,
+        caption: m.caption?.trim()?.slice(0, 500) ?? null,
+        position: typeof m.position === "number" ? m.position : pos,
+      });
+      pos += 1;
+    }
+  });
+
+  return id;
 }

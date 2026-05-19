@@ -75,6 +75,8 @@ export type HomePageLoaderData = {
   userFirstName: string;
   selling: {
     activeListings: Listing[];
+    /** LIVE + PRE_MARKET + drafts; mobile home carousel. */
+    homePipelineListings: Listing[];
     authorityExpiringSoon: AuthorityExpiring[];
     newEnquiriesCount: number;
     latestEnquiries: Enquiry[];

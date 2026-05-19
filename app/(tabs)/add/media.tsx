@@ -27,7 +27,16 @@ import {
 } from '@/lib/listing-media-pickers';
 import { formatSoiSize } from '@/lib/soi-attachment';
 
-import { PL_PAD, PL_BORDER, PL_MUTED, PL_TITLE, PrimaryCta, PublishStepHeader, fieldShell, useListingFlowBottomPad } from './_shared';
+import {
+  PL_PAD,
+  PL_BORDER,
+  PL_MUTED,
+  PL_TITLE,
+  PrimaryCta,
+  PublishStepHeader,
+  fieldShell,
+  useListingFlowBottomPad,
+} from '@/components/list-add/flow-shared';
 
 export default function PublishListingMedia() {
   const router = useRouter();
