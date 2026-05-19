@@ -1,0 +1,871 @@
+/* FIND-inspired marketing shell — cleaned up single-scene hero */
+
+:root {
+  --find-bg: #ffffff;
+  --find-muted: rgba(0, 0, 0, 0.45);
+  --find-muted-strong: rgba(0, 0, 0, 0.28);
+}
+
+body {
+  background: var(--find-bg);
+  color: #000;
+}
+
+.site-dock,
+.mobile-bottom-nav {
+  display: none !important;
+}
+
+/* ----- Header ----- */
+
+.site-header--find {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 40;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+}
+
+.site-header--find .site-header-inner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  min-height: 64px;
+  padding: 0 clamp(20px, 4vw, 40px);
+}
+
+.brand-logo {
+  display: block;
+  width: auto;
+  height: 22px;
+  max-width: min(118px, 32vw);
+}
+
+.site-header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 3vw, 36px);
+}
+
+.site-header-nav a {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  transition: color 160ms ease;
+}
+
+.site-header-nav a:hover,
+.site-header-nav a.is-active {
+  color: var(--find-muted);
+}
+
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: #000;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.btn-pill:hover {
+  background: #1a1a1a;
+  transform: translateY(-1px);
+}
+
+.btn-pill--sm {
+  padding: 10px 18px;
+  font-size: 13px;
+}
+
+.btn-pill--ghost {
+  background: transparent;
+  color: #000;
+  box-shadow: none;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.btn-pill--ghost:hover {
+  background: rgba(0, 0, 0, 0.06);
+  transform: none;
+}
+
+.site-header-auth {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.site-header-user-avatar {
+  width: 36px;
+  height: 36px;
+}
+
+.btn-pill-arrow {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ----- Hero — sky → clouds → building → headline → front clouds → copy ----- */
+
+/* Hero extends under the transparent header; subsequent sections sit below */
+.home-find {
+  padding-top: 0;
+}
+
+/* Transparent header on home — sits over the hero sky */
+body:has(.home-find) .site-header--find {
+  background: transparent;
+  border-bottom: 0;
+  backdrop-filter: none;
+}
+
+/* Scroll runway — sticky hero; short scrub so landing holds longer */
+.hero-find-scroll {
+  position: relative;
+  height: 165vh;
+}
+
+.hero-find--sticky {
+  position: sticky;
+  top: 0;
+}
+
+.hero-find {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100svh;
+  max-height: 100svh;
+  overflow: hidden;
+  isolation: isolate;
+  background: #6eb8e8;
+  /* Bottom edge of headline + lede + CTA — property fills below this */
+  --hero-property-top: clamp(360px, 51vh, 520px);
+}
+
+/* Flat painted-blue sky — top is deeper, fades to soft horizon */
+.hero-find__sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    to bottom,
+    #5fa8de 0%,
+    #79bce6 35%,
+    #a7d3ee 75%,
+    #c9e3f4 100%
+  );
+  pointer-events: none;
+}
+
+/* Cloud band — sits low (horizon-style), never covers the headline */
+.hero-find__clouds {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 65%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+.hero-find__clouds--back {
+  z-index: 1;
+}
+
+/* Wisps flanking the home — same band as the property, behind the cutout */
+.hero-find__clouds--property {
+  top: var(--hero-property-top);
+  bottom: 0;
+  height: auto;
+  z-index: 1;
+}
+
+/* Front mist off — reads as dirty smudges on the home when scrolled */
+.hero-find__clouds--front {
+  display: none;
+}
+
+.hero-find__clouds-img {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  display: block;
+  width: auto;
+  height: auto;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  transform: translateX(-50%);
+  transform-origin: center bottom;
+}
+
+/* Property flanks — must come after base .hero-find__clouds-img (overrides left: 50%) */
+.hero-find__clouds-img.hero-find__clouds-img--property-left {
+  left: -4vw;
+  right: auto;
+  width: min(500px, 46vw);
+  opacity: 0.68;
+  transform: translateY(22%) scale(0.88);
+}
+
+.hero-find__clouds-img.hero-find__clouds-img--property-right {
+  right: -4vw;
+  left: auto;
+  width: min(500px, 46vw);
+  opacity: 0.68;
+  transform: translateY(26%) scale(0.88) scaleX(-1);
+}
+
+/* Soft wisp on the roof tree — behind the home cutout */
+.hero-find__clouds--roof {
+  top: calc(var(--hero-property-top) - clamp(8px, 1.5vh, 16px));
+  bottom: auto;
+  height: clamp(140px, 20vh, 220px);
+  z-index: 1;
+}
+
+.hero-find__clouds-img.hero-find__clouds-img--roof {
+  left: 50%;
+  right: auto;
+  bottom: 0;
+  width: min(420px, 38vw);
+  opacity: 0.88;
+  transform: translateX(-50%) translateY(42%) scale(0.95);
+}
+
+/* Front mist — sits at the bottom edge only, low and subtle */
+.hero-find__clouds-img--front.hero-find__clouds-img--center {
+  width: min(1300px, 115vw);
+  opacity: 0.55;
+  transform: translateX(-50%) translateY(75%) scale(1.15);
+}
+
+/* Text-level cloud layer — sits at headline height, above the title */
+.hero-find__clouds--text {
+  position: absolute;
+  top: clamp(80px, 16vh, 200px);
+  right: 0;
+  left: 0;
+  height: clamp(220px, 32vh, 380px);
+  z-index: 4;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+.hero-find__clouds-img--text {
+  position: absolute;
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.hero-find__clouds-img--text-left {
+  width: min(720px, 60vw);
+  bottom: 8%;
+  left: -8vw;
+  opacity: 0.72;
+}
+
+.hero-find__clouds-img--text-right {
+  width: min(640px, 52vw);
+  bottom: 18%;
+  right: -6vw;
+  opacity: 0.65;
+  transform: scaleX(-1);
+}
+
+/* Headline cluster — sits high in the upper third, tight stack */
+.hero-find__headline {
+  position: absolute;
+  top: clamp(170px, 28vh, 300px);
+  right: 0;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 clamp(20px, 4vw, 40px);
+  text-align: center;
+  will-change: transform;
+}
+
+.hero-find__actions {
+  position: absolute;
+  top: clamp(170px, 28vh, 300px);
+  right: 0;
+  left: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(16px, 2vh, 24px);
+  padding: clamp(72px, 9.5vw, 152px) clamp(20px, 4vw, 40px) 0;
+  text-align: center;
+  will-change: transform;
+}
+
+.hero-find__actions .hero-find__lede {
+  margin: 0;
+}
+
+.hero-find__title {
+  margin: 0;
+  font-size: clamp(2.4rem, 9.6vw, 10.5rem);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.055em;
+  white-space: nowrap;
+  color: #000;
+  transition: opacity 80ms linear;
+}
+
+.hero-find__lede {
+  margin: 0;
+  font-size: clamp(16px, 1.7vw, 22px);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.012em;
+  white-space: nowrap;
+}
+
+.hero-find__lede-strong {
+  color: #000;
+}
+
+.hero-find__lede-soft {
+  color: rgba(0, 0, 0, 0.42);
+}
+
+/* Confident hero CTA — button itself doesn't move; label flips up on hover */
+.btn-pill--hero {
+  position: relative;
+  padding: 20px 36px;
+  font-size: 16px;
+  font-weight: 600;
+  gap: 12px;
+  letter-spacing: -0.005em;
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 220ms ease;
+}
+
+.btn-pill--hero:hover {
+  transform: none;
+  background: #000;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22), 0 3px 8px rgba(0, 0, 0, 0.14);
+}
+
+/* Label mask — clips the two stacked text spans during the flip */
+.btn-pill__label {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  line-height: 1.1;
+  vertical-align: middle;
+}
+
+.btn-pill__label-text {
+  display: block;
+  transition: transform 380ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* The clone sits 100% below the visible label, slides up into view */
+.btn-pill__label-text--clone {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+}
+
+.btn-pill--hero:hover .btn-pill__label-text {
+  transform: translateY(-100%);
+}
+
+.btn-pill--hero .btn-pill-arrow {
+  display: inline-block;
+  font-size: 20px;
+  transition: transform 380ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.btn-pill--hero:hover .btn-pill-arrow {
+  transform: translateX(4px);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.hero-find__apartment {
+  position: absolute;
+  top: var(--hero-property-top);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  line-height: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Fills only the band below hero copy; scales to height, bottom flush, top/bottom crop */
+.hero-find__apartment-img {
+  display: block;
+  width: auto;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  object-fit: contain;
+  object-position: center bottom;
+  transform: translateY(12%);
+  transform-origin: center bottom;
+}
+
+.hero-find__apartment[style*="transform"] .hero-find__apartment-img {
+  transform: none;
+}
+
+/* ----- Why section ----- */
+
+.find-why {
+  position: relative;
+  z-index: 4;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(56px, 8vh, 88px) clamp(20px, 4vw, 40px);
+  background: #fff;
+}
+
+.find-why__grid {
+  display: grid;
+  grid-template-columns: minmax(100px, 180px) 1fr;
+  gap: clamp(24px, 5vw, 80px);
+  align-items: start;
+}
+
+.find-why__label {
+  margin: 0;
+  padding-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--find-muted);
+}
+
+.find-why__headline {
+  margin: 0;
+  font-size: clamp(26px, 3.8vw, 44px);
+  font-weight: 500;
+  line-height: 1.18;
+  letter-spacing: -0.03em;
+}
+
+.find-why__headline strong {
+  font-weight: 500;
+  color: #000;
+}
+
+.find-why__headline span {
+  color: var(--find-muted-strong);
+}
+
+/* ----- Media band ----- */
+
+.find-media {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 clamp(20px, 4vw, 40px) clamp(64px, 10vh, 96px);
+}
+
+.find-media__frame {
+  position: relative;
+  aspect-ratio: 16 / 7;
+  overflow: hidden;
+  border-radius: 4px;
+  background: #e8e8e8;
+}
+
+.find-media__frame img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ----- Listings strip ----- */
+
+.find-listings {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fafafa;
+}
+
+.find-listings__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(48px, 8vh, 72px) clamp(20px, 4vw, 40px);
+}
+
+.find-listings__head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.find-listings__head h2 {
+  margin: 8px 0 0;
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.find-listings__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.find-listing-card {
+  display: block;
+  overflow: hidden;
+  border-radius: 6px;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  text-decoration: none;
+  color: inherit;
+  transition: transform 200ms ease, box-shadow 200ms ease;
+}
+
+.find-listing-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.find-listing-card__img {
+  aspect-ratio: 4 / 3;
+  background-size: cover;
+  background-position: center;
+}
+
+.find-listing-card__body {
+  padding: 14px 16px 16px;
+}
+
+.find-listing-card__body h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.find-listing-card__body p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--find-muted);
+}
+
+.find-link {
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 1px solid currentColor;
+}
+
+.site-footer {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+}
+
+@media (max-width: 900px) {
+  .site-header-nav {
+    display: none;
+  }
+
+  .site-header--find .site-header-inner {
+    grid-template-columns: 1fr auto;
+  }
+
+  .find-why__grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .find-listings__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero-find__title {
+    font-size: clamp(2rem, 10vw, 3.2rem);
+    letter-spacing: -0.045em;
+  }
+
+  .hero-find__lede {
+    font-size: clamp(11px, 3.1vw, 14px);
+  }
+
+  .hero-find {
+    --hero-property-top: clamp(300px, 54vh, 440px);
+  }
+
+
+  .hero-find__clouds-img--back.hero-find__clouds-img--left {
+    transform: translateX(calc(-50% - 42vw)) translateY(8%) scale(1.05);
+  }
+
+  .hero-find__clouds-img--back.hero-find__clouds-img--right {
+    transform: translateX(calc(-50% + 42vw)) translateY(8%) scale(1.05) scaleX(-1);
+  }
+
+  .hero-find__clouds-img--front.hero-find__clouds-img--wide {
+    transform: translateX(-50%) translateY(18%) scale(1.45);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-find-scroll {
+    height: auto;
+  }
+
+  .hero-find__sky,
+  .hero-find__clouds,
+  .hero-find__headline,
+  .hero-find__actions,
+  .hero-find__apartment {
+    transform: none !important;
+  }
+
+  .hero-find__apartment-img {
+    transform: translateY(12%);
+  }
+}
+
+/* ----- Auth (sign-in) — MATCH typography, plain white shell ----- */
+
+.auth-find {
+  min-height: 100svh;
+  background: #fff;
+  color: #000;
+}
+
+.auth-find__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(20px, 4vw, 28px) clamp(20px, 4vw, 40px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.auth-find__logo {
+  display: block;
+  width: auto;
+  height: 22px;
+  max-width: min(118px, 32vw);
+}
+
+.auth-find__back {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.45);
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.auth-find__back:hover {
+  color: #000;
+}
+
+.auth-find__shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+  gap: clamp(40px, 8vw, 96px);
+  align-items: start;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(40px, 8vh, 72px) clamp(20px, 4vw, 40px) 96px;
+}
+
+.auth-find__copy {
+  position: sticky;
+  top: clamp(88px, 12vh, 120px);
+}
+
+.auth-find__title {
+  margin: 0 0 clamp(16px, 2.5vh, 24px);
+  font-size: clamp(2.25rem, 5.5vw, 3.75rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.055em;
+  color: #000;
+}
+
+.auth-find__lede {
+  margin: 0;
+  max-width: 36ch;
+  font-size: clamp(16px, 1.6vw, 20px);
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: -0.012em;
+}
+
+.auth-find__lede-strong {
+  color: #000;
+}
+
+.auth-find__lede-soft {
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.auth-find__foot {
+  margin: clamp(24px, 4vh, 36px) 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.auth-find__foot-link {
+  color: #000;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+  transition: border-color 160ms ease;
+}
+
+.auth-find__foot-link:hover {
+  border-color: #000;
+}
+
+.auth-find__form {
+  width: 100%;
+}
+
+/* Clerk card — align with FIND buttons and Satoshi */
+.auth-find-clerk__root {
+  width: 100%;
+}
+
+.auth-find-clerk__card-box {
+  width: 100%;
+}
+
+.auth-find-clerk__card {
+  width: 100%;
+  margin: 0;
+  padding: clamp(24px, 3vw, 32px);
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06) !important;
+  background: #fff !important;
+}
+
+/* Page copy carries the headline — keep the card focused on the form */
+.auth-find-clerk__header {
+  display: none !important;
+}
+
+.auth-find-clerk__header-title {
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.auth-find-clerk__header-subtitle {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: rgba(0, 0, 0, 0.45) !important;
+}
+
+.auth-find-clerk__label {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+}
+
+.auth-find-clerk__input {
+  border-radius: 10px !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.auth-find-clerk__social-btn,
+.auth-find-clerk__primary-btn {
+  height: auto !important;
+  min-height: 44px !important;
+  padding: 12px 20px !important;
+  border-radius: 999px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  box-shadow: none !important;
+}
+
+.auth-find-clerk__primary-btn {
+  background: #000 !important;
+}
+
+.auth-find-clerk__primary-btn:hover {
+  background: #1a1a1a !important;
+}
+
+.auth-find-clerk__social-btn {
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  background: #fff !important;
+  color: #000 !important;
+}
+
+.auth-find-clerk__footer-link {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.auth-find-clerk__divider-text {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: rgba(0, 0, 0, 0.4) !important;
+}
+
+@media (max-width: 860px) {
+  .auth-find__shell {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .auth-find__copy {
+    position: static;
+  }
+}

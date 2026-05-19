@@ -10,11 +10,8 @@ export default function SiteFooter() {
     <footer className="site-footer">
       <section className="footer-directory" aria-label="Property directory">
         <header className="footer-masthead">
-          <p className="section-kicker">
-            <span className="sq sq--filled sq--sm" aria-hidden="true" />
-            <span>The Colophon</span>
-          </p>
-          <h2>An index of the private market.</h2>
+          <p className="section-kicker">Directory</p>
+          <h2>Browse by state, suburb and tool</h2>
         </header>
 
         <div className="footer-link-columns">

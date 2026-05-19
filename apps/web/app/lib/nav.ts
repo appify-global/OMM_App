@@ -1,16 +1,37 @@
 export type NavItem = {
   label: string;
   href: string;
-  section: string;
 };
 
-export const navItems: NavItem[] = [
-  { label: "Listings", href: "/listings", section: "I" },
-  { label: "Suburbs", href: "/suburbs", section: "II" },
-  { label: "Briefs", href: "/briefs", section: "III" },
-  { label: "Blog", href: "/blog", section: "IV" },
-  { label: "About", href: "/about", section: "V" },
+/** Top header — FIND-style horizontal nav. */
+export const headerNavItems: NavItem[] = [
+  { label: "Search", href: "/listings" },
+  { label: "Suburbs", href: "/suburbs" },
+  { label: "Briefs", href: "/briefs" },
+  { label: "Insights", href: "/blog" },
+  { label: "About", href: "/about" },
 ];
+
+/** Overlay menu — mobile / legacy. */
+export const menuNavItems: NavItem[] = [
+  { label: "Buy", href: "/listings" },
+  { label: "Suburbs", href: "/suburbs" },
+  { label: "Briefs", href: "/briefs" },
+  { label: "Insights", href: "/blog" },
+  { label: "About", href: "/about" },
+];
+
+export const navItems: NavItem[] = headerNavItems;
+
+export function dockLabelForPath(pathname: string): string {
+  if (pathname === "/") return "Home";
+  if (pathname.startsWith("/listings")) return "Buy";
+  if (pathname.startsWith("/suburbs")) return "Suburbs";
+  if (pathname.startsWith("/briefs")) return "Briefs";
+  if (pathname.startsWith("/blog")) return "Insights";
+  if (pathname.startsWith("/about")) return "About";
+  return "Menu";
+}
 
 export const footerDirectoryLinks: string[][] = [
   [
