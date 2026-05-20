@@ -10,17 +10,17 @@ export const metadata: Metadata = {
   description: "Search off-market property across Victoria before it reaches the portals.",
   icons: {
     icon: [
-      { url: "/favicon-16.png?v=2", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32.png?v=2", sizes: "32x32", type: "image/png" },
-      { url: "/favicon.svg?v=2", type: "image/svg+xml", sizes: "any" },
-      { url: "/favicon.ico?v=2", sizes: "any" },
+      { url: "/favicon-16.png?v=3", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32.png?v=3", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.svg?v=3", type: "image/svg+xml", sizes: "any" },
+      { url: "/favicon.ico?v=3", sizes: "any" },
     ],
-    apple: [{ url: "/apple-touch-icon.png?v=2", sizes: "180x180" }],
+    apple: [{ url: "/apple-touch-icon.png?v=3", sizes: "180x180" }],
   },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#ffffff",
+  themeColor: "#5fa8de",
 };
 
 export default function RootLayout({

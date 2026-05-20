@@ -1,0 +1,30 @@
+# Deploy MATCH web to Railway production when main is updated.
+#
+# Primary path: Railway GitHub autodeploy (service source.branch = main).
+# This workflow is a backup if the Railway webhook misses a push — requires
+# RAILWAY_TOKEN (project token) in repo secrets. See docs/RAILWAY_DEPLOY.md.
+
+name: Deploy Railway (production)
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: railway-production
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    # Skips automatically when RAILWAY_TOKEN secret is not configured.
+    if: ${{ secrets.RAILWAY_TOKEN }}
+    runs-on: ubuntu-latest
+    container: ghcr.io/railwayapp/cli:latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy latest main to OMM service
+        run: railway redeploy --service OMM --yes
