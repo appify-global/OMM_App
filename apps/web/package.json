@@ -13,6 +13,7 @@
     "db:seed": "tsx src/db/seed.ts"
   },
   "devDependencies": {
+    "@clerk/types": "^4.101.23",
     "@types/node": "^25.6.0",
     "@types/pg": "^8.20.0",
     "@types/react": "^19.2.14",
@@ -30,6 +31,7 @@
     "pg": "^8.20.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "resend": "^6.12.3",
     "server-only": "^0.0.1",
     "svix": "^1.92.2"
   }

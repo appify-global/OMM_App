@@ -75,7 +75,7 @@ function mapListingToFixtureShape(l: ListingRow): Listing {
     id: l.id,
     title: l.title,
     address: l.address,
-    priceRange: l.priceDisplay ?? "—",
+    priceRange: l.priceDisplay ?? "-",
     status: mapStatus(l.status) as Listing["status"],
     authorityDaysLeft: daysFrom(l.authorityExpiresAt),
     beds: l.bedrooms ?? 0,
@@ -107,10 +107,10 @@ function mapDbBrief(b: BriefRow, ownerSide: "BUYER" | "SELLER" = "BUYER"): Brief
     postedDays,
     status: b.status as Brief["status"],
     suburbs: subs.join(", "),
-    budget: b.budgetDisplay ?? "—",
+    budget: b.budgetDisplay ?? "-",
     propertyType: types.join(" · "),
-    minBeds: b.bedroomsMin ? `${b.bedroomsMin}+` : "—",
-    briefBody: b.story ?? "—",
+    minBeds: b.bedroomsMin ? `${b.bedroomsMin}+` : "-",
+    briefBody: b.story ?? "-",
     matchCount: 0,
     unreadReplies: 0,
     matches: [],
@@ -119,7 +119,7 @@ function mapDbBrief(b: BriefRow, ownerSide: "BUYER" | "SELLER" = "BUYER"): Brief
 }
 
 function relTime(d: Date | null): string {
-  if (!d) return "—";
+  if (!d) return "-";
   const s = Math.floor((Date.now() - +d) / 1000);
   if (s < 3600) return `${Math.max(1, Math.floor(s / 60))}M`;
   if (s < 86400) return `${Math.floor(s / 3600)}H`;
@@ -231,7 +231,7 @@ export async function loadHomePageData(
   const bm = othersBriefs.slice(0, 5).map((b) => ({
     id: b.id,
     suburb: b.headline,
-    criteria: b.budgetDisplay ?? "—",
+    criteria: b.budgetDisplay ?? "-",
   }));
 
   const totalViews7d = allMine.reduce((s, l) => s + l.viewsCount, 0);
@@ -245,7 +245,7 @@ export async function loadHomePageData(
         title: l.title,
         status: "OFF-MARKET" as const,
         matchPercent: 90,
-        priceRange: l.priceDisplay ?? "—",
+        priceRange: l.priceDisplay ?? "-",
         beds: l.bedrooms ?? 0,
         baths: l.bathrooms ?? 0,
         landSqm: l.landSizeSqm ?? 0,
@@ -260,7 +260,7 @@ export async function loadHomePageData(
             ({
               id: s.id,
               title: s.name,
-              criteria: s.suburbs?.join?.(", ") ?? s.query ?? "—",
+              criteria: s.suburbs?.join?.(", ") ?? s.query ?? "-",
               alertsOn: s.alertCadence !== "OFF",
               newCount: s.newMatchesCount,
             } as (typeof savedSearches)[0]),
@@ -324,7 +324,7 @@ export async function loadListingsPageData(agentId: string): Promise<ListingsPag
           title: l.title,
           status: "OFF-MARKET" as const,
           matchPercent: 90,
-          priceRange: l.priceDisplay ?? "—",
+          priceRange: l.priceDisplay ?? "-",
           beds: l.bedrooms ?? 0,
           baths: l.bathrooms ?? 0,
           landSqm: l.landSizeSqm ?? 0,
@@ -405,7 +405,7 @@ function mapArchiveToPanel(l: ListingRow): ArchivedListing {
     closedReason: cr,
     closedAt: l.updatedAt
       ? l.updatedAt.toLocaleDateString("en-AU", { month: "short", year: "numeric" })
-      : "—",
+      : "-",
     finalPrice: l.priceDisplay ?? undefined,
   };
 }
@@ -470,7 +470,7 @@ export async function loadThreadForDetail(threadId: string, ownerId: string) {
       body: m.body ?? "",
       time: m.sentAt
         ? m.sentAt.toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit" })
-        : "—",
+        : "-",
       dateGroup: "TODAY",
       attachments: atts.length
         ? atts.map((a) => ({
@@ -487,7 +487,7 @@ export async function loadThreadForDetail(threadId: string, ownerId: string) {
       id: "ph",
       direction: "IN" as const,
       body: t.preview ?? "No messages yet.",
-      time: "—",
+      time: "-",
     });
   }
   return out;

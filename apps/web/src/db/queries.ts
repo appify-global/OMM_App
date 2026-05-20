@@ -1,5 +1,5 @@
 /**
- * Query helpers — server-only, used by RSC pages.
+ * Query helpers - server-only, used by RSC pages.
  *
  * Falls back gracefully to fixture data when DATABASE_URL isn't set so that
  * frontend dev keeps working without a live DB connection.

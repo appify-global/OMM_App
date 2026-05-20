@@ -30,7 +30,7 @@ export default function DisputesListPage() {
             </h1>
             <p className="page-lede">
               Where introductions clash, fees overlap or contracts go sideways.
-              Trust &amp; Safety mediate &mdash; the record decides.
+              Trust &amp; Safety mediate, the record decides.
             </p>
           </div>
           <Link href="/app/profile/disputes/new" className="dash-cta">

@@ -26,6 +26,18 @@ android/
 apps/*/ios/
 apps/*/android/
 
+# Native Expo app — not built on Railway (website-only deploys)
+apps/mobile/
+
+# Reference / docs — never needed at deploy time
+docs/
+*.md
+!apps/web/**/*.md
+
+# Server side-app is its own thing
+server/
+
 # Backups + Cursor metadata
 *.bak
 .cursor/
+terminals/

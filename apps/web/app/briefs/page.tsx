@@ -1,10 +1,12 @@
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import FindPageMasthead from "../components/FindPageMasthead";
 import { fetchBriefs } from "../lib/api";
 
 export const metadata = {
-  title: "Buyer briefs — OMM",
-  description: "Tell the private market what you want. Agents see briefs before they ever build a campaign.",
+  title: "Buyer briefs - MATCH",
+  description:
+    "Tell the private market what you want. Agents see briefs before they build a campaign.",
 };
 
 export default async function BriefsPage() {
@@ -13,43 +15,28 @@ export default async function BriefsPage() {
   return (
     <>
       <SiteHeader />
-      <main>
-        <div className="page-shell">
-          <header className="page-masthead">
-            <div>
-              <p className="section-kicker">
-                <span className="sq sq--filled sq--sm" aria-hidden="true" />
-                <span>The Brief</span>
-              </p>
-              <h1>
-                Tell the market, <em>precisely</em><br />what you want.
-              </h1>
-              <p className="page-lede">
-                A buyer brief is a private record of the home you intend to buy.
-                Agents running quiet campaigns search briefs before they build
-                shortlists. The sharper your brief, the earlier you&rsquo;re seen.
-              </p>
-            </div>
-            <dl className="page-stats">
-              <div>
-                <dt>Active briefs</dt>
-                <dd>4.8k</dd>
-              </div>
-              <div>
-                <dt>Agents searching</dt>
-                <dd>1.1k</dd>
-              </div>
-              <div>
-                <dt>Matched in 14d</dt>
-                <dd>96%</dd>
-              </div>
-            </dl>
-          </header>
+      <main className="home-find find-page">
+        <div className="find-page__inner">
+          <FindPageMasthead
+            kicker="Buyer briefs"
+            title={
+              <>
+                <span className="find-page__title-strong">Tell the market</span>
+                <span className="find-page__title-soft"> what you want.</span>
+              </>
+            }
+            lede="A buyer brief is a private record of the home you intend to buy. Agents running quiet campaigns search briefs before they build shortlists."
+            stats={[
+              { label: "Active briefs", value: "4.8k" },
+              { label: "Agents searching", value: "1.1k" },
+              { label: "Matched in 14d", value: "96%" },
+            ]}
+          />
 
-          <div className="briefs-layout">
-            <form className="brief-form">
+          <div className="find-page__split">
+            <form className="find-page__panel">
               <h2>Post a brief</h2>
-              <div className="brief-form-field">
+              <div className="find-page__field">
                 <label htmlFor="brief-type">What are you looking for</label>
                 <input
                   id="brief-type"
@@ -58,7 +45,7 @@ export default async function BriefsPage() {
                   required
                 />
               </div>
-              <div className="brief-form-field">
+              <div className="find-page__field">
                 <label htmlFor="brief-suburbs">Target suburbs</label>
                 <input
                   id="brief-suburbs"
@@ -67,7 +54,7 @@ export default async function BriefsPage() {
                   required
                 />
               </div>
-              <div className="brief-form-field">
+              <div className="find-page__field">
                 <label htmlFor="brief-budget">Budget range</label>
                 <input
                   id="brief-budget"
@@ -76,10 +63,12 @@ export default async function BriefsPage() {
                   required
                 />
               </div>
-              <div className="brief-form-field">
+              <div className="find-page__field">
                 <label htmlFor="brief-timing">Timing</label>
                 <select id="brief-timing" defaultValue="">
-                  <option value="" disabled>Select timing</option>
+                  <option value="" disabled>
+                    Select timing
+                  </option>
                   <option>Settling in 30 days</option>
                   <option>Settling in 60 days</option>
                   <option>Settling in 90 days</option>
@@ -87,41 +76,39 @@ export default async function BriefsPage() {
                   <option>Flexible</option>
                 </select>
               </div>
-              <div className="brief-form-field">
+              <div className="find-page__field">
                 <label htmlFor="brief-notes">Notes for agents</label>
                 <textarea
                   id="brief-notes"
                   placeholder="Must-haves, deal breakers, anything that helps an agent recognise the right home."
                 />
               </div>
-              <button type="submit" className="brief-form-submit">
+              <button type="submit" className="find-page__submit">
                 Post brief privately
               </button>
-              <p className="modal-fineprint">
-                Your brief is visible only to verified agents. You can&rsquo;t
-                be searched by name, and your identity stays private until you
-                choose to reveal it.
+              <p className="find-page__fineprint">
+                Your brief is visible only to verified agents. Your identity
+                stays private until you choose to reveal it.
               </p>
             </form>
 
             <div>
-              <p className="section-kicker" style={{ marginBottom: 18 }}>
-                <span className="sq sq--filled sq--sm" aria-hidden="true" />
-                <span>Recent briefs</span>
+              <p className="find-page__kicker" style={{ marginBottom: 16 }}>
+                Recent briefs
               </p>
-              <div className="brief-examples">
+              <div className="find-page__brief-list">
                 {briefs.map((b) => (
-                  <article className="brief-row" key={b.id}>
-                    <div className="brief-row-folio">{b.id.toUpperCase()}</div>
-                    <div className="brief-row-body">
+                  <article className="find-page__brief-row" key={b.id}>
+                    <div className="find-page__brief-id">{b.id.toUpperCase()}</div>
+                    <div>
                       <h3>{b.buyerAlias}</h3>
                       <p>
-                        {b.type} &middot; {b.suburbs.join(", ")} &middot;{" "}
-                        {b.budget} &middot; {b.timing}
+                        {b.type} · {b.suburbs.join(", ")} · {b.budget} ·{" "}
+                        {b.timing}
                       </p>
                     </div>
-                    <div className="brief-row-meta">
-                      <strong>{b.matched}</strong>
+                    <div className="find-page__brief-matches">
+                      <span>{b.matched}</span>
                       matches
                     </div>
                   </article>

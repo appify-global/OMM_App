@@ -83,7 +83,7 @@ export default function DangerZonePage() {
                 </h2>
                 <p className="danger-pause-lede">
                   You can pause notifications, downgrade to the free tier, or
-                  hide your profile temporarily &mdash; without losing your
+                  hide your profile temporarily, without losing your
                   history.
                 </p>
                 <ul className="danger-pause-actions" role="list">
@@ -117,7 +117,7 @@ export default function DangerZonePage() {
                   className="danger-link"
                   onClick={() => setStep("confirm")}
                 >
-                  I understand &mdash; continue to close my account
+                  I understand, continue to close my account
                 </button>
               </section>
             ) : null}

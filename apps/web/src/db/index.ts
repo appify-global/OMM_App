@@ -1,5 +1,5 @@
 /**
- * OMM — Postgres client (Drizzle + node-postgres)
+ * OMM - Postgres client (Drizzle + node-postgres)
  *
  * Lazy-initialised so missing DATABASE_URL doesn't break:
  *   - Next.js build-time page data collection
@@ -69,7 +69,7 @@ export function getRawPool(): Pool {
   return getPool();
 }
 
-/** Backwards-compatible export — only call after env is loaded. */
+/** Backwards-compatible export - only call after env is loaded. */
 export const pool = new Proxy({} as Pool, {
   get(_t, prop, receiver) {
     return Reflect.get(getPool(), prop, receiver);

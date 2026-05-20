@@ -34,7 +34,7 @@ export default function RequestReviewPage() {
             </h1>
             <p className="page-lede">
               We&rsquo;ll send a single, polite invitation. Your contact will be
-              able to leave a star rating and a short note &mdash; nothing more.
+              able to leave a star rating and a short note, nothing more.
             </p>
           </div>
         </header>

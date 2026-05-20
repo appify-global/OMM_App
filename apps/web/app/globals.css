@@ -27,6 +27,25 @@
   box-sizing: border-box;
 }
 
+/* Pointer cursor on every interactive element across the site.
+ * Covers anchors, buttons, role=button, and label[for] (form proxies).
+ * :disabled override prevents a misleading pointer on disabled controls. */
+a,
+button,
+[role="button"],
+[role="link"],
+label[for],
+summary,
+select {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"],
+a[aria-disabled="true"] {
+  cursor: not-allowed;
+}
+
 /* ============================================
    Brand glyph — the OMM square
    Filled = pre-market / private
@@ -153,9 +172,14 @@ h3 em,
   position: sticky;
   top: 0;
   z-index: 20;
+}
+
+/* App shell header (signed-in views) — keeps the blurred backdrop. */
+.site-header:not(.site-header--find) {
   border-bottom: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .masthead-rule {
@@ -1647,68 +1671,6 @@ h2 em {
   color: var(--ink);
 }
 
-.footer-directory {
-  width: min(1280px, 100%);
-  margin: 0 auto;
-  padding: clamp(56px, 8vh, 96px) clamp(20px, 5vw, 72px) clamp(40px, 6vh, 64px);
-}
-
-.footer-masthead {
-  margin-bottom: clamp(32px, 5vh, 56px);
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--line);
-}
-
-.footer-masthead h2 {
-  margin-top: 6px;
-  max-width: 18ch;
-}
-
-.footer-link-columns {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
-  border-top: 1px solid var(--line);
-}
-
-.footer-link-columns > div {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: clamp(24px, 3vw, 36px) clamp(20px, 2.4vw, 32px);
-  border-right: 1px solid var(--line);
-}
-
-.footer-link-columns > div:last-child {
-  border-right: 0;
-}
-
-.footer-column-label {
-  margin: 0 0 10px;
-  color: var(--muted);
-  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-
-.footer-link-columns a {
-  width: fit-content;
-  color: var(--ink);
-  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
-  font-size: 16px;
-  font-weight: 500;
-  letter-spacing: -0.008em;
-  border-bottom: 1px solid transparent;
-  padding-bottom: 1px;
-  transition: border-color 200ms ease;
-}
-
-.footer-link-columns a:hover {
-  border-color: var(--ink);
-}
-
 .footer-base {
   display: flex;
   align-items: center;
@@ -1900,18 +1862,6 @@ h2 em {
     grid-column: 1;
   }
 
-  .footer-link-columns {
-    grid-template-columns: 1fr;
-  }
-
-  .footer-link-columns > div {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .footer-link-columns > div:last-child {
-    border-bottom: 0;
-  }
 }
 
 @media (max-width: 680px) {

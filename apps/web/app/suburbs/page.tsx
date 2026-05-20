@@ -1,10 +1,13 @@
+import Link from "next/link";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import FindPageMasthead from "../components/FindPageMasthead";
 import { fetchSuburbs } from "../lib/api";
 
 export const metadata = {
-  title: "Suburbs — OMM",
-  description: "The private-market index — median, trend and active campaign count across Australia's premium suburbs.",
+  title: "Suburbs - MATCH",
+  description:
+    "Median, trend and active campaign count across premium suburbs.",
 };
 
 const trendClass: Record<string, string> = {
@@ -21,41 +24,29 @@ export default async function SuburbsPage() {
   return (
     <>
       <SiteHeader />
-      <main>
-        <div className="page-shell">
-          <header className="page-masthead">
-            <div>
-              <p className="section-kicker">
-                <span className="sq sq--filled sq--sm" aria-hidden="true" />
-                <span>The Index</span>
-              </p>
-              <h1>
-                Suburbs, by <em>quiet movement</em>.
-              </h1>
-              <p className="page-lede">
-                A running index of Australia&rsquo;s premium suburbs, tracking
-                median price, twelve-month change, active campaigns and the
-                share running privately. Updated weekly from agent-reported data.
-              </p>
-            </div>
-            <dl className="page-stats">
-              <div>
-                <dt>Suburbs tracked</dt>
-                <dd>{suburbs.length}</dd>
-              </div>
-              <div>
-                <dt>Active listings</dt>
-                <dd>{totalActive}</dd>
-              </div>
-              <div>
-                <dt>Private campaigns</dt>
-                <dd>{totalPrivate}</dd>
-              </div>
-            </dl>
-          </header>
+      <main className="home-find find-page">
+        <div className="find-page__inner">
+          <FindPageMasthead
+            kicker="Suburb index"
+            title={
+              <>
+                <span className="find-page__title-strong">Suburbs</span>
+                <span className="find-page__title-soft">
+                  {" "}
+                  by quiet movement.
+                </span>
+              </>
+            }
+            lede="A running index of premium suburbs - median price, twelve-month change, active campaigns and the share running privately."
+            stats={[
+              { label: "Suburbs tracked", value: suburbs.length },
+              { label: "Active listings", value: totalActive },
+              { label: "Private campaigns", value: totalPrivate },
+            ]}
+          />
 
-          <div className="suburbs-table-wrap">
-            <table className="suburbs-table">
+          <div className="find-page__table-wrap">
+            <table className="find-page__table">
               <thead>
                 <tr>
                   <th scope="col">Suburb</th>
@@ -69,7 +60,7 @@ export default async function SuburbsPage() {
               <tbody>
                 {suburbs.map((s) => (
                   <tr key={s.slug}>
-                    <th scope="row" className="suburb-name">
+                    <th scope="row" className="find-page__suburb-name">
                       {s.name}
                       <small>{s.state}</small>
                     </th>
@@ -78,19 +69,12 @@ export default async function SuburbsPage() {
                     <td>{s.activeListings}</td>
                     <td>{s.privateCampaigns}</td>
                     <td style={{ textAlign: "right" }}>
-                      <a
+                      <Link
                         href={`/suburbs/${s.slug}`}
-                        style={{
-                          fontFamily: "var(--font-satoshi), ui-sans-serif, system-ui, sans-serif",
-                          fontSize: 12,
-                          fontWeight: 500,
-                          letterSpacing: "0.04em",
-                          color: "var(--ink)",
-                          textDecoration: "none",
-                        }}
+                        className="find-page__table-link"
                       >
-                        View →
-                      </a>
+                        View
+                      </Link>
                     </td>
                   </tr>
                 ))}

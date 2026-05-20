@@ -295,7 +295,7 @@ function ActivePanel({ activeListings }: { activeListings: Listing[] }) {
                         </span>
                       )
                     ) : (
-                      "—"
+                      "-"
                     )}
                   </td>
                   <td className="ledger-num">
@@ -490,7 +490,7 @@ function ArchivePanel({
                     {a.finalPrice ? (
                       <em>{a.finalPrice}</em>
                     ) : (
-                      <span className="ledger-muted">—</span>
+                      <span className="ledger-muted">-</span>
                     )}
                   </td>
                   <td className="ledger-num">

@@ -1,30 +1,40 @@
 "use client";
 
 import { useAuth, UserButton } from "@clerk/nextjs";
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useState } from "react";
+import { snapshotHeroMotion } from "../lib/hero-motion";
 import { headerNavItems } from "../lib/nav";
+import { isWaitlistMode } from "../lib/site-mode";
+import WaitlistModal from "./WaitlistModal";
 
 export default function SiteHeader() {
   const pathname = usePathname() || "/";
   const { isSignedIn, isLoaded } = useAuth();
+  const waitlist = isWaitlistMode();
+  const [waitlistOpen, setWaitlistOpen] = useState(false);
 
   return (
     <header className="site-header site-header--find">
       <div className="site-header-inner">
-        <Link className="brand" href="/" aria-label="MATCH home">
-          <Image
-            src="/match-logo.png"
-            alt="MATCH"
-            width={118}
-            height={22}
-            priority
-            className="brand-logo"
-          />
+        <Link className="brand brand--hidden" href="/">
+          <span className="sr-only">Home</span>
         </Link>
         <nav className="site-header-nav" aria-label="Primary">
           {headerNavItems.map((item) => {
+            if (item.disabled) {
+              return (
+                <span
+                  key={item.href}
+                  className="is-disabled"
+                  aria-disabled="true"
+                  title="Coming soon"
+                >
+                  {item.label}
+                </span>
+              );
+            }
             const active =
               pathname === item.href ||
               (item.href !== "/" && pathname.startsWith(item.href));
@@ -40,13 +50,27 @@ export default function SiteHeader() {
             );
           })}
         </nav>
-        {isLoaded && isSignedIn ? (
+        {waitlist ? (
+          <>
+            <button
+              type="button"
+              className="btn-pill btn-pill--sm"
+              onClick={() => setWaitlistOpen(true)}
+            >
+              Join waitlist
+            </button>
+            <WaitlistModal
+              open={waitlistOpen}
+              onClose={() => setWaitlistOpen(false)}
+              source="header"
+            />
+          </>
+        ) : isLoaded && isSignedIn ? (
           <div className="site-header-auth">
             <Link href="/app" className="btn-pill btn-pill--sm btn-pill--ghost">
               Dashboard
             </Link>
             <UserButton
-              afterSignOutUrl="/"
               appearance={{
                 elements: {
                   avatarBox: "site-header-user-avatar",
@@ -55,7 +79,11 @@ export default function SiteHeader() {
             />
           </div>
         ) : (
-          <Link href="/sign-in" className="btn-pill btn-pill--sm">
+          <Link
+            href="/sign-in"
+            className="btn-pill btn-pill--sm"
+            onClick={snapshotHeroMotion}
+          >
             Sign in
           </Link>
         )}

@@ -245,7 +245,7 @@ export default function MessagesPageClient({
               </h2>
               <p className="messages-canvas-lede">
                 Conversations are organised by listing, brief, or buyer.
-                Anything sent here is private — only the participants and you
+                Anything sent here is private - only the participants and you
                 can see it.
               </p>
               <ul className="messages-canvas-tips">

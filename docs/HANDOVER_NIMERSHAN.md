@@ -5,7 +5,7 @@
 | Path | Purpose |
 |------|---------|
 | [`apps/web`](../apps/web) | Next.js — marketing, authenticated `/app` workspace, Drizzle + Postgres. Exposes **`/api/mobile/*`** JSON for the Expo app (same DB loaders as server components where applicable). |
-| [`app/`](../app/) (repo root) | Expo Router + NativeWind — primary native client; uses Clerk Expo and **`EXPO_PUBLIC_API_URL`** to reach the Next app. |
+| [`apps/mobile/`](../apps/mobile/) | Expo Router + NativeWind — primary native client; uses Clerk Expo and **`EXPO_PUBLIC_API_URL`** to reach the Next app. |
 | [`packages/shared`](../packages/shared) | Shared TypeScript surface for **`/api/mobile/*`** payloads (keep aligned with web route handlers). |
 
 ## Run web locally

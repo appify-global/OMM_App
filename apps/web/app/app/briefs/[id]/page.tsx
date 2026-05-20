@@ -145,7 +145,7 @@ export default async function BriefDetailPage({ params }: { params: Params }) {
                 </div>
                 <div>
                   <dt>Min. beds</dt>
-                  <dd>{brief.minBeds || "—"}</dd>
+                  <dd>{brief.minBeds || "-"}</dd>
                 </div>
               </dl>
               <div className="listing-features">
@@ -166,7 +166,7 @@ export default async function BriefDetailPage({ params }: { params: Params }) {
               </h2>
               <p>
                 Your name and contact details remain anonymous until you reply.
-                Agents see the brief and a private channel — nothing more.
+                Agents see the brief and a private channel - nothing more.
               </p>
             </div>
             <Link

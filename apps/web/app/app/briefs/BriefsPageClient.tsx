@@ -50,7 +50,7 @@ export default function BriefsPageClient({
             </h1>
             <p className="page-lede">
               {isBuying
-                ? "Suburbs, budget, timing. Broadcast in private to listing agents — matches return within twenty-four hours."
+                ? "Suburbs, budget, timing. Broadcast in private to listing agents - matches return within twenty-four hours."
                 : "Buyers' briefs that match your active or off-market stock. Reply privately with a listing or an off-market suggestion."}
             </p>
           </div>
@@ -284,7 +284,7 @@ export default function BriefsPageClient({
                 </h2>
                 <p>
                   See a brief that matches your stock? Reply privately with the
-                  listing — only the buyer sees it.
+                  listing - only the buyer sees it.
                 </p>
               </div>
               <Link href="/app/listings" className="studio-card-cta">

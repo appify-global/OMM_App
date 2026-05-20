@@ -5,7 +5,7 @@ type Props = {
   asLink?: boolean;
 };
 
-/** FIND-inspired wordmark — bold MATCH with arrow on the A (like FIND’s F). */
+/** FIND-inspired wordmark - bold MATCH with arrow on the A (like FIND’s F). */
 export default function MatchWordmark({ variant = "header", asLink = true }: Props) {
   const className = `match-wordmark match-wordmark--${variant}`;
 

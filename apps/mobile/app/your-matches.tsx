@@ -1,0 +1,167 @@
+import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { type Href, useRouter } from 'expo-router';
+import { Text } from '@/components/OMMText';
+import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import { frost, layout, slateNavy } from '@/constants/theme';
+/**
+ * Your Matches - seller/buyer brief matches list.
+ * [Figma 1053:7056](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-7056&t=gEfFuYKIwBHVUzXh-4)
+ */
+
+import { PROPERTY_IMG_1 } from '@/lib/propertyImages';
+
+
+type Row = {
+  id: string;
+  title: string;
+  priceRange: string;
+  meta: string;
+};
+
+const MATCHES: Row[] = [
+  {
+    id: '1',
+    title: 'Inner east family relocation',
+    priceRange: '$1.80m – $2.60m',
+    meta: 'Richmond, Collingwood, Cremorne · Period home · 4 bed+',
+  },
+  {
+    id: '2',
+    title: 'Low-maintenance downsizer',
+    priceRange: '$2.10m – $2.80m',
+    meta: 'Malvern, Armadale · Townhouse or small lot',
+  },
+  {
+    id: '3',
+    title: 'First home + two parks',
+    priceRange: '$900k – $1.15m',
+    meta: 'Brunswick East · Apt or TH · pet-friendly',
+  },
+  {
+    id: '4',
+    title: 'Yield-led investor',
+    priceRange: '$650k – $850k',
+    meta: 'Footscray · 2 bedrooms · prefers settled tenant',
+  },
+  {
+    id: '5',
+    title: 'Single-level prestige',
+    priceRange: '$5.0m – $7.0m',
+    meta: 'Williamstown, Newport, Spotswood · Townhouse · 3 bedrooms · schools',
+  },
+  {
+    id: '6',
+    title: 'Inner-north terrace uplift',
+    priceRange: '$1.35m – $1.65m',
+    meta: 'Northcote · renovator · walk to Merri Creek',
+  },
+];
+
+export default function YourMatchesScreen() {
+  const insets = useSafeAreaInsets();
+  const router = useRouter();
+
+  return (
+    <View style={[styles.screen, { paddingTop: insets.top }]}>
+      <View style={styles.header}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+          style={styles.backBtn}>
+          <FontAwesome name="chevron-left" size={20} color="#000000" />
+        </Pressable>
+        <View style={styles.headerCenter}>
+          <Text style={styles.title}>Your Matches</Text>
+          <Text style={styles.subtitle}>6 matched listings</Text>
+        </View>
+        <View style={styles.headerEnd} />
+      </View>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 32 }]}>
+        <View style={styles.banner}>
+          <Text style={styles.bannerTitle}>Listings that fit your brief</Text>
+          <Text style={styles.bannerBody}>
+            When stock lines up with what you saved, it shows up here. You start the conversation when you’re ready
+            - agents don’t cold-contact you from this list.
+          </Text>
+        </View>
+
+        <View style={styles.sortRow}>
+          <Text style={styles.sortText}>Sort · Newest first</Text>
+        </View>
+
+        {MATCHES.map((m, i) => (
+          <View key={m.id}>
+            {i > 0 ? <View style={styles.divider} /> : null}
+            <Pressable
+              style={styles.row}
+              onPress={() =>
+                router.push({ pathname: '/seller-match-detail', params: { id: m.id } } as Href)
+              }
+              accessibilityRole="button">
+              <Image source={PROPERTY_IMG_1} style={styles.thumb} resizeMode="cover" />
+              <View style={styles.rowBody}>
+                <Text style={styles.rowTitle}>{m.title}</Text>
+                <Text style={styles.rowPrice}>{m.priceRange}</Text>
+                <Text style={styles.rowMeta} numberOfLines={2}>
+                  {m.meta}
+                </Text>
+              </View>
+            </Pressable>
+          </View>
+        ))}
+
+        <Text style={styles.endLabel}>End of matches</Text>
+      </ScrollView>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: '#fff' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: layout.screenGutter,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: 'rgba(0, 0, 0, 0.12)',
+  },
+  backBtn: { width: 40, height: 40, justifyContent: 'center' },
+  headerCenter: { flex: 1, alignItems: 'center' },
+  headerEnd: { width: 40 },
+  title: { fontSize: 18, fontFamily: 'Satoshi-Medium', color: '#000000' },
+  subtitle: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', marginTop: 4 },
+  scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 16 },
+  banner: {
+    backgroundColor: slateNavy,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 20,
+  },
+  bannerTitle: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: frost, marginBottom: 8 },
+  bannerBody: { fontSize: 13, fontWeight: '400', color: 'rgba(248, 250, 252, 0.78)', lineHeight: 19 },
+  sortRow: { alignItems: 'flex-end', marginBottom: 12 },
+  sortText: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.45)', letterSpacing: 0.2 },
+  row: { flexDirection: 'row', alignItems: 'flex-start', gap: 14, paddingVertical: 14 },
+  thumb: { width: 72, height: 72, borderRadius: 10, backgroundColor: 'rgba(0,0,0,0.06)' },
+  rowBody: { flex: 1, minWidth: 0 },
+  rowTitle: { fontSize: 16, fontFamily: 'Satoshi-Medium', color: '#000000', marginBottom: 4 },
+  rowPrice: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: '#000000', marginBottom: 6 },
+  rowMeta: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0, 0, 0, 0.5)', lineHeight: 17 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: 'rgba(0, 0, 0, 0.12)' },
+  endLabel: {
+    textAlign: 'center',
+    fontSize: 12,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0, 0, 0, 0.35)',
+    marginTop: 28,
+    marginBottom: 8,
+  },
+});

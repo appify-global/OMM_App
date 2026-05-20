@@ -41,7 +41,7 @@ export default function FeedbackPage() {
             </h1>
             <p className="page-lede">
               We read everything. The product is shaped by working agents and
-              their feedback &mdash; please be candid.
+              their feedback, please be candid.
             </p>
           </div>
         </header>
@@ -103,7 +103,7 @@ export default function FeedbackPage() {
                 <span className="subpage-fieldset-title">Your note</span>
               </legend>
               <p className="subpage-fieldset-lede">
-                The more specific, the better &mdash; what you were doing, what
+                The more specific, the better, what you were doing, what
                 you expected, what happened instead.
               </p>
               <div className="subpage-fieldset-body">

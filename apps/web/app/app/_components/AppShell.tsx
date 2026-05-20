@@ -30,7 +30,7 @@ export default function AppShell({
         <div className="masthead-rule" aria-hidden="true">
           <span>Off the Market Match &middot; Workspace</span>
           <span>{todayDateline()}</span>
-          <span>Vol. I — Issue 04</span>
+          <span>Vol. I - Issue 04</span>
         </div>
         <div className="masthead">
           <Link className="brand" href="/app" aria-label="Off the Market Match workspace">
