@@ -210,7 +210,10 @@ export default function AgentProfileScreen() {
           </Text>
         </View>
 
-        <Pressable style={styles.actionRow} accessibilityRole="button">
+        <Pressable
+          style={styles.actionRow}
+          accessibilityRole="button"
+          onPress={() => router.push('/raise-dispute' as Href)}>
           <MaterialCommunityIcons name="alert-outline" size={22} color="#c9a227" />
           <View style={styles.actionTextCol}>
             <Text style={styles.actionTitle}>Raise a dispute</Text>

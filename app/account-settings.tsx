@@ -21,6 +21,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 import { accent, ink, layout } from '@/constants/theme';
+import { usePushPrefs } from '@/lib/push-preferences-context';
 
 /**
  * Account settings — profile fields + notifications + save.
@@ -102,11 +103,11 @@ export default function AccountSettingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { user, isLoaded } = useUser();
+  const { pushMessages, pushPrefsHydrated, setPushMessagesEnabled } = usePushPrefs();
 
   const [displayName, setDisplayName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
-  const [pushMessages, setPushMessages] = useState(true);
   const [hydrated, setHydrated] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -143,7 +144,7 @@ export default function AccountSettingsScreen() {
     }
   };
 
-  if (!isLoaded || !hydrated) {
+  if (!isLoaded || !hydrated || !pushPrefsHydrated) {
     return (
       <View style={[styles.screen, styles.centered, { paddingTop: insets.top }]}>
         <ActivityIndicator color="#000000" />
@@ -252,7 +253,7 @@ export default function AccountSettingsScreen() {
                 <View style={styles.switchWrap}>
                   <Switch
                     value={pushMessages}
-                    onValueChange={setPushMessages}
+                    onValueChange={(v) => void setPushMessagesEnabled(v)}
                     trackColor={{ false: '#e8e8e8', true: '#000000' }}
                     thumbColor="#fff"
                     ios_backgroundColor="#e8e8e8"

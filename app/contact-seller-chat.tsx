@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
-import { useCallback, useRef, useState, Fragment } from 'react';
+import { useCallback, useMemo, useRef, useState, Fragment } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
 import {
@@ -28,7 +28,10 @@ import {
   getDealAcknowledgement,
   type DealAcknowledgementRecord,
 } from '@/lib/deal-acknowledgement';
-import { AGENT_IMG, PROPERTY_IMG_1 } from '@/lib/propertyImages';
+import { MessageThreadBubbles } from '@/components/MessageThreadBubbles';
+import { useAgentPublishedListings } from '@/lib/agent-published-listings-context';
+import { useOmmMessages } from '@/lib/omm-messages-context';
+import { AGENT_IMG } from '@/lib/propertyImages';
 import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
 import { accent, ink, slateNavy, Fonts } from '@/constants/theme';
 
@@ -65,17 +68,40 @@ const MENU_LINE_HEIGHT = 26;
 export default function ContactSellerChatScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const { propertyRef: propertyRefParam } = useLocalSearchParams<{ propertyRef?: string }>();
+  const { propertyRef: propertyRefParam, threadId: threadIdParam, listingId: listingIdParam } =
+    useLocalSearchParams<{ propertyRef?: string; threadId?: string; listingId?: string }>();
   const propertyRef =
     typeof propertyRefParam === 'string' && propertyRefParam.trim().length > 0
       ? propertyRefParam.trim()
       : DEMO_CHAT_PROPERTY_REF;
+  const threadIdParamResolved =
+    typeof threadIdParam === 'string' && threadIdParam.trim().length > 0
+      ? threadIdParam.trim()
+      : undefined;
+  const listingIdResolved =
+    typeof listingIdParam === 'string' && listingIdParam.trim().length > 0
+      ? listingIdParam.trim()
+      : undefined;
+
+  const { getById: getListingById } = useAgentPublishedListings();
+  const {
+    threads,
+    getById: getThreadById,
+    getByPropertyRef,
+    ensureThread,
+    sendMessageWithAutoReply,
+    markRead,
+    refresh,
+  } = useOmmMessages();
 
   const menuAnchorRef = useRef<View>(null);
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuAnchorRect, setMenuAnchorRect] = useState<LayoutRectangle | null>(null);
   const [deal, setDeal] = useState<DealAcknowledgementRecord | null>(null);
   const [ackBanner, setAckBanner] = useState<string | null>(null);
+  const [composerText, setComposerText] = useState('');
+  const [sending, setSending] = useState(false);
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(threadIdParamResolved ?? null);
 
   const loadDeal = useCallback(() => {
     let alive = true;
@@ -88,6 +114,84 @@ export default function ContactSellerChatScreen() {
   }, [propertyRef]);
 
   useFocusEffect(loadDeal);
+
+  const publishedListing = listingIdResolved ? getListingById(listingIdResolved) : undefined;
+
+  const ensureChatThread = useCallback(async () => {
+    const existing =
+      (activeThreadId ? getThreadById(activeThreadId) : null) ??
+      getByPropertyRef(propertyRef) ??
+      (threadIdParamResolved ? getThreadById(threadIdParamResolved) : null);
+
+    if (existing) {
+      setActiveThreadId(existing.id);
+      await markRead(existing.id);
+      return existing;
+    }
+
+    const listing = publishedListing;
+    const row = await ensureThread({
+      perspective: 'buyer',
+      participantName: listing ? 'Listing agent' : 'Anton Zhouk',
+      participantSubtitle: listing
+        ? `${listing.titleLine} · ${listing.suburbLine}`
+        : `${DEMO_AGENT_AGENCY} · ${DEMO_PRIMARY_LISTING_TITLE}`,
+      contextLine: listing?.titleLine ?? DEMO_PRIMARY_LISTING_TITLE,
+      propertyRef,
+      listingId: listing?.id,
+      thumbSourceKey: listing ? 'listing' : 'agent',
+    });
+    setActiveThreadId(row.id);
+    await markRead(row.id);
+    return row;
+  }, [
+    activeThreadId,
+    ensureThread,
+    getByPropertyRef,
+    getThreadById,
+    markRead,
+    propertyRef,
+    publishedListing,
+    threadIdParamResolved,
+  ]);
+
+  useFocusEffect(
+    useCallback(() => {
+      let alive = true;
+      void (async () => {
+        await refresh();
+        if (!alive) return;
+        await ensureChatThread();
+      })();
+      return () => {
+        alive = false;
+      };
+    }, [ensureChatThread, refresh]),
+  );
+
+  const activeThread = useMemo(() => {
+    if (!activeThreadId) return getByPropertyRef(propertyRef) ?? null;
+    return getThreadById(activeThreadId) ?? getByPropertyRef(propertyRef) ?? null;
+  }, [activeThreadId, getByPropertyRef, getThreadById, propertyRef, threads]);
+
+  const headerTitle = activeThread
+    ? `${activeThread.participantName} · ${activeThread.contextLine}`
+    : `Anton Zhouk · ${DEMO_PRIMARY_LISTING_TITLE}`;
+
+  const onSend = useCallback(async () => {
+    const body = composerText.trim();
+    if (!body || sending) return;
+    setSending(true);
+    try {
+      const thread = await ensureChatThread();
+      await sendMessageWithAutoReply(thread.id, body);
+      setComposerText('');
+    } catch {
+      Alert.alert('Could not send', 'Please try again in a moment.');
+    } finally {
+      setSending(false);
+    }
+  }, [composerText, ensureChatThread, sendMessageWithAutoReply, sending]);
 
   const closeMenu = useCallback(() => {
     setMenuOpen(false);
@@ -185,7 +289,7 @@ export default function ContactSellerChatScreen() {
         <Image source={AGENT_IMG} style={styles.headerAvatar} />
         <View style={styles.headerText}>
           <Text style={styles.headerTitle} numberOfLines={1}>
-            Anton Zhouk · {DEMO_PRIMARY_LISTING_TITLE}
+            {headerTitle}
           </Text>
           <Text style={styles.headerStatus}>ACTIVE NOW</Text>
         </View>
@@ -285,34 +389,7 @@ export default function ContactSellerChatScreen() {
           </View>
         ) : null}
 
-        <View style={styles.msgInWrap}>
-          <View style={styles.bubbleIn}>
-            <Text style={styles.msgInText}>
-              Floorplan v2 received — loading into data room now.
-            </Text>
-          </View>
-          <Text style={styles.timeIn}>10:42 AM</Text>
-        </View>
-
-        <View style={styles.msgOutWrap}>
-          <View style={styles.bubbleOut}>
-            <Text style={styles.msgOutText}>Legend — thanks, pinging vendor for sign-off.</Text>
-          </View>
-          <Text style={styles.timeOut}>10:45 AM</Text>
-        </View>
-
-        <View style={styles.msgInWrap}>
-          <View style={styles.fileBubble}>
-            <Image source={PROPERTY_IMG_1} style={styles.filePreview} resizeMode="cover" />
-            <View style={styles.fileRow}>
-              <Text style={styles.fileName} numberOfLines={1}>
-                FLOOR_PLAN_V2.PDF
-              </Text>
-              <FontAwesome name="download" size={16} color="#000000" />
-            </View>
-          </View>
-          <Text style={styles.timeIn}>10:46 AM</Text>
-        </View>
+        <MessageThreadBubbles messages={activeThread?.messages ?? []} />
       </ScrollView>
 
       <View style={[styles.composer, { paddingBottom: Math.max(insets.bottom, 12) }]}>
@@ -321,11 +398,19 @@ export default function ContactSellerChatScreen() {
         </Pressable>
         <TextInput
           style={styles.input}
-          placeholder="Send updated referral PDF when ready."
+          value={composerText}
+          onChangeText={setComposerText}
+          placeholder="Write a message…"
           placeholderTextColor="rgba(0, 0, 0, 0.45)"
           multiline
+          editable={!sending}
         />
-        <Pressable style={styles.sendBtn} accessibilityRole="button" accessibilityLabel="Send">
+        <Pressable
+          style={[styles.sendBtn, sending && { opacity: 0.5 }]}
+          accessibilityRole="button"
+          accessibilityLabel="Send"
+          disabled={sending || !composerText.trim().length}
+          onPress={() => void onSend()}>
           <FontAwesome name="send" size={16} color={ink} style={{ marginLeft: 2 }} />
         </Pressable>
       </View>

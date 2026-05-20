@@ -32,6 +32,8 @@ export type DisputeDetail = DisputeListRow & {
   detailsBody: string;
   evidence: DisputeEvidenceFile[];
   activity: DisputeActivityItem[];
+  /** Present on device-raised disputes — used for sorting / relative labels */
+  openedAtIso?: string;
 };
 
 const DR1042: DisputeDetail = {
@@ -109,15 +111,27 @@ const DR998: DisputeDetail = {
   ],
 };
 
-const BY_ID: Record<string, DisputeDetail> = {
+/** Seed disputes shipped with the app (demo / onboarding). */
+export const DISPUTE_SEED_DETAILS: Record<string, DisputeDetail> = {
   'DR-1042': DR1042,
   'DR-1033': DR1033,
   'DR-998': DR998,
 };
 
-export const DISPUTES_LIST: DisputeListRow[] = [DR1042, DR1033, DR998];
+/** Stable seed ordering for the disputes hub list. */
+export const DISPUTE_SEED_ORDER: string[] = ['DR-1042', 'DR-1033', 'DR-998'];
+
+export const DISPUTES_LIST: DisputeListRow[] = DISPUTE_SEED_ORDER.map((id) => {
+  const d = DISPUTE_SEED_DETAILS[id];
+  return { id: d.id, status: d.status, title: d.title, timeLabel: d.timeLabel };
+});
+
+/** Resolve seed-only detail (no device snapshots). Screens should prefer agent disputes merge when wired. */
+export function getSeedDisputeDetail(id: string | undefined): DisputeDetail | null {
+  if (!id) return null;
+  return DISPUTE_SEED_DETAILS[id] ?? null;
+}
 
 export function getDisputeDetail(id: string | undefined): DisputeDetail | null {
-  if (!id) return null;
-  return BY_ID[id] ?? null;
+  return getSeedDisputeDetail(id);
 }

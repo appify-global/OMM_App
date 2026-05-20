@@ -9,6 +9,8 @@ import {
 } from '@/lib/saved-listings';
 
 const STORAGE_KEY = 'omm_saved_listing_cards_v1';
+/** One-shot migration: historical saves were appended (oldest first); reverse once so `[0]` is most recently saved. */
+const STORAGE_ORDER_RECENT_FIRST_KEY = 'omm_saved_cards_recent_first_v1';
 
 /** Demo listing id stays in sync with `VIEW_LIVE_LISTING_CARD` (copy + spec line + footers) after app updates. */
 function withCanonicalDemoListing(rows: SavedListingCardData[]): SavedListingCardData[] {
@@ -26,15 +28,29 @@ async function readStored(): Promise<SavedListingCardData[]> {
     const rows = parsed
       .map(parseSavedListingCard)
       .filter((row): row is SavedListingCardData => row !== null);
-    const merged = withCanonicalDemoListing(rows);
-    if (JSON.stringify(merged) !== JSON.stringify(rows)) {
-      try {
-        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(merged));
-      } catch {
-        /* offline / quota */
+
+    let out = withCanonicalDemoListing(rows);
+
+    try {
+      if (JSON.stringify(out) !== JSON.stringify(rows)) {
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(out));
       }
+    } catch {
+      /* offline / quota */
     }
-    return merged;
+
+    try {
+      const migrated = await AsyncStorage.getItem(STORAGE_ORDER_RECENT_FIRST_KEY);
+      if (!migrated) {
+        if (out.length > 1) out = [...out].reverse();
+        await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(out));
+        await AsyncStorage.setItem(STORAGE_ORDER_RECENT_FIRST_KEY, '1');
+      }
+    } catch {
+      /* offline / quota */
+    }
+
+    return out;
   } catch {
     return [];
   }
@@ -134,7 +150,9 @@ export function SavedListingsProvider({ children }: { children: ReactNode }) {
   const toggleSaved = useCallback(
     async (card: SavedListingCardData) => {
       const has = listings.some((l) => l.id === card.id);
-      const next = has ? listings.filter((l) => l.id !== card.id) : [...listings, card];
+      const withoutDup = listings.filter((l) => l.id !== card.id);
+      /** Prepend newest save so Buying home can show `[0]` as most recently saved */
+      const next = has ? withoutDup : [card, ...withoutDup];
       await persist(next);
     },
     [listings, persist],

@@ -11,8 +11,17 @@ import { Platform } from 'react-native';
 import 'react-native-reanimated';
 
 import { frost } from '@/constants/theme';
+import { MobileDatabaseBootstrap } from '@/components/MobileDatabaseBootstrap';
+import { PushNotificationBootstrap } from '@/components/PushNotificationBootstrap';
 import { useColorScheme } from '@/components/useColorScheme';
+import { AgentDisputesProvider } from '@/lib/agent-disputes-context';
+import { MobileDatabaseProvider } from '@/lib/mobile-database-context';
+import { AgentPublishedListingsProvider } from '@/lib/agent-published-listings-context';
+import { OmmMessagesProvider } from '@/lib/omm-messages-context';
+import { PushPrefsProvider } from '@/lib/push-preferences-context';
 import { SavedListingsProvider } from '@/lib/saved-listings-context';
+import { RecentBuyerSearchesProvider } from '@/lib/recent-buyer-searches-context';
+import { SavedSearchesProvider } from '@/lib/saved-searches-context';
 
 export {
   ErrorBoundary,
@@ -77,9 +86,18 @@ function RootLayoutNav() {
 
   return (
     <ClerkProvider publishableKey={clerkPublishableKey} tokenCache={tokenCache}>
-      <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : OmmLightTheme}>
-        <SavedListingsProvider>
-          <Stack>
+      <MobileDatabaseProvider>
+      <PushPrefsProvider>
+        <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : OmmLightTheme}>
+          <AgentPublishedListingsProvider>
+          <OmmMessagesProvider>
+          <AgentDisputesProvider>
+          <SavedListingsProvider>
+          <SavedSearchesProvider>
+          <RecentBuyerSearchesProvider>
+            <MobileDatabaseBootstrap />
+            <PushNotificationBootstrap />
+            <Stack>
         <Stack.Screen name="welcome" options={{ headerShown: false }} />
         <Stack.Screen name="index" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
@@ -128,8 +146,15 @@ function RootLayoutNav() {
         <Stack.Screen name="raise-dispute" options={{ headerShown: false }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
           </Stack>
-        </SavedListingsProvider>
-      </ThemeProvider>
+          </RecentBuyerSearchesProvider>
+          </SavedSearchesProvider>
+          </SavedListingsProvider>
+          </AgentDisputesProvider>
+          </OmmMessagesProvider>
+          </AgentPublishedListingsProvider>
+        </ThemeProvider>
+      </PushPrefsProvider>
+      </MobileDatabaseProvider>
     </ClerkProvider>
   );
 }

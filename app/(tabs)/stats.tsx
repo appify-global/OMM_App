@@ -1,10 +1,12 @@
 import { AppButton } from "@/components/AppButton";
+import { MessageThreadBubbles } from "@/components/MessageThreadBubbles";
 import { Text } from "@/components/OMMText";
 import { TextInput } from "@/components/OMMTextInput";
 import { ScreenHeader } from "@/components/ScreenHeader";
-import { useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { type Href, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
+    Alert,
     Image,
     KeyboardAvoidingView,
     Modal,
@@ -23,15 +25,30 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { accent, borderHairline, fillWash, frost, ink, inkSubtle, palette, slateNavy } from '@/constants/theme';
 import {
-    DEMO_PRIMARY_LISTING_TITLE,
-    DEMO_PRIMARY_STREET,
-} from "@/lib/melbourne-demo-locations";
+    activityMatchesFilter,
+    buildActivitiesFeed,
+    ensureThreadFromActivityRow,
+    type ActivityFeedRow,
+} from '@/lib/activities-feed';
+import { useOmmMessages } from '@/lib/omm-messages-context';
+import { useAgentPublishedListings } from '@/lib/agent-published-listings-context';
+import { DEMO_PRIMARY_STREET } from "@/lib/melbourne-demo-locations";
 import { AGENT_IMG, PROPERTY_IMG_1 } from "@/lib/propertyImages";
+import { useSavedListings } from '@/lib/saved-listings-context';
 import { useScreenHorizontalPadding } from "@/lib/useScreenHorizontalPadding";
 import { useTabBarOnScroll } from "@/lib/tab-bar-visibility";
-
-const COMPOSE_DRAFT_DEFAULT =
-  "Thanks M. — happy to lift to $2.05m subject to finance 10 days. Can we counter today?";
+import {
+  INSPECTION_TIME_SLOTS as TIME_SLOTS,
+  InspectionScheduleScrollBody,
+  inspectionConfirmToastLine,
+  type InspectionSlotId,
+} from "@/components/InspectionScheduleSheet";
+import {
+  DEFAULT_INSPECTION_AVAILABILITY_TAGS,
+  defaultInspectionSlotId,
+  inspectionSlotsForSeller,
+  sellerSchedulePrefsFromListing,
+} from "@/lib/listing-inspection-availability";
 
 function firstQueryString(
   v: string | string[] | undefined,
@@ -50,20 +67,6 @@ function filterKeyFromQuery(q: string | undefined): FilterKey | null {
 
 type Role = "buyer" | "seller";
 
-type ActivityKind = "message" | "inspection";
-
-type ActivityRow = {
-  id: string;
-  kind: ActivityKind;
-  title: string;
-  subtitle: string;
-  time: string;
-  sheetTitle: string;
-  sheetSubtitle: string;
-  sheetBody: string;
-  sheetTime?: string;
-};
-
 type SheetView =
   | "message-read"
   | "message-compose"
@@ -71,45 +74,9 @@ type SheetView =
   | "inspection-reschedule";
 
 type ActiveSheet = {
-  row: ActivityRow;
+  row: ActivityFeedRow;
   view: SheetView;
 };
-
-/** April 2026: Wed = 1st → 3 leading blanks (Sun–Tue). */
-const APRIL_2026_LEADING_EMPTY = 3;
-const APRIL_2026_DAYS = 30;
-
-const TIME_SLOTS = [
-  { id: "a", label: "09:00–09:45 • 2 groups ahead", sub: false },
-  { id: "b", label: "10:30–11:15 • Buyer tour", sub: true },
-  { id: "c", label: "13:00–13:45 • Afternoon window", sub: false },
-] as const;
-
-const ACTIVITIES: ActivityRow[] = [
-  {
-    id: "1",
-    kind: "message",
-    title: "M. Patel",
-    subtitle: "Offer $2.35m — vendor wants $2.42m walk-away.",
-    time: "2m",
-    sheetTitle: "M. Patel",
-    sheetSubtitle: `Real Estate Agent · ${DEMO_PRIMARY_LISTING_TITLE}`,
-    sheetBody:
-      "Thanks for your offer. It is below what the seller will accept for this property. They are open to a counter closer to the list price.",
-    sheetTime: "2 minutes ago",
-  },
-  {
-    id: "2",
-    kind: "inspection",
-    title: "Inspection Scheduled",
-    subtitle: "You've booked 137, Art Colony, Colling……",
-    time: "8h",
-    sheetTitle: "Inspection scheduled",
-    sheetSubtitle: DEMO_PRIMARY_STREET,
-    sheetBody:
-      "Sat 26 Apr · 10:30—11:15 · Buyer tour · Arrive 10:20 for check-in.",
-  },
-];
 
 function Chip({
   label,
@@ -138,13 +105,14 @@ function ActivityRowView({
   row,
   onPress,
 }: {
-  row: ActivityRow;
+  row: ActivityFeedRow;
   onPress: () => void;
 }) {
+  const thumb = row.thumbSource ?? (row.kind === "message" ? AGENT_IMG : PROPERTY_IMG_1);
   return (
     <Pressable style={styles.row} onPress={onPress} accessibilityRole="button">
       <Image
-        source={row.kind === "message" ? AGENT_IMG : PROPERTY_IMG_1}
+        source={thumb}
         style={styles.avatar}
         resizeMode="cover"
       />
@@ -163,84 +131,39 @@ function ActivityRowView({
   );
 }
 
-function CalendarMonthApril2026({
-  selectedDay,
-  onSelectDay,
-}: {
-  selectedDay: number;
-  onSelectDay: (d: number) => void;
-}) {
-  const cells: (number | null)[] = [];
-  for (let i = 0; i < APRIL_2026_LEADING_EMPTY; i++) cells.push(null);
-  for (let d = 1; d <= APRIL_2026_DAYS; d++) cells.push(d);
-  const rows: (number | null)[][] = [];
-  for (let i = 0; i < cells.length; i += 7) {
-    const row = cells.slice(i, i + 7);
-    while (row.length < 7) row.push(null);
-    rows.push(row);
-  }
-
-  const weekLetters = ["S", "M", "T", "W", "T", "F", "S"];
-
-  return (
-    <View style={styles.calCard}>
-      <Text style={styles.calMonthTitle}>April 2026</Text>
-      <View style={styles.calWeekRow}>
-        {weekLetters.map((w, i) => (
-          <View key={`${w}-${i}`} style={styles.calWeekCell}>
-            <Text style={styles.calWeekLetter}>{w}</Text>
-          </View>
-        ))}
-      </View>
-      <View style={styles.calGrid}>
-        {rows.map((rowCells, ri) => (
-          <View key={ri} style={styles.calRow}>
-            {rowCells.map((d, ci) =>
-              d == null ? (
-                <View key={`e-${ri}-${ci}`} style={styles.calCell} />
-              ) : (
-                <Pressable
-                  key={d}
-                  onPress={() => onSelectDay(d)}
-                  style={[
-                    styles.calCell,
-                    selectedDay === d && styles.calCellSelected,
-                  ]}
-                  accessibilityRole="button"
-                  accessibilityState={{ selected: selectedDay === d }}
-                  accessibilityLabel={`${d} April`}
-                >
-                  <Text
-                    style={[
-                      styles.calCellText,
-                      selectedDay === d && styles.calCellTextSelected,
-                    ]}
-                  >
-                    {d}
-                  </Text>
-                </Pressable>
-              ),
-            )}
-          </View>
-        ))}
-      </View>
-    </View>
-  );
-}
-
 export default function ActivitiesScreen() {
   const insets = useSafeAreaInsets();
   const hPad = useScreenHorizontalPadding();
+  const router = useRouter();
   const params = useLocalSearchParams<{ filter?: string | string[] }>();
+  const { listings } = useAgentPublishedListings();
+  const { listings: savedListingCards } = useSavedListings();
+  const { threads: messageThreads, sendMessageWithAutoReply, markRead, getById: getThreadById } =
+    useOmmMessages();
   const [role, setRole] = useState<Role>("buyer");
   const [filter, setFilter] = useState<FilterKey>("all");
   const [sheet, setSheet] = useState<ActiveSheet | null>(null);
-  const [draft, setDraft] = useState(COMPOSE_DRAFT_DEFAULT);
+  const [draft, setDraft] = useState("");
   const [selectedDay, setSelectedDay] = useState(26);
-  const [selectedSlotId, setSelectedSlotId] =
-    useState<(typeof TIME_SLOTS)[number]["id"]>("b");
+  const [selectedSlotId, setSelectedSlotId] = useState<InspectionSlotId>("b");
   const [toast, setToast] = useState<string | null>(null);
   const { onScroll } = useTabBarOnScroll();
+
+  const activities = useMemo(
+    () =>
+      buildActivitiesFeed({
+        perspective: role,
+        listings,
+        savedListings: savedListingCards,
+        messageThreads,
+      }),
+    [role, listings, savedListingCards, messageThreads],
+  );
+
+  const activeThread = useMemo(() => {
+    if (!sheet?.row.threadId) return null;
+    return getThreadById(sheet.row.threadId) ?? null;
+  }, [sheet?.row.threadId, getThreadById]);
 
   useEffect(() => {
     const next = filterKeyFromQuery(firstQueryString(params.filter));
@@ -249,10 +172,21 @@ export default function ActivitiesScreen() {
 
   const dismissSheet = useCallback(() => {
     setSheet(null);
-    setDraft(COMPOSE_DRAFT_DEFAULT);
+    setDraft("");
     setSelectedDay(26);
     setSelectedSlotId("b");
   }, []);
+
+  const openListingFromSheet = useCallback(
+    (listingId: string) => {
+      dismissSheet();
+      router.push({
+        pathname: "/view-live-listing",
+        params: { listingId },
+      } as Href);
+    },
+    [dismissSheet, router],
+  );
 
   useEffect(() => {
     if (!toast) return;
@@ -260,26 +194,70 @@ export default function ActivitiesScreen() {
     return () => clearTimeout(t);
   }, [toast]);
 
-  const openRow = (row: ActivityRow) => {
-    setDraft(COMPOSE_DRAFT_DEFAULT);
+  const openRow = (row: ActivityFeedRow) => {
+    setDraft("");
     setSheet({
       row,
       view: row.kind === "message" ? "message-read" : "inspection-summary",
     });
+    if (row.kind === "message" && row.threadId) {
+      void markRead(row.threadId);
+    }
   };
 
-  const filtered = ACTIVITIES.filter((row) => {
-    if (filter === "all") return true;
-    if (filter === "messages") return row.kind === "message";
-    if (filter === "inspections") return row.kind === "inspection";
-    if (filter === "offers") return row.kind === "message";
-    return true;
-  });
+  const sendComposeMessage = useCallback(async () => {
+    const body = draft.trim();
+    if (!body || !sheet) return;
+    try {
+      const threadId =
+        sheet.row.threadId ?? (await ensureThreadFromActivityRow(sheet.row));
+      await sendMessageWithAutoReply(threadId, body);
+      setToast("Message sent");
+      setDraft("");
+      setSheet({ row: { ...sheet.row, threadId }, view: "message-read" });
+    } catch {
+      Alert.alert("Could not send", "Please try again in a moment.");
+    }
+  }, [draft, sheet, sendMessageWithAutoReply]);
+
+  const filtered = activities.filter((row) => activityMatchesFilter(row, filter));
+
+  const inspectionReschedulePrefs = useMemo(() => {
+    const listingId = sheet?.row.listingId;
+    if (!listingId) return null;
+    const L = listings.find((l) => l.id === listingId);
+    if (!L) return null;
+    return sellerSchedulePrefsFromListing(L);
+  }, [sheet?.row.listingId, listings]);
+
+  const inspectionRescheduleSlots = useMemo(() => {
+    if (!inspectionReschedulePrefs) return TIME_SLOTS;
+    return inspectionSlotsForSeller(
+      inspectionReschedulePrefs.tags,
+      inspectionReschedulePrefs.notes,
+    );
+  }, [inspectionReschedulePrefs]);
+
+  const inspectionReschedulePropertyLine = useMemo(() => {
+    const id = sheet?.row.listingId;
+    if (id) {
+      const L = listings.find((l) => l.id === id);
+      if (L) return `${L.streetLine}, ${L.suburbLine} • Buyer tour`;
+    }
+    return `${DEMO_PRIMARY_STREET} • Buyer tour`;
+  }, [sheet?.row.listingId, listings]);
+
+  useEffect(() => {
+    if (sheet?.view !== "inspection-reschedule") return;
+    setSelectedSlotId(
+      defaultInspectionSlotId(
+        inspectionRescheduleSlots,
+        inspectionReschedulePrefs?.tags ?? DEFAULT_INSPECTION_AVAILABILITY_TAGS,
+      ),
+    );
+  }, [sheet?.view, inspectionRescheduleSlots, inspectionReschedulePrefs]);
 
   const showCompose = sheet?.view === "message-compose";
-  const slotLabel =
-    TIME_SLOTS.find((s) => s.id === selectedSlotId)?.label ?? "";
-  const confirmToastLine = `Added to Apple Calendar · Sat 26 Apr · ${slotLabel.split("•")[0]?.trim() ?? "10:30–11:15"}`;
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -369,7 +347,11 @@ export default function ActivitiesScreen() {
         </View>
 
         <View style={[styles.listBlock, hPad]}>
-          <Text style={styles.kicker}>AGENT INTERACTIONS</Text>
+          <Text style={styles.kicker}>
+            {role === "seller"
+              ? "LISTING PERFORMANCE SIGNALS"
+              : "PIPELINE & THREADS"}
+          </Text>
 
           {filtered.map((row, i) => (
             <View key={row.id}>
@@ -425,11 +407,37 @@ export default function ActivitiesScreen() {
               <>
                 <Text style={styles.sheetTitle}>{sheet.row.sheetTitle}</Text>
                 <Text style={styles.sheetMeta}>{sheet.row.sheetSubtitle}</Text>
-                <View style={styles.bubble}>
-                  <Text style={styles.bubbleText}>{sheet.row.sheetBody}</Text>
-                </View>
-                {sheet.row.sheetTime ? (
-                  <Text style={styles.sheetTime}>{sheet.row.sheetTime}</Text>
+                <MessageThreadBubbles
+                  messages={
+                    activeThread?.messages ??
+                    (sheet.row.sheetBody
+                      ? [
+                          {
+                            id: "legacy-inbound",
+                            threadId: sheet.row.threadId ?? "legacy",
+                            direction: "inbound" as const,
+                            body: sheet.row.sheetBody,
+                            sentAtIso: new Date().toISOString(),
+                          },
+                        ]
+                      : [])
+                  }
+                />
+                {sheet.row.listingId ? (
+                  <>
+                    <AppButton
+                      variant="outlined"
+                      onPress={() => openListingFromSheet(sheet.row.listingId!)}
+                      accessibilityLabel="View listing"
+                      textStyle={{
+                        letterSpacing: 0.5,
+                        fontFamily: "Satoshi-Medium",
+                      }}
+                    >
+                      VIEW LISTING
+                    </AppButton>
+                    <View style={{ height: 12 }} />
+                  </>
                 ) : null}
                 <AppButton
                   variant="filled"
@@ -444,6 +452,36 @@ export default function ActivitiesScreen() {
                 >
                   REPLY
                 </AppButton>
+                {sheet.row.threadId || sheet.row.kind === "message" ? (
+                  <>
+                    <View style={{ height: 12 }} />
+                    <AppButton
+                      variant="outlined"
+                      onPress={() => {
+                        const threadId = sheet.row.threadId;
+                        dismissSheet();
+                        router.push({
+                          pathname: "/contact-seller-chat",
+                          params: {
+                            ...(threadId ? { threadId } : {}),
+                            ...(sheet.row.listingId
+                              ? {
+                                  listingId: sheet.row.listingId,
+                                  propertyRef: sheet.row.listingId,
+                                }
+                              : {}),
+                          },
+                        } as Href);
+                      }}
+                      textStyle={{
+                        letterSpacing: 0.5,
+                        fontFamily: "Satoshi-Medium",
+                      }}
+                    >
+                      OPEN FULL THREAD
+                    </AppButton>
+                  </>
+                ) : null}
                 <View style={{ height: 12 }} />
                 <AppButton
                   variant="outlined"
@@ -465,21 +503,15 @@ export default function ActivitiesScreen() {
                 >
                   <Text style={styles.sheetTitle}>{sheet.row.sheetTitle}</Text>
                   <Text style={styles.sheetMeta}>{sheet.row.sheetSubtitle}</Text>
-                  <View style={styles.bubble}>
-                    <Text style={styles.bubbleText}>{sheet.row.sheetBody}</Text>
-                  </View>
-                  {sheet.row.sheetTime ? (
-                    <Text style={styles.sheetTime}>{sheet.row.sheetTime}</Text>
-                  ) : (
-                    <View style={styles.composeTimeSpacer} />
-                  )}
-                  <Text style={styles.inputLabel}>Message</Text>
+                  <MessageThreadBubbles messages={activeThread?.messages ?? []} />
+                  <Text style={styles.inputLabel}>Your reply</Text>
                   <TextInput
                     value={draft}
                     onChangeText={setDraft}
                     style={styles.composeInput}
                     multiline
                     textAlignVertical="top"
+                    placeholder="Write your message…"
                     placeholderTextColor="rgba(0, 0, 0, 0.35)"
                   />
                 </ScrollView>
@@ -488,10 +520,23 @@ export default function ActivitiesScreen() {
                     styles.composeToolbar,
                     { marginBottom: Math.max(insets.bottom, 8) },
                   ]}>
-                  <Pressable accessibilityRole="button" hitSlop={8}>
+                  <Pressable
+                    accessibilityRole="button"
+                    hitSlop={8}
+                    onPress={() =>
+                      Alert.alert(
+                        "Attachments",
+                        "File uploads will be available in a future update.",
+                      )
+                    }>
                     <Text style={styles.composeAttach}>Attachments</Text>
                   </Pressable>
-                  <Pressable accessibilityRole="button" hitSlop={8}>
+                  <Pressable
+                    accessibilityRole="button"
+                    hitSlop={8}
+                    disabled={!draft.trim().length}
+                    onPress={() => void sendComposeMessage()}
+                    style={!draft.trim().length ? { opacity: 0.4 } : undefined}>
                     <Text style={styles.composeSend}>Send</Text>
                   </Pressable>
                 </View>
@@ -505,6 +550,22 @@ export default function ActivitiesScreen() {
                 <View style={styles.bubble}>
                   <Text style={styles.bubbleText}>{sheet.row.sheetBody}</Text>
                 </View>
+                {sheet.row.listingId ? (
+                  <>
+                    <AppButton
+                      variant="outlined"
+                      onPress={() => openListingFromSheet(sheet.row.listingId!)}
+                      accessibilityLabel="View listing"
+                      textStyle={{
+                        letterSpacing: 0.5,
+                        fontFamily: "Satoshi-Medium",
+                      }}
+                    >
+                      VIEW LISTING
+                    </AppButton>
+                    <View style={{ height: 12 }} />
+                  </>
+                ) : null}
                 <AppButton
                   variant="outlined"
                   onPress={() =>
@@ -542,74 +603,28 @@ export default function ActivitiesScreen() {
             ) : null}
 
             {sheet?.view === "inspection-reschedule" ? (
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.rescheduleScroll}
-              >
-                <Text style={styles.sheetTitle}>Reschedule inspection</Text>
-                <Text style={styles.rescheduleSub}>
-                  {DEMO_PRIMARY_STREET} • Buyer tour
-                </Text>
-                <CalendarMonthApril2026
-                  selectedDay={selectedDay}
-                  onSelectDay={setSelectedDay}
-                />
-                <Text style={styles.slotsKicker}>
-                  AVAILABLE SLOTS • SAT {selectedDay} APR
-                </Text>
-                {TIME_SLOTS.map((s) => {
-                  const on = selectedSlotId === s.id;
-                  return (
-                    <Pressable
-                      key={s.id}
-                      onPress={() => setSelectedSlotId(s.id)}
-                      style={[styles.slotPill, on && styles.slotPillOn]}
-                      accessibilityRole="button"
-                      accessibilityState={{ selected: on }}
-                    >
-                      <Text
-                        style={[
-                          styles.slotPillText,
-                          on && styles.slotPillTextOn,
-                        ]}
-                      >
-                        {s.label}
-                        {s.sub ? (on ? " • Selected" : "") : ""}
-                      </Text>
-                    </Pressable>
-                  );
-                })}
-                <Text style={styles.slotFootnote}>
-                  Arrive 10:20 for check-in • Photo ID required at door
-                </Text>
-                <AppButton
-                  variant="outlined"
-                  onPress={() =>
-                    sheet &&
-                    setSheet({ row: sheet.row, view: "inspection-summary" })
-                  }
-                  textStyle={{
-                    letterSpacing: 0.5,
-                    fontFamily: "Satoshi-Medium",
-                  }}
-                >
-                  CANCEL
-                </AppButton>
-                <View style={{ height: 12 }} />
-                <AppButton
-                  variant="filled"
-                  onPress={() => {
-                    setToast(confirmToastLine);
-                    dismissSheet();
-                  }}
-                  textStyle={{
-                    letterSpacing: 0.5,
-                    fontFamily: "Satoshi-Medium",
-                  }}
-                >
-                  CONFIRM NEW TIME
-                </AppButton>
-              </ScrollView>
+              <InspectionScheduleScrollBody
+                title="Reschedule inspection"
+                propertyLine={inspectionReschedulePropertyLine}
+                sellerAvailabilityTags={inspectionReschedulePrefs?.tags ?? null}
+                sellerAvailabilityNotes={inspectionReschedulePrefs?.notes ?? ""}
+                selectedDay={selectedDay}
+                onSelectDay={setSelectedDay}
+                selectedSlotId={selectedSlotId}
+                onSelectSlotId={setSelectedSlotId}
+                onCancel={() =>
+                  sheet &&
+                  setSheet({ row: sheet.row, view: "inspection-summary" })
+                }
+                confirmButtonLabel="CONFIRM NEW TIME"
+                onConfirm={() => {
+                  const label =
+                    inspectionRescheduleSlots.find((s) => s.id === selectedSlotId)
+                      ?.label ?? "";
+                  setToast(inspectionConfirmToastLine(selectedDay, label));
+                  dismissSheet();
+                }}
+              />
             ) : null}
           </View>
         </KeyboardAvoidingView>
@@ -859,101 +874,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontFamily: "Satoshi-Medium",
     color: "#000000",
-  },
-  rescheduleScroll: { paddingBottom: 28 },
-  rescheduleSub: {
-    fontSize: 14,
-    color: "rgba(0, 0, 0, 0.55)",
-    marginBottom: 18,
-  },
-  calCard: {
-    backgroundColor: "#fff",
-    borderRadius: 9,
-    borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.1)",
-    padding: 14,
-    marginBottom: 20,
-  },
-  calMonthTitle: {
-    fontSize: 16,
-    fontFamily: "Satoshi-Medium",
-    color: "#000000",
-    marginBottom: 12,
-  },
-  calWeekRow: {
-    flexDirection: "row",
-    marginBottom: 8,
-    gap: 4,
-  },
-  calWeekCell: {
-    flex: 1,
-    alignItems: "center",
-  },
-  calWeekLetter: {
-    fontSize: 11,
-    fontFamily: "Satoshi-Medium",
-    color: "rgba(0, 0, 0, 0.4)",
-  },
-  calGrid: {
-    gap: 4,
-  },
-  calRow: {
-    flexDirection: "row",
-    gap: 4,
-  },
-  calCell: {
-    flex: 1,
-    minHeight: 36,
-    alignItems: "center",
-    justifyContent: "center",
-    borderRadius: 5,
-  },
-  calCellSelected: {
-    backgroundColor: accent,
-    borderRadius: 5,
-  },
-  calCellText: {
-    fontSize: 14,
-    fontFamily: "Satoshi-Medium",
-    color: "#000000",
-  },
-  calCellTextSelected: {
-    color: ink,
-  },
-  slotsKicker: {
-    fontSize: 11,
-    fontFamily: "Satoshi-Medium",
-    letterSpacing: 0.6,
-    color: "rgba(0, 0, 0, 0.45)",
-    marginBottom: 10,
-  },
-  slotPill: {
-    paddingVertical: 14,
-    paddingHorizontal: 16,
-    borderRadius: 7,
-    backgroundColor: "#ffffff",
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: "rgba(0, 0, 0, 0.12)",
-    marginBottom: 8,
-  },
-  slotPillOn: {
-    backgroundColor: accent,
-    borderColor: accent,
-  },
-  slotPillText: {
-    fontSize: 14,
-    fontFamily: "Satoshi-Medium",
-    color: "#000000",
-  },
-  slotPillTextOn: {
-    color: ink,
-  },
-  slotFootnote: {
-    fontSize: 12,
-    lineHeight: 18,
-    color: "rgba(0, 0, 0, 0.45)",
-    marginTop: 4,
-    marginBottom: 20,
   },
   toastScrim: {
     ...StyleSheet.absoluteFillObject,

@@ -7,8 +7,8 @@ import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { accent, ink, layout, slateNavy } from '@/constants/theme';
+import { useAgentDisputes } from '@/lib/agent-disputes-context';
 import type { DisputeEvidenceFile, DisputeStatus } from '@/lib/disputes-mock';
-import { getDisputeDetail } from '@/lib/disputes-mock';
 
 /**
  * Single dispute — read-only detail. Solid-bordered cards.
@@ -141,7 +141,11 @@ export default function DisputeDetailScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id?: string }>();
-  const d = useMemo(() => getDisputeDetail(typeof id === 'string' ? id : id?.[0]), [id]);
+  const rawId = typeof id === 'string' ? id : id?.[0];
+  const { getDetail, withdrawDispute } = useAgentDisputes();
+  const d = useMemo(() => (rawId ? getDetail(rawId) : null), [rawId, getDetail]);
+
+  const canInteract = d != null && d.status !== 'resolved';
 
   if (!d) {
     return (
@@ -163,12 +167,25 @@ export default function DisputeDetailScreen() {
   }
 
   const onWithdraw = () => {
+    if (!d || !canInteract) return;
     Alert.alert(
       'Withdraw dispute?',
       'You can raise a new dispute later if needed. This action cannot be undone.',
       [
         { text: 'Cancel', style: 'cancel' },
-        { text: 'Withdraw', style: 'destructive', onPress: () => router.back() },
+        {
+          text: 'Withdraw',
+          style: 'destructive',
+          onPress: () => {
+            void (async () => {
+              const ok = await withdrawDispute(d.id);
+              if (ok) router.back();
+              else {
+                Alert.alert('Could not withdraw', 'Try again or contact support.');
+              }
+            })();
+          },
+        },
       ],
     );
   };
@@ -250,26 +267,30 @@ export default function DisputeDetailScreen() {
 
         <View style={{ height: BLOCK_GAP }} />
 
-        <Pressable
-          style={styles.cta}
-          onPress={() =>
-            router.push({
-              pathname: '/add-dispute-response',
-              params: { id: d.id },
-            } as Href)
-          }
-          accessibilityRole="button">
-          {({ pressed }) => (
-            <>
-              <Text style={styles.ctaText}>ADD RESPONSE</Text>
-              {pressed && <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12 }]} />}
-            </>
-          )}
-        </Pressable>
+        {canInteract ? (
+          <>
+            <Pressable
+              style={styles.cta}
+              onPress={() =>
+                router.push({
+                  pathname: '/add-dispute-response',
+                  params: { id: d.id },
+                } as Href)
+              }
+              accessibilityRole="button">
+              {({ pressed }) => (
+                <>
+                  <Text style={styles.ctaText}>ADD RESPONSE</Text>
+                  {pressed && <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12 }]} />}
+                </>
+              )}
+            </Pressable>
 
-        <Pressable style={styles.withdrawWrap} onPress={onWithdraw} hitSlop={12} accessibilityRole="button">
-          <Text style={styles.withdrawText}>WITHDRAW DISPUTE</Text>
-        </Pressable>
+            <Pressable style={styles.withdrawWrap} onPress={onWithdraw} hitSlop={12} accessibilityRole="button">
+              <Text style={styles.withdrawText}>WITHDRAW DISPUTE</Text>
+            </Pressable>
+          </>
+        ) : null}
       </ScrollView>
     </View>
   );

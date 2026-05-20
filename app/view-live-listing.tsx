@@ -1,14 +1,16 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import type { ReactNode } from 'react';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Text } from '@/components/OMMText';
-import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { Image, Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ApproximateAreaMap } from '@/components/ApproximateAreaMap';
 import { AppButton } from '@/components/AppButton';
+import { InspectionScheduleModal } from '@/components/InspectionScheduleSheet';
 import { PlayTourModal } from '@/components/PlayTourModal';
 import { SellerContactSheet } from '@/components/SellerContactSheet';
 import { SoiBottomSheet } from '@/components/SoiBottomSheet';
@@ -34,7 +36,15 @@ import {
   readDemoLiveListingDisclosure,
   type LiveListingAddressDisclosure,
 } from '@/lib/demo-live-listing-disclosure';
-import { accent, ink, layout, slateNavy } from '@/constants/theme';
+import {
+  isPersistedAgentListingId,
+  isPublishedListingArchived,
+  listingHeroImageSource,
+  savedListingCardFromPublished,
+} from '@/lib/agent-published-listings';
+import { useAgentPublishedListings } from '@/lib/agent-published-listings-context';
+import { sellerSchedulePrefsFromListing } from '@/lib/listing-inspection-availability';
+import { accent, ink, layout } from '@/constants/theme';
 
 const SECTION = 28;
 const GAP_MD = 16;
@@ -73,6 +83,8 @@ export default function ViewLiveListingScreen() {
   const router = useRouter();
   const {
     addressDisclosure: addressDisclosureParam,
+    listingId: listingIdParam,
+    skipListingAnalytics: skipListingAnalyticsParam,
     street: streetParam,
     suburb: suburbParam,
     price: priceParam,
@@ -82,6 +94,8 @@ export default function ViewLiveListingScreen() {
     imageIndex: imageIndexParam,
   } = useLocalSearchParams<{
     addressDisclosure?: string;
+    listingId?: string;
+    skipListingAnalytics?: string;
     street?: string;
     suburb?: string;
     price?: string;
@@ -92,45 +106,167 @@ export default function ViewLiveListingScreen() {
   }>();
   const [storedDisclosure, setStoredDisclosure] = useState<LiveListingAddressDisclosure | null>(null);
 
-  useEffect(() => {
-    if (addressDisclosureParam !== undefined) {
-      return;
-    }
-    void readDemoLiveListingDisclosure().then(setStoredDisclosure);
-  }, [addressDisclosureParam]);
-
+  const {
+    getById,
+    recordBuyerListingView,
+    recordBuyerListingSaveDelta,
+    recordBuyerListingEnquiry,
+    recordBuyerInspectionBooking,
+  } = useAgentPublishedListings();
   const { isSaved, toggleSaved } = useSavedListings();
   const [soiOpen, setSoiOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [sellerContactOpen, setSellerContactOpen] = useState(false);
+  const [inspectionScheduleOpen, setInspectionScheduleOpen] = useState(false);
+
+  const listingIdResolved = firstQueryParam(listingIdParam);
+  const skipListingAnalytics =
+    firstQueryParam(skipListingAnalyticsParam) === '1' ||
+    firstQueryParam(skipListingAnalyticsParam) === 'true';
+  const publishedListing =
+    listingIdResolved != null && listingIdResolved.length > 0 ? getById(listingIdResolved) : undefined;
+
+  const listingFromPublished = Boolean(publishedListing);
+
+  useFocusEffect(
+    useCallback(() => {
+      const id = listingIdResolved?.trim();
+      if (!id || skipListingAnalytics || !isPersistedAgentListingId(id)) return;
+      const row = getById(id);
+      if (row != null && isPublishedListingArchived(row)) return;
+      void recordBuyerListingView(id);
+    }, [listingIdResolved, skipListingAnalytics, recordBuyerListingView, getById]),
+  );
+
+  useEffect(() => {
+    if (addressDisclosureParam !== undefined || listingFromPublished) {
+      return;
+    }
+    void readDemoLiveListingDisclosure().then(setStoredDisclosure);
+  }, [addressDisclosureParam, listingFromPublished]);
 
   const street = firstQueryParam(streetParam);
   const suburb = firstQueryParam(suburbParam);
-  const listingFromRecent = Boolean(street && suburb);
+  const listingFromRecentParams = Boolean(street && suburb);
+
+  /** Full detail rows (recent listings strip URL params or persisted agent publish lookup). */
+  const hasStructuredListingInfo = listingFromRecentParams || listingFromPublished;
+
   const listingPrice = firstQueryParam(priceParam);
   const listingBeds = firstQueryParam(bedsParam);
   const listingBaths = firstQueryParam(bathsParam);
   const listingCars = firstQueryParam(carsParam);
   const listingImageIndex = Math.max(0, parseInt(firstQueryParam(imageIndexParam) ?? '0', 10) || 0);
-  const heroSource = listingFromRecent ? propertyImageAtIndex(listingImageIndex) : PROPERTY_IMG_1;
 
-  const addressMultiline = listingFromRecent ? `${street},\n${suburb} VIC` : null;
-  const displayPrice = listingFromRecent && listingPrice ? listingPrice : '$2,450,000';
-  const displayBeds = listingFromRecent && listingBeds ? listingBeds : '3';
-  const displayBaths = listingFromRecent && listingBaths ? listingBaths : '2';
-  const displayCars = listingFromRecent && listingCars ? listingCars : '2';
-  const mapQuery = listingFromRecent ? `${street}, ${suburb} VIC Australia` : null;
-  const descriptionBody = listingFromRecent
-    ? `A refined ${displayBeds}-bedroom property in ${suburb}, combining modern living with easy access to local amenities, transport links, and vibrant surroundings.`
-    : 'A refined 3-bedroom property positioned in a prime central location, combining modern living with easy access to key amenities, transport links, and vibrant city surroundings.';
+  const heroSource =
+    listingFromPublished && publishedListing != null
+      ? listingHeroImageSource(publishedListing)
+      : hasStructuredListingInfo
+        ? propertyImageAtIndex(listingImageIndex)
+        : PROPERTY_IMG_1;
 
-  const addressDisclosure: LiveListingAddressDisclosure = listingFromRecent
-    ? 'disclose'
-    : addressDisclosureParam !== undefined
-      ? parseAddressDisclosureParam(addressDisclosureParam)
-      : (storedDisclosure ?? 'disclose');
-  const addressAnonymousToBuyers = addressDisclosure === 'not_disclose';
-  const saved = isSaved(VIEW_LIVE_LISTING_CARD.id);
+  const displayPrice = publishedListing
+    ? publishedListing.priceRangeDisplay
+    : listingFromRecentParams && listingPrice
+      ? listingPrice
+      : '$2,450,000';
+  const displayBeds =
+    listingFromPublished && publishedListing
+      ? String(publishedListing.beds)
+      : listingFromRecentParams && listingBeds
+        ? listingBeds
+        : '3';
+  const displayBaths =
+    listingFromPublished && publishedListing
+      ? String(publishedListing.baths)
+      : listingFromRecentParams && listingBaths
+        ? listingBaths
+        : '2';
+  const displayCars =
+    listingFromPublished && publishedListing
+      ? String(publishedListing.cars)
+      : listingFromRecentParams && listingCars
+        ? listingCars
+        : '2';
+
+  const addressMultiline =
+    publishedListing != null && publishedListing.addressDisclosure === 'disclose'
+      ? `${publishedListing.streetLine},\n${publishedListing.suburbLine}`
+      : listingFromRecentParams && street && suburb
+        ? `${street},\n${suburb} VIC`
+        : null;
+
+  const mapQueryPublishedDisclosed =
+    publishedListing != null && publishedListing.addressDisclosure === 'disclose'
+      ? `${publishedListing.addressLine} Australia`
+      : publishedListing != null && publishedListing.addressDisclosure === 'not_disclose'
+        ? `${publishedListing.suburbLine} Australia`
+        : null;
+
+  const mapQuery =
+    mapQueryPublishedDisclosed ??
+    (listingFromRecentParams && street && suburb ? `${street}, ${suburb} VIC Australia` : null);
+
+  const descriptionBody =
+    listingFromPublished && publishedListing != null
+      ? publishedListing.description?.trim()
+        ? publishedListing.description.trim()
+        : (() => {
+            const pt = publishedListing.propertyType.toLowerCase();
+            const land =
+              publishedListing.landSqm != null && publishedListing.landSqm > 0
+                ? ` Roughly ${publishedListing.landSqm}\u202fm² land.`
+                : '';
+            const where =
+              publishedListing.addressDisclosure === 'disclose'
+                ? ` Presented at ${publishedListing.addressLine}.`
+                : ` Approximate locality: ${publishedListing.suburbLine}.`;
+            return `A ${pt} with ${publishedListing.beds} bedrooms and ${publishedListing.baths} bathrooms.${land}${where}`;
+          })()
+      : listingFromRecentParams
+        ? `A refined ${displayBeds}-bedroom property in ${suburb}, combining modern living with easy access to local amenities, transport links, and vibrant surroundings.`
+        : 'A refined 3-bedroom property positioned in a prime central location, combining modern living with easy access to key amenities, transport links, and vibrant city surroundings.';
+
+  const addressDisclosureResolved: LiveListingAddressDisclosure =
+    publishedListing != null
+      ? publishedListing.addressDisclosure === 'not_disclose'
+        ? 'not_disclose'
+        : 'disclose'
+      : listingFromRecentParams
+        ? 'disclose'
+        : addressDisclosureParam !== undefined
+          ? parseAddressDisclosureParam(addressDisclosureParam)
+          : (storedDisclosure ?? 'disclose');
+
+  const addressAnonymousToBuyers = addressDisclosureResolved === 'not_disclose';
+
+  const soiIssuedMeta =
+    publishedListing != null
+      ? `Listed ${new Date(publishedListing.publishedAt).toLocaleDateString('en-AU', {
+          day: 'numeric',
+          month: 'short',
+          year: 'numeric',
+        })} · SOI attached`
+      : 'Issued 12 Apr 2026 · Expires 12 Jul';
+
+  const savedCard =
+    publishedListing != null
+      ? savedListingCardFromPublished(publishedListing)
+      : VIEW_LIVE_LISTING_CARD;
+
+  const saved = isSaved(savedCard.id);
+
+  const inspectionSchedulePropertyLine =
+    publishedListing != null
+      ? `${publishedListing.streetLine}, ${publishedListing.suburbLine} • Buyer tour`
+      : listingFromRecentParams && street && suburb
+        ? `${street}, ${suburb} • Buyer tour`
+        : `${DEMO_PRIMARY_STREET} • Buyer tour`;
+
+  const inspectionSchedulePrefs = useMemo(
+    () => (publishedListing ? sellerSchedulePrefsFromListing(publishedListing) : null),
+    [publishedListing],
+  );
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -145,7 +281,22 @@ export default function ViewLiveListingScreen() {
           <FontAwesome name="chevron-left" size={22} color="#000000" />
         </Pressable>
         <Pressable
-          onPress={() => void toggleSaved(VIEW_LIVE_LISTING_CARD)}
+          onPress={() => {
+            void (async () => {
+              const willSave = !saved;
+              await toggleSaved(savedCard);
+              const id = listingIdResolved?.trim();
+              if (
+                id &&
+                isPersistedAgentListingId(id) &&
+                publishedListing != null &&
+                !skipListingAnalytics &&
+                !isPublishedListingArchived(publishedListing)
+              ) {
+                await recordBuyerListingSaveDelta(id, willSave ? 1 : -1);
+              }
+            })();
+          }}
           hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel={saved ? 'Remove from saved properties' : 'Save property'}
@@ -169,14 +320,18 @@ export default function ViewLiveListingScreen() {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 112 }]}>
+        contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 180 }]}>
         <Kicker>PROPERTY ADDRESS</Kicker>
         {addressAnonymousToBuyers ? (
           <>
             <Text style={styles.addressTitle}>The street address is not disclosed publicly on this listing.</Text>
-            <Text style={styles.addressSubMuted}>{DEMO_ANONYMOUS_LISTING_ADDRESS_MULTILINE}</Text>
+            <Text style={styles.addressSubMuted}>
+              {listingFromPublished && publishedListing != null
+                ? `${publishedListing.titleLine}\n${publishedListing.suburbLine}`
+                : DEMO_ANONYMOUS_LISTING_ADDRESS_MULTILINE}
+            </Text>
           </>
-        ) : listingFromRecent && addressMultiline ? (
+        ) : addressMultiline ? (
           <Text style={styles.addressTitle}>{addressMultiline}</Text>
         ) : (
           <Text style={styles.addressTitle}>{DEMO_PRIMARY_ADDRESS_MULTILINE}</Text>
@@ -195,8 +350,8 @@ export default function ViewLiveListingScreen() {
           <FontAwesome name="file-text-o" size={22} color="rgba(0, 0, 0, 0.55)" style={styles.soiIcon} />
           <View style={styles.soiBody}>
             <Text style={styles.soiKicker}>STATEMENT OF INFORMATION</Text>
-            <Text style={styles.soiGuide}>Price guide $2.35M — $2.55M</Text>
-            <Text style={styles.soiMeta}>Issued 12 Apr 2026 · Expires 12 Jul</Text>
+            <Text style={styles.soiGuide}>Price guide {displayPrice}</Text>
+            <Text style={styles.soiMeta}>{soiIssuedMeta}</Text>
           </View>
           <FontAwesome name="chevron-right" size={14} color="rgba(0, 0, 0, 0.45)" />
         </Pressable>
@@ -231,13 +386,25 @@ export default function ViewLiveListingScreen() {
           <Text style={styles.descBody}>{descriptionBody}</Text>
         </View>
 
+        {listingFromPublished &&
+        publishedListing?.sellerInspectionAvailability?.trim() ? (
+          <View style={styles.sectionPad}>
+            <Text style={styles.descKicker}>INSPECTION AVAILABILITY</Text>
+            <Text style={styles.descBody}>
+              {publishedListing.sellerInspectionAvailability.trim()}
+            </Text>
+          </View>
+        ) : null}
+
         <Text style={[styles.locKicker, styles.sectionPadTop]}>LOCATION</Text>
         <View style={styles.locMapBlock}>
           <ApproximateAreaMap
             variant={addressAnonymousToBuyers ? 'anonymous' : 'disclosed'}
             mapsQuery={
               addressAnonymousToBuyers
-                ? DEMO_APPROXIMATE_MAPS_QUERY
+                ? listingFromPublished && publishedListing != null
+                  ? `${publishedListing.suburbLine} Australia`
+                  : DEMO_APPROXIMATE_MAPS_QUERY
                 : mapQuery ?? DEMO_PRIMARY_STREET
             }
             radiusMeters={500}
@@ -288,11 +455,26 @@ export default function ViewLiveListingScreen() {
       </ScrollView>
 
       <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+        <AppButton
+          variant="outlined"
+          onPress={() => setInspectionScheduleOpen(true)}
+          textStyle={styles.inspectionScheduleBtnText}
+          accessibilityLabel="Schedule inspection">
+          SCHEDULE INSPECTION
+        </AppButton>
         <View style={styles.footerBtnRow}>
           <View style={styles.footerBtnCol}>
             <AppButton
               variant="filled"
-              onPress={() => router.push('/contact-seller-chat' as Href)}
+              onPress={() =>
+                router.push({
+                  pathname: '/contact-seller-chat',
+                  params:
+                    isPersistedAgentListingId(listingIdResolved) && publishedListing
+                      ? { listingId: listingIdResolved, propertyRef: listingIdResolved }
+                      : {},
+                } as Href)
+              }
               textStyle={styles.contactBtnText}
               accessibilityLabel="Message seller">
               MESSAGE
@@ -313,10 +495,37 @@ export default function ViewLiveListingScreen() {
       <SellerContactSheet
         visible={sellerContactOpen}
         onClose={() => setSellerContactOpen(false)}
+        onContactChannelPress={
+          publishedListing != null &&
+          !skipListingAnalytics &&
+          !isPublishedListingArchived(publishedListing) &&
+          listingIdResolved != null &&
+          isPersistedAgentListingId(listingIdResolved)
+            ? () => void recordBuyerListingEnquiry(listingIdResolved)
+            : undefined
+        }
       />
 
       <SoiBottomSheet visible={soiOpen} onClose={() => setSoiOpen(false)} />
       <PlayTourModal visible={tourOpen} onClose={() => setTourOpen(false)} />
+      <InspectionScheduleModal
+        visible={inspectionScheduleOpen}
+        onClose={() => setInspectionScheduleOpen(false)}
+        propertyLine={inspectionSchedulePropertyLine}
+        sellerAvailabilityTags={inspectionSchedulePrefs?.tags ?? null}
+        sellerAvailabilityNotes={inspectionSchedulePrefs?.notes ?? ''}
+        onConfirmed={async (detail) => {
+          const id = listingIdResolved?.trim();
+          if (isPersistedAgentListingId(id)) {
+            await recordBuyerInspectionBooking(id, {
+              aprilDay2026: detail.aprilDay2026,
+              slotId: detail.slotId,
+              slotLabel: detail.slotLabel,
+            });
+          }
+          Alert.alert('Inspection booked', detail.toastLine, [{ text: 'OK' }]);
+        }}
+      />
     </View>
   );
 }
@@ -550,6 +759,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     alignItems: 'stretch',
+    marginTop: 12,
   },
   footerBtnCol: {
     flex: 1,
@@ -557,4 +767,9 @@ const styles = StyleSheet.create({
   },
   contactBtnText: { fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.2 },
   contactBtnTextOutlined: { fontSize: 14, fontFamily: 'Satoshi-Medium', letterSpacing: 0.2 },
+  inspectionScheduleBtnText: {
+    fontSize: 14,
+    fontFamily: 'Satoshi-Medium',
+    letterSpacing: 0.2,
+  },
 });

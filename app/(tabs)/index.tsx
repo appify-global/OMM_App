@@ -1,10 +1,18 @@
 import { Text } from "@/components/OMMText";
 import { TextInput } from "@/components/OMMTextInput";
-import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useAuth } from "@clerk/expo";
+import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useGlobalSearchParams, useRouter, type Href } from "expo-router";
-import { Fragment, useEffect, useRef, useState } from "react";
 import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
+import {
+  Alert,
   Image,
   ImageBackground,
   Pressable,
@@ -20,25 +28,42 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppButton } from "@/components/AppButton";
-import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from "@/lib/field-outline";
-import {
-  DEMO_PRIMARY_LISTING_TITLE,
-  DEMO_SEARCH_SUBURB,
-} from "@/lib/melbourne-demo-locations";
-import {
-  PROPERTY_IMG_1,
-  PROPERTY_IMG_2,
-  propertyImageAtIndex,
-} from "@/lib/propertyImages";
 import {
   FALLBACK_AGENT_HOME_METRICS,
   LEGAL_COPY_PIPELINE_COMMISSION_DISCLAIMER,
   LEGAL_COPY_PIPELINE_COMMISSION_LABEL,
   PIPELINE_KPI_LEGALLY_APPROVED,
-  type AgentHomeMetricsPayload,
   fetchAgentHomeMetrics,
   formatPipelineCommissionRangeDisplay,
+  type AgentHomeMetricsPayload,
 } from "@/lib/agent-home-metrics";
+import {
+  publishedToMobileHomeListing,
+  publishedToOffMarketMatch,
+  filterSavedListingsNotArchivedPublished,
+  isPublishedListingArchived,
+  recentlySoldStripFromPublishedListings,
+  resolvedPublishedListingStatus,
+  sellingKpisFromPublishedListings,
+} from "@/lib/agent-published-listings";
+import { useAgentPublishedListings } from "@/lib/agent-published-listings-context";
+import { getAgentQuickLinksForHome } from "@/lib/agent-quick-links";
+import {
+  buyerSearchTokens,
+  isListingVisibleForBuyerSearch,
+  listingMatchesBuyerQuery,
+  viewLiveListingAddressParamsFromListing,
+} from "@/lib/buyer-listed-search";
+import {
+  buyerSavedMetaForRow,
+  mergeBuyerSavedSearches,
+  type BuyerSavedSearchMergedRow,
+} from "@/lib/buyer-saved-searches-merge";
+import { FIELD_OUTLINE_WIDTH } from "@/lib/field-outline";
+import {
+  DEMO_PRIMARY_LISTING_TITLE,
+  DEMO_SEARCH_SUBURB,
+} from "@/lib/melbourne-demo-locations";
 import {
   deriveAgentMetricsFromHome,
   fetchMobileHome,
@@ -46,12 +71,21 @@ import {
   type MobileHomeListing,
   type MobileHomePayload,
 } from "@/lib/mobile-home-api";
-import { getAgentQuickLinksForHome } from "@/lib/agent-quick-links";
-import { VIEW_LIVE_LISTING_ID } from "@/lib/saved-listings";
+import {
+  PROPERTY_IMG_1,
+  PROPERTY_IMG_2,
+  propertyImageAtIndex,
+} from "@/lib/propertyImages";
+import { useRecentBuyerSearches } from "@/lib/recent-buyer-searches-context";
 import { useSavedListings } from "@/lib/saved-listings-context";
+import { normalizeSearchKey } from "@/lib/saved-searches";
+import { useSavedSearches } from "@/lib/saved-searches-context";
 
 import { fieldShell } from "@/components/list-add/flow-shared";
-import { accent, frost, ink, slateNavy } from '@/constants/theme';
+import { accent, frost, ink, slateNavy } from "@/constants/theme";
+
+/** Buying home saved-search rows — darker stroke reads on frost background (#F8FAFC). */
+const SAVED_SEARCH_HOME_BORDER = "rgba(30, 41, 59, 0.2)";
 
 function SectionHeader({
   title,
@@ -347,31 +381,43 @@ function SavedSearchCard({
   badge,
   alertsOn,
   meta,
+  onPress,
 }: {
   name: string;
   criteria: string;
   badge?: string;
   alertsOn: boolean;
   meta: string;
+  onPress?: () => void;
 }) {
   return (
-    <View style={styles.savedCard}>
-      <View style={styles.savedTop}>
-        <Text style={styles.savedName}>{name}</Text>
-        {badge ? (
-          <View style={styles.newBadge}>
-            <Text style={styles.newBadgeText}>{badge}</Text>
-          </View>
-        ) : null}
+    <Pressable
+      accessibilityRole={onPress ? "button" : undefined}
+      disabled={!onPress}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.savedCardHitBox,
+        onPress && pressed && { opacity: 0.93 },
+      ]}
+    >
+      <View style={styles.savedCardChrome}>
+        <View style={styles.savedTop}>
+          <Text style={styles.savedName}>{name}</Text>
+          {badge ? (
+            <View style={styles.newBadge}>
+              <Text style={styles.newBadgeText}>{badge}</Text>
+            </View>
+          ) : null}
+        </View>
+        <Text style={styles.savedCriteria}>{criteria}</Text>
+        <View style={styles.savedRow}>
+          <Text style={[styles.savedDot, !alertsOn && styles.savedDotOff]}>
+            ● {alertsOn ? "ALERTS ON" : "ALERTS OFF"}
+          </Text>
+          <Text style={styles.savedMeta}>{meta}</Text>
+        </View>
       </View>
-      <Text style={styles.savedCriteria}>{criteria}</Text>
-      <View style={styles.savedRow}>
-        <Text style={[styles.savedDot, !alertsOn && styles.savedDotOff]}>
-          ● {alertsOn ? "ALERTS ON" : "ALERTS OFF"}
-        </Text>
-        <Text style={styles.savedMeta}>{meta}</Text>
-      </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -395,6 +441,26 @@ function AgentReplyCard({
   );
 }
 
+/** Deterministic `% MATCH` so listed rows mirror the off-market badge without rankings API. */
+function buyerSearchMatchPill(listingId: string): string {
+  let hash = 0;
+  for (let i = 0; i < listingId.length; i += 1) {
+    hash = Math.imul(31, hash) + listingId.charCodeAt(i);
+  }
+  const pct = Math.min(94, Math.max(68, Math.abs(hash % 101)));
+  return `${pct}% MATCH`;
+}
+
+/** Reference layout: `4 BED • 3 BATH • 720M²`. */
+function buyerSearchSpecsCaps(
+  beds: number,
+  baths: number,
+  landSqm: number,
+): string {
+  const land = Number.isFinite(landSqm) ? Math.round(landSqm) : 0;
+  return `${beds} BED • ${baths} BATH • ${land}M²`;
+}
+
 function SearchMatchRow({
   name,
   address,
@@ -402,6 +468,8 @@ function SearchMatchRow({
   specs,
   match,
   imageSource,
+  ribbon = "OFF-MARKET",
+  onPress,
 }: {
   name: string;
   address: string;
@@ -409,33 +477,65 @@ function SearchMatchRow({
   specs: string;
   match: string;
   imageSource: ImageSourcePropType;
+  /** Left ribbon pill (OFF-MARKET vs LISTED). */
+  ribbon?: string;
+  onPress?: () => void;
 }) {
-  return (
-    <View style={styles.matchRow}>
-      <View style={styles.matchThumbWrap}>
+  const thumbAndBody = (
+    <>
+      <View style={styles.matchThumbColumn}>
         <Image
           source={imageSource}
-          style={styles.matchThumb}
+          style={styles.matchThumbImage}
           resizeMode="cover"
         />
-        <View style={styles.matchTagOff}>
-          <Text style={styles.matchTagText}>OFF-MARKET</Text>
+        <View style={styles.matchRibbon}>
+          <Text style={styles.matchRibbonText} numberOfLines={1}>
+            {ribbon}
+          </Text>
         </View>
-        <View style={styles.matchPct}>
-          <Text style={styles.matchPctText}>{match}</Text>
+        <View style={styles.matchScorePill}>
+          <Text style={styles.matchScorePillText} numberOfLines={1}>
+            {match}
+          </Text>
         </View>
       </View>
-      <View style={styles.matchBody}>
-        <Text style={styles.matchName}>{name}</Text>
-        <Text style={styles.matchAddr}>{address}</Text>
-        <Text style={styles.matchPrice}>{price}</Text>
-        <Text style={styles.matchSpecs}>{specs}</Text>
+      <View style={styles.matchTextColumn}>
+        <Text style={styles.matchTitle} numberOfLines={2}>
+          {name}
+        </Text>
+        <Text style={styles.matchAddress} numberOfLines={2}>
+          {address}
+        </Text>
+        <Text style={styles.matchPriceLine} numberOfLines={2}>
+          {price}
+        </Text>
+        <Text style={styles.matchSpecsCaps} numberOfLines={2}>
+          {specs}
+        </Text>
       </View>
-    </View>
+    </>
+  );
+
+  return onPress ? (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={`Open listing ${name}`}
+      onPress={onPress}
+      style={({ pressed }) => [styles.matchRow, pressed && { opacity: 0.93 }]}
+    >
+      {thumbAndBody}
+    </Pressable>
+  ) : (
+    <View style={styles.matchRow}>{thumbAndBody}</View>
   );
 }
 
-function SellingQuickLinksRow({ router }: { router: ReturnType<typeof useRouter> }) {
+function SellingQuickLinksRow({
+  router,
+}: {
+  router: ReturnType<typeof useRouter>;
+}) {
   const items = getAgentQuickLinksForHome();
   if (items.length === 0) return null;
   return (
@@ -478,9 +578,12 @@ function SellingQuickLinksRow({ router }: { router: ReturnType<typeof useRouter>
 function SellingPerformanceSlice({
   metrics,
   onOpenSoldSeeAll,
+  soldStripPlaceholder,
 }: {
   metrics: AgentHomeMetricsPayload;
   onOpenSoldSeeAll: () => void;
+  /** Shown instead of an empty carousel when the agent has device listings but none marked Sold yet. */
+  soldStripPlaceholder?: string;
 }) {
   const pipelineRange = metrics.pipelineCommissionEstimateAud;
   const pipelineRangeSafe =
@@ -497,42 +600,52 @@ function SellingPerformanceSlice({
         onSeeAll={onOpenSoldSeeAll}
         style={styles.sectionHeaderSoldStrip}
       />
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.hScrollSoldStrip}
-      >
-        {metrics.recentlySold.map((item) => (
-          <Pressable
-            key={item.id}
-            accessibilityRole="button"
-            accessibilityLabel={`Recently sold ${item.addressLine}`}
-            onPress={onOpenSoldSeeAll}
-          >
-            <View style={styles.soldStripCard}>
-              <Image
-                source={propertyImageAtIndex(item.imageIndex)}
-                style={styles.soldStripImg}
-                resizeMode="cover"
-              />
-              <View style={styles.soldStripBody}>
-                <Text style={styles.soldStripAddr} numberOfLines={2}>
-                  {item.addressLine}
-                </Text>
-                <Text style={styles.soldStripSub} numberOfLines={1}>
-                  {item.suburb}
-                </Text>
-                <Text style={styles.soldStripPrice} numberOfLines={1}>
-                  {item.soldPriceDisplay}
-                </Text>
-                <Text style={styles.soldStripMeta} numberOfLines={1}>
-                  {item.soldAtDisplay}
-                </Text>
-              </View>
-            </View>
-          </Pressable>
-        ))}
-      </ScrollView>
+      {metrics.recentlySold.length === 0 && soldStripPlaceholder ? (
+        <Text style={styles.soldStripPlaceholder}>{soldStripPlaceholder}</Text>
+      ) : (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.hScrollSoldStrip}
+        >
+          {metrics.recentlySold.map((item) => {
+            const thumb =
+              item.coverImageUri?.trim().length
+                ? { uri: item.coverImageUri.trim() }
+                : propertyImageAtIndex(item.imageIndex);
+            return (
+              <Pressable
+                key={item.id}
+                accessibilityRole="button"
+                accessibilityLabel={`Recently sold ${item.addressLine}`}
+                onPress={onOpenSoldSeeAll}
+              >
+                <View style={styles.soldStripCard}>
+                  <Image
+                    source={thumb}
+                    style={styles.soldStripImg}
+                    resizeMode="cover"
+                  />
+                  <View style={styles.soldStripBody}>
+                    <Text style={styles.soldStripAddr} numberOfLines={2}>
+                      {item.addressLine}
+                    </Text>
+                    <Text style={styles.soldStripSub} numberOfLines={1}>
+                      {item.suburb}
+                    </Text>
+                    <Text style={styles.soldStripPrice} numberOfLines={1}>
+                      {item.soldPriceDisplay}
+                    </Text>
+                    <Text style={styles.soldStripMeta} numberOfLines={1}>
+                      {item.soldAtDisplay}
+                    </Text>
+                  </View>
+                </View>
+              </Pressable>
+            );
+          })}
+        </ScrollView>
+      )}
       <View style={styles.kpiStrip}>
         <View style={styles.kpiStripRow}>
           <View
@@ -562,26 +675,41 @@ function SellingPerformanceSlice({
             accessibilityLabel={`Inspections booked, ${metrics.inspectionsBookedCount}`}
           >
             <Text style={styles.kpiLabel}>Inspections booked</Text>
-            <Text style={styles.kpiValue}>{metrics.inspectionsBookedCount}</Text>
+            <Text style={styles.kpiValue}>
+              {metrics.inspectionsBookedCount}
+            </Text>
           </View>
-          {pipelineRangeSafe ? (
+          <View
+            style={styles.kpiCol}
+            accessible
+            accessibilityRole="text"
+            accessibilityLabel={`Sold listings, ${metrics.soldListingsCount}`}
+          >
+            <Text style={styles.kpiLabel}>Sold listings</Text>
+            <Text style={styles.kpiValue}>{metrics.soldListingsCount}</Text>
+          </View>
+        </View>
+        {pipelineRangeSafe ? (
+          <>
             <View
-              style={styles.kpiCol}
+              style={styles.kpiPipelineSection}
               accessible
               accessibilityRole="text"
               accessibilityLabel={`${LEGAL_COPY_PIPELINE_COMMISSION_LABEL}, ${formatPipelineCommissionRangeDisplay(pipelineRangeSafe)}`}
             >
-              <Text style={styles.kpiLabel}>{LEGAL_COPY_PIPELINE_COMMISSION_LABEL}</Text>
+              <Text style={styles.kpiLabel}>
+                {LEGAL_COPY_PIPELINE_COMMISSION_LABEL}
+              </Text>
               <Text style={styles.kpiValue} numberOfLines={2}>
                 {formatPipelineCommissionRangeDisplay(pipelineRangeSafe)}
               </Text>
             </View>
-          ) : null}
-        </View>
+            <Text style={styles.kpiDisclaimer}>
+              {LEGAL_COPY_PIPELINE_COMMISSION_DISCLAIMER}
+            </Text>
+          </>
+        ) : null}
       </View>
-      {pipelineRangeSafe ? (
-        <Text style={styles.kpiDisclaimer}>{LEGAL_COPY_PIPELINE_COMMISSION_DISCLAIMER}</Text>
-      ) : null}
     </>
   );
 }
@@ -601,6 +729,14 @@ function activeListingSubtitle(l: MobileHomeListing): string {
   return `${l.priceRange}${statusExtra}${auth}${soi}`;
 }
 
+function mergeByIdLocalFirst<T extends { id: string }>(
+  local: T[],
+  remote: T[],
+): T[] {
+  const seen = new Set(local.map((x) => x.id));
+  return [...local, ...remote.filter((r) => !seen.has(r.id))];
+}
+
 export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -610,32 +746,182 @@ export default function HomeScreen() {
   const search = useGlobalSearchParams<{
     openBuyingSearch?: string;
     homeSegment?: string;
+    buyingQuery?: string;
     _ts?: string;
   }>();
   const [mode, setMode] = useState<"selling" | "buying">("selling");
   const [buyingSearchActive, setBuyingSearchActive] = useState(false);
-  const [searchQuery, setSearchQuery] = useState(DEMO_SEARCH_SUBURB);
+  const [searchQuery, setSearchQuery] = useState("");
   const buyingSearchRef = useRef<RNTextInput>(null);
+  /** Previous trimmed Buying query length — detects non-empty → empty to exit Explore without bouncing browse-all on open. */
+  const prevBuyerSearchTrimLenRef = useRef(0);
   const [recentSearchesPinnedOnly, setRecentSearchesPinnedOnly] =
     useState(false);
   const [saveAlerts, setSaveAlerts] = useState(false);
   const { listings: savedProperties } = useSavedListings();
+  const { listings: publishedAgentListings } = useAgentPublishedListings();
+
+  const visibleSavedProperties = useMemo(
+    () => filterSavedListingsNotArchivedPublished(savedProperties, publishedAgentListings),
+    [savedProperties, publishedAgentListings],
+  );
+  const buyingSavedFeatured = visibleSavedProperties[0];
+  const {
+    searches: buyerDeviceSavedSearches,
+    upsertSearch: upsertBuyerSavedSearch,
+    removeSearch: removeBuyerSavedSearch,
+  } = useSavedSearches();
+  const { recent: recentBuyerRows, recordBuyerExplore } =
+    useRecentBuyerSearches();
   const [agentMetrics, setAgentMetrics] = useState<AgentHomeMetricsPayload>(
     FALLBACK_AGENT_HOME_METRICS,
   );
   const [mobileHome, setMobileHome] = useState<MobileHomePayload | null>(null);
+
+  const mergedPipelineListings = mergeByIdLocalFirst(
+    publishedAgentListings
+      .filter((p) => !isPublishedListingArchived(p))
+      .filter((p) => resolvedPublishedListingStatus(p) !== "sold")
+      .map(publishedToMobileHomeListing),
+    mobileHome?.selling.pipelineListings ?? [],
+  );
+
+  const mergedOffMarketListed = mergeByIdLocalFirst(
+    publishedAgentListings
+      .filter((p) => !isPublishedListingArchived(p))
+      .filter((p) => resolvedPublishedListingStatus(p) === "live")
+      .map(publishedToOffMarketMatch),
+    mobileHome?.buying.offMarketMatches ?? [],
+  );
+
+  const mergedBuyerListedCatalog = useMemo(() => {
+    const publishedRows = publishedAgentListings
+      .filter((p) => !isPublishedListingArchived(p))
+      .filter((p) => resolvedPublishedListingStatus(p) === "live")
+      .map(publishedToMobileHomeListing);
+    const activeFiltered = (mobileHome?.selling.activeListings ?? []).filter(
+      isListingVisibleForBuyerSearch,
+    );
+    const pipeFiltered = (mobileHome?.selling.pipelineListings ?? []).filter(
+      isListingVisibleForBuyerSearch,
+    );
+    const mergedFromApi = mergeByIdLocalFirst(activeFiltered, pipeFiltered);
+    return mergeByIdLocalFirst(publishedRows, mergedFromApi);
+  }, [publishedAgentListings, mobileHome]);
+
+  const buyerListedVisibleRows = useMemo(() => {
+    const q = searchQuery.trim();
+    if (buyerSearchTokens(q).length === 0) {
+      return mergedBuyerListedCatalog.slice(0, 48);
+    }
+    return mergedBuyerListedCatalog.filter((l) =>
+      listingMatchesBuyerQuery(l, q),
+    );
+  }, [mergedBuyerListedCatalog, searchQuery]);
+
+  const trimmedBuyerListedQ = searchQuery.trim();
+  const buyerListedSearchHasTokens =
+    buyerSearchTokens(trimmedBuyerListedQ).length > 0;
+
+  const buyerListedResultsCountLabel = !buyerListedSearchHasTokens
+    ? mergedBuyerListedCatalog.length === 0
+      ? "No listings in catalogue yet."
+      : buyerListedVisibleRows.length
+        ? `Showing ${buyerListedVisibleRows.length} listed ${
+            buyerListedVisibleRows.length === 1 ? "property" : "properties"
+          }`
+        : "No listings in catalogue yet."
+    : buyerListedVisibleRows.length
+      ? `${buyerListedVisibleRows.length} match${
+          buyerListedVisibleRows.length === 1 ? "" : "es"
+        } for your search`
+      : `No listings match “${
+          trimmedBuyerListedQ.length > 36
+            ? `${trimmedBuyerListedQ.slice(0, 36)}…`
+            : trimmedBuyerListedQ
+        }”. Try suburb, street, or price keywords.`;
+
+  const mergedBuyerSavedSearches = mergeBuyerSavedSearches(
+    buyerDeviceSavedSearches,
+    mobileHome?.buying.savedSearches ?? [],
+  );
+
+  const openBuyerSavedRow = (row: BuyerSavedSearchMergedRow) => {
+    const q = (row.suburbQuery ?? row.title).trim();
+    const enc = encodeURIComponent(q);
+    router.replace(
+      `/(tabs)?openBuyingSearch=results&buyingQuery=${enc}&_ts=${Date.now()}` as Href,
+    );
+  };
+
+  const openBuyerListedRow = useCallback(
+    (l: MobileHomeListing) => {
+      if (l.id.startsWith("omm-")) {
+        router.push({
+          pathname: "/view-live-listing" as Href,
+          params: { listingId: l.id },
+        } as Href);
+        return;
+      }
+      const { street, suburb } = viewLiveListingAddressParamsFromListing(l);
+      router.push({
+        pathname: "/view-live-listing" as Href,
+        params: {
+          street,
+          suburb,
+          price: l.priceRange,
+          beds: String(l.beds),
+          baths: String(l.baths),
+          cars: "0",
+          imageIndex: String(thumbnailIndexFromListingId(l.id)),
+        },
+      } as Href);
+    },
+    [router],
+  );
+
+  /** Immediate dismiss when field goes from non-empty → empty (effect backup handles programmatic updates). */
+  const handleBuyerSearchChange = (text: string) => {
+    const prevTrimLen = searchQuery.trim().length;
+    const nextTrimLen = text.trim().length;
+    setSearchQuery(text);
+    prevBuyerSearchTrimLenRef.current = nextTrimLen;
+    if (mode !== "buying" || !buyingSearchActive) return;
+    if (nextTrimLen === 0 && prevTrimLen > 0) {
+      setBuyingSearchActive(false);
+      if (search.openBuyingSearch === "results") {
+        router.replace("/(tabs)" as Href);
+      }
+    }
+  };
+
+  const beginBuyingExplore = useCallback(
+    (opts?: { query?: string }) => {
+      const nextRaw = opts?.query !== undefined ? opts.query : searchQuery;
+      const trimmed = nextRaw.trim();
+      if (trimmed.length > 0) {
+        void recordBuyerExplore(trimmed);
+      }
+      if (opts?.query !== undefined) {
+        setSearchQuery(opts.query);
+      }
+      setBuyingSearchActive(true);
+      prevBuyerSearchTrimLenRef.current = trimmed.length;
+    },
+    [recordBuyerExplore, searchQuery],
+  );
 
   useEffect(() => {
     if (!isLoaded) return;
     let alive = true;
     const tokenGetter = async () => (await getTokenRef.current()) ?? null;
     void (async () => {
-      const [metrics, home] = await Promise.all([
+      const [metricsRes, home] = await Promise.all([
         fetchAgentHomeMetrics(tokenGetter),
         fetchMobileHome(tokenGetter),
       ]);
       if (!alive) return;
-      setAgentMetrics(deriveAgentMetricsFromHome(home, metrics));
+      setAgentMetrics(deriveAgentMetricsFromHome(home, metricsRes.metrics));
       setMobileHome(home);
     })();
     return () => {
@@ -644,6 +930,24 @@ export default function HomeScreen() {
     /** Clerk’s `getToken` identity churns often; anchor on stable auth/session signals. */
   }, [isLoaded, isSignedIn]);
 
+  /** Selling KPI row: prefer device-published listings when any exist (includes persisted inspection bookings). */
+  const sellingPerformanceMetrics = useMemo(() => {
+    if (publishedAgentListings.length === 0) {
+      return agentMetrics;
+    }
+    const local = sellingKpisFromPublishedListings(publishedAgentListings);
+    const recentlySold = recentlySoldStripFromPublishedListings(publishedAgentListings);
+    return {
+      ...agentMetrics,
+      activeListingsCount: local.activeListingsCount,
+      pendingListingsCount: local.pendingListingsCount,
+      soldListingsCount: local.soldListingsCount,
+      pipelineCommissionEstimateAud: local.pipelineCommissionEstimateAud,
+      inspectionsBookedCount: local.inspectionsBookedCount,
+      recentlySold,
+    };
+  }, [publishedAgentListings, agentMetrics]);
+
   /** Return to Home (e.g. listing published) on Selling. Query lives on `/(tabs)?homeSegment=…` — use global params. */
   useEffect(() => {
     if (search.homeSegment !== "selling") return;
@@ -651,12 +955,57 @@ export default function HomeScreen() {
     setBuyingSearchActive(false);
   }, [search.homeSegment, search._ts]);
 
-  /** Deep link: `?openBuyingSearch=results` (e.g. from Saved Searches → NEW SEARCH). */
+  /** Deep link: results + optional `buyingQuery` (e.g. Saved Searches). */
   useEffect(() => {
     if (search.openBuyingSearch !== "results") return;
     setMode("buying");
+    const raw =
+      typeof search.buyingQuery === "string" ? search.buyingQuery.trim() : "";
+    if (raw) {
+      let decoded = raw;
+      try {
+        decoded = decodeURIComponent(raw);
+      } catch {
+        decoded = raw;
+      }
+      setSearchQuery(decoded);
+      const trimmed = decoded.trim();
+      if (trimmed.length > 0) {
+        void recordBuyerExplore(trimmed);
+      }
+      prevBuyerSearchTrimLenRef.current = trimmed.length;
+    }
     setBuyingSearchActive(true);
-  }, [search.openBuyingSearch, search._ts]);
+  }, [
+    recordBuyerExplore,
+    search.openBuyingSearch,
+    search.buyingQuery,
+    search._ts,
+  ]);
+
+  /** Clearing Explore search (non-empty → empty trimmed text) exits results → Buying hero. */
+  useEffect(() => {
+    if (mode !== "buying") {
+      prevBuyerSearchTrimLenRef.current = searchQuery.trim().length;
+      return;
+    }
+    if (!buyingSearchActive) {
+      prevBuyerSearchTrimLenRef.current = searchQuery.trim().length;
+      return;
+    }
+
+    const len = searchQuery.trim().length;
+    const prevLen = prevBuyerSearchTrimLenRef.current;
+
+    if (len === 0 && prevLen > 0) {
+      setBuyingSearchActive(false);
+      if (search.openBuyingSearch === "results") {
+        router.replace("/(tabs)" as Href);
+      }
+    }
+
+    prevBuyerSearchTrimLenRef.current = len;
+  }, [mode, buyingSearchActive, searchQuery, search.openBuyingSearch, router]);
 
   return (
     <View style={[styles.screen, mode === "buying" && styles.screenBuying]}>
@@ -666,7 +1015,8 @@ export default function HomeScreen() {
           styles.scrollContent,
           {
             paddingTop: insets.top + 8,
-            paddingBottom: insets.bottom + 112,
+            /** Buying: extra inset — tab bar is `position:absolute` (~72px + margin). */
+            paddingBottom: insets.bottom + (mode === "buying" ? 140 : 112),
           },
         ]}
       >
@@ -731,9 +1081,18 @@ export default function HomeScreen() {
             <SellingQuickLinksRow router={router} />
             <View style={{ height: 18 }} />
             <SellingPerformanceSlice
-              metrics={agentMetrics}
+              metrics={sellingPerformanceMetrics}
+              soldStripPlaceholder={
+                publishedAgentListings.length > 0 &&
+                sellingPerformanceMetrics.recentlySold.length === 0
+                  ? "Sold listings from Manage appear here."
+                  : undefined
+              }
               onOpenSoldSeeAll={() =>
-                router.push({ pathname: "/recent-listings", params: { mode: "sold" } } as Href)
+                router.push({
+                  pathname: "/recent-listings",
+                  params: { mode: "sold" },
+                } as Href)
               }
             />
             <View style={{ height: 14 }} />
@@ -900,29 +1259,15 @@ export default function HomeScreen() {
               title="Your listings"
               style={styles.sectionHeaderBeforeListingCard}
               onSeeAll={() =>
-                router.push({ pathname: "/recent-listings", params: { mode: "live" } } as Href)
+                router.push({
+                  pathname: "/recent-listings",
+                  params: { mode: "live" },
+                } as Href)
               }
             />
             <View style={styles.activeListingStack}>
-              {!mobileHome ? (
-                <>
-                  <ListingThumbRow
-                    imageSource={PROPERTY_IMG_1}
-                    titleLine={DEMO_PRIMARY_LISTING_TITLE}
-                    subtitleLine="Brighton East VIC • Auth 14d left"
-                    onPress={() =>
-                      router.push("/view-live-listing" as Href)
-                    }
-                  />
-                  <ListingThumbRow
-                    imageSource={PROPERTY_IMG_2}
-                    titleLine="Carlton Warehouse Conversion"
-                    subtitleLine="Carlton VIC • 4 leads · SOI OK"
-                    onPress={() => router.push("/list" as Href)}
-                  />
-                </>
-              ) : mobileHome.selling.pipelineListings.length ? (
-                mobileHome.selling.pipelineListings.map((l) => (
+              {mergedPipelineListings.length ? (
+                mergedPipelineListings.map((l) => (
                   <ListingThumbRow
                     key={l.id}
                     imageSource={propertyImageAtIndex(
@@ -944,6 +1289,21 @@ export default function HomeScreen() {
                     }
                   />
                 ))
+              ) : !mobileHome ? (
+                <>
+                  <ListingThumbRow
+                    imageSource={PROPERTY_IMG_1}
+                    titleLine={DEMO_PRIMARY_LISTING_TITLE}
+                    subtitleLine="Brighton East VIC • Auth 14d left"
+                    onPress={() => router.push("/view-live-listing" as Href)}
+                  />
+                  <ListingThumbRow
+                    imageSource={PROPERTY_IMG_2}
+                    titleLine="Carlton Warehouse Conversion"
+                    subtitleLine="Carlton VIC • 4 leads · SOI OK"
+                    onPress={() => router.push("/list" as Href)}
+                  />
+                </>
               ) : null}
             </View>
           </>
@@ -955,7 +1315,7 @@ export default function HomeScreen() {
                 <TextInput
                   style={styles.searchInput}
                   value={searchQuery}
-                  onChangeText={setSearchQuery}
+                  onChangeText={handleBuyerSearchChange}
                   placeholder="Suburb or area"
                   placeholderTextColor="rgba(0, 0, 0, 0.45)"
                 />
@@ -963,7 +1323,7 @@ export default function HomeScreen() {
               <AppButton
                 variant="filled"
                 shrink
-                onPress={() => setBuyingSearchActive(true)}
+                onPress={() => beginBuyingExplore()}
                 textStyle={styles.exploreBtnLabel}
                 style={styles.exploreBtnWrap}
               >
@@ -995,58 +1355,62 @@ export default function HomeScreen() {
             </View>
             <View style={styles.resultsHeader}>
               <Text style={styles.resultsCount}>
-                {mobileHome?.buying.offMarketMatches.length
-                  ? `${mobileHome.buying.offMarketMatches.length} off‑market matches`
-                  : '12 off-market matches'}
+                {buyerListedResultsCountLabel}
               </Text>
-              <Text style={styles.sortLink}>SORT • BEST MATCH</Text>
+              <View style={styles.resultsHeaderActions}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Save search"
+                  hitSlop={8}
+                  onPress={() => {
+                    void (async () => {
+                      const id = await upsertBuyerSavedSearch(searchQuery, {
+                        alertsOn: saveAlerts,
+                        fallbackTitle: DEMO_SEARCH_SUBURB,
+                      });
+                      if (id)
+                        Alert.alert(
+                          "Search saved",
+                          "Manage alerts anytime from Saved searches on Home.",
+                        );
+                    })();
+                  }}
+                >
+                  <Text style={styles.saveSearchLink}>Save search</Text>
+                </Pressable>
+                <Text style={styles.sortLink}>SORT • NEWEST LISTED</Text>
+              </View>
             </View>
-            {mobileHome?.buying.offMarketMatches.length ? (
-              mobileHome.buying.offMarketMatches.slice(0, 12).map((m, idx) => (
-                <Fragment key={`sm-${m.id}`}>
-                  {idx > 0 ? <View style={styles.resultDivider} /> : null}
+            <Text style={styles.buyerListedSearchHint}>
+              Search scans title, address, price range, suburb, beds, baths,
+              land size, and status from your live catalogue (server
+              active/pipeline listings plus anything you publish on this
+              device).
+            </Text>
+            {buyerListedVisibleRows.length > 0 ? (
+              buyerListedVisibleRows.map((m) => (
+                <Fragment key={`ls-${m.id}`}>
                   <SearchMatchRow
+                    ribbon="LISTED"
                     name={m.title}
-                    address={`${m.priceRange} · ${m.status}`}
+                    address={m.address}
                     price={m.priceRange}
-                    specs={`${m.beds} bedrooms · ${m.baths} bathrooms · ${m.landSqm}m²`}
-                    match={`${Math.min(99, Math.max(0, m.matchPercent))}% MATCH`}
+                    specs={buyerSearchSpecsCaps(m.beds, m.baths, m.landSqm)}
+                    match={buyerSearchMatchPill(m.id)}
                     imageSource={propertyImageAtIndex(
                       thumbnailIndexFromListingId(m.id),
                     )}
+                    onPress={() => openBuyerListedRow(m)}
                   />
                 </Fragment>
               ))
-            ) : (
-              <>
-                <SearchMatchRow
-                  name="Preston California Bungalow"
-                  address="15 Miller St, Preston VIC 3072"
-                  price="$2.1M — $2.3M"
-                  specs="4 bedrooms · 3 bathrooms · 720m²"
-                  match="92% MATCH"
-                  imageSource={propertyImageAtIndex(0)}
-                />
-                <View style={styles.resultDivider} />
-                <SearchMatchRow
-                  name="Sandringham Bay House"
-                  address="72 Bay Rd, Sandringham VIC 3191"
-                  price="$1.9M — $2.2M"
-                  specs="3 bedrooms · 2 bathrooms · 420m²"
-                  match="88% MATCH"
-                  imageSource={propertyImageAtIndex(1)}
-                />
-                <View style={styles.resultDivider} />
-                <SearchMatchRow
-                  name="Collingwood Workshop"
-                  address="201 Smith St, Collingwood VIC 3066"
-                  price="$1.6M — $1.85M"
-                  specs="3 bedrooms · 2 bathrooms · 310m²"
-                  match="85% MATCH"
-                  imageSource={propertyImageAtIndex(2)}
-                />
-              </>
-            )}
+            ) : mergedBuyerListedCatalog.length > 0 &&
+              buyerListedSearchHasTokens ? (
+              <Text style={styles.buyerListedEmptyHint}>
+                Refine suburb, street, or a word from the headline — each word
+                in your search must appear somewhere on the listing.
+              </Text>
+            ) : null}
           </>
         ) : (
           <>
@@ -1067,17 +1431,17 @@ export default function HomeScreen() {
                     ref={buyingSearchRef}
                     style={[styles.searchInput, styles.buyingHeroPillInput]}
                     value={searchQuery}
-                    onChangeText={setSearchQuery}
+                    onChangeText={handleBuyerSearchChange}
                     placeholder="Start a search"
                     placeholderTextColor="rgba(0, 0, 0, 0.45)"
                     returnKeyType="search"
-                    onSubmitEditing={() => setBuyingSearchActive(true)}
+                    onSubmitEditing={() => beginBuyingExplore()}
                   />
                   <Pressable
                     accessibilityRole="button"
                     accessibilityLabel="Explore listings"
                     hitSlop={8}
-                    onPress={() => setBuyingSearchActive(true)}
+                    onPress={() => beginBuyingExplore()}
                     style={({ pressed }) => [
                       styles.buyingHeroMiniGo,
                       pressed && { opacity: 0.9 },
@@ -1109,29 +1473,170 @@ export default function HomeScreen() {
                 />
               </View>
             </View>
-            {!recentSearchesPinnedOnly ? (
-              <View style={styles.recentSearchBrowseRow}>
-                <View style={styles.recentSearchIconCircle}>
-                  <FontAwesome name="search" size={16} color="#111111" />
+            {recentSearchesPinnedOnly ? (
+              mergedBuyerSavedSearches.length ? (
+                <View style={styles.recentSearchListGap}>
+                  {mergedBuyerSavedSearches.slice(0, 14).map((row) => (
+                    <Pressable
+                      key={`pinned-${row.id}`}
+                      accessibilityRole="button"
+                      onPress={() => openBuyerSavedRow(row)}
+                      style={({ pressed }) => [
+                        styles.recentSearchBrowseRow,
+                        pressed && { opacity: 0.88 },
+                      ]}
+                    >
+                      <View style={styles.recentSearchIconCircle}>
+                        <FontAwesome
+                          name="star"
+                          size={16}
+                          color="#f59e0b"
+                          style={styles.recentSearchGlyphCenter}
+                        />
+                      </View>
+                      <View style={styles.recentSearchPinnedBody}>
+                        <Text
+                          style={styles.recentBrowseTitle}
+                          numberOfLines={2}
+                        >
+                          {row.title}
+                        </Text>
+                        <View style={styles.recentSearchSubMetaRow}>
+                          <View style={styles.recentSearchSubMetaTextWrap}>
+                            <Text
+                              style={[
+                                styles.recentBrowseSub,
+                                styles.recentBrowseSubMeta,
+                              ]}
+                              numberOfLines={1}
+                              ellipsizeMode="tail"
+                            >
+                              {row.criteria}
+                            </Text>
+                          </View>
+                          <FontAwesome
+                            name="chevron-right"
+                            size={14}
+                            color="rgba(0,0,0,0.35)"
+                            style={styles.recentSearchChevronInline}
+                          />
+                        </View>
+                      </View>
+                    </Pressable>
+                  ))}
                 </View>
-                <View style={{ flex: 1 }}>
-                  <Text style={styles.recentBrowseTitle}>
-                    Hawthorn, VIC 3122
-                  </Text>
-                  <Text style={styles.recentBrowseSub}>
-                    Buy · Off‑market aware
-                  </Text>
-                </View>
-                <Pressable
-                  accessibilityRole="button"
-                  hitSlop={8}
-                  style={styles.saveChipBtn}
-                >
-                  <FontAwesome name="star-o" size={14} color="#111111" />
-                  <Text style={styles.saveChipLabel}>Save</Text>
-                </Pressable>
+              ) : (
+                <Text style={styles.emptySavedSearchesHint}>
+                  No saved searches yet. Save from Explore results or tap Save
+                  on a recent search below.
+                </Text>
+              )
+            ) : recentBuyerRows.length ? (
+              <View style={styles.recentSearchListGap}>
+              {recentBuyerRows.slice(0, 14).map((row) => {
+                const qKey = normalizeSearchKey(row.query.trim());
+                const deviceSaved = buyerDeviceSavedSearches.find(
+                  (r) =>
+                    normalizeSearchKey((r.suburbQuery || r.title).trim()) ===
+                    qKey,
+                );
+                const mergedSaved = mergedBuyerSavedSearches.find(
+                  (s) =>
+                    normalizeSearchKey((s.suburbQuery ?? s.title).trim()) ===
+                    qKey,
+                );
+                const isSaved = mergedSaved != null;
+                const canUnsaveOnDevice = deviceSaved != null;
+
+                return (
+                  <Fragment key={`recent-${row.id}`}>
+                    <View style={styles.recentSearchBrowseRow}>
+                      <Pressable
+                        accessibilityRole="button"
+                        hitSlop={8}
+                        onPress={() => beginBuyingExplore({ query: row.query })}
+                        style={styles.recentSearchRowMainPress}
+                      >
+                        <View style={styles.recentSearchIconCircle}>
+                          <FontAwesome
+                            name="search"
+                            size={16}
+                            color="#111111"
+                            style={styles.recentSearchGlyphCenter}
+                          />
+                        </View>
+                        <View style={styles.recentSearchRowTextCol}>
+                          <Text
+                            style={styles.recentBrowseTitle}
+                            numberOfLines={2}
+                          >
+                            {row.query}
+                          </Text>
+                          <Text
+                            style={styles.recentBrowseSub}
+                            numberOfLines={1}
+                          >
+                            {row.subtitle}
+                          </Text>
+                        </View>
+                      </Pressable>
+                      <Pressable
+                        accessibilityRole="button"
+                        accessibilityLabel={
+                          isSaved
+                            ? `Remove ${row.query} from saved searches`
+                            : `Save ${row.query}`
+                        }
+                        hitSlop={8}
+                        style={styles.saveChipBtn}
+                        onPress={() => {
+                          if (isSaved) {
+                            if (canUnsaveOnDevice) {
+                              void removeBuyerSavedSearch(deviceSaved.id);
+                            } else {
+                              Alert.alert(
+                                "Saved on your account",
+                                "This search was saved elsewhere. Remove it from Saved searches.",
+                              );
+                            }
+                            return;
+                          }
+                          void (async () => {
+                            await upsertBuyerSavedSearch(row.query, {
+                              alertsOn: saveAlerts,
+                              fallbackTitle: row.query,
+                            });
+                          })();
+                        }}
+                      >
+                        <FontAwesome
+                          name={isSaved ? "star" : "star-o"}
+                          size={14}
+                          color={isSaved ? "#f59e0b" : "#111111"}
+                          style={styles.recentSearchGlyphCenter}
+                        />
+                        <Text
+                          style={
+                            isSaved
+                              ? styles.saveChipLabelSaved
+                              : styles.saveChipLabel
+                          }
+                        >
+                          {isSaved ? "Saved" : "Save"}
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </Fragment>
+                );
+              })}
               </View>
-            ) : null}
+            ) : (
+              <Text style={styles.emptySavedSearchesHint}>
+                No recent searches yet. Enter a suburb or keyword above and tap
+                Explore to run your first scan — it will appear here next time.
+              </Text>
+            )}
+            <View style={styles.buyingRecentAboveBriefGap} />
             <HeroCTA
               kicker="BUYER BRIEF"
               title="Post a buyer brief"
@@ -1191,79 +1696,90 @@ export default function HomeScreen() {
               title="Saved searches"
               onSeeAll={() => router.push("/saved-searches")}
             />
-            {mobileHome?.buying.savedSearches.length ? (
-              mobileHome.buying.savedSearches.map((s) => (
+            {mergedBuyerSavedSearches.length ? (
+              mergedBuyerSavedSearches.slice(0, 8).map((s) => (
                 <View key={s.id}>
                   <SavedSearchCard
                     name={s.title}
                     criteria={s.criteria}
-                    badge={s.newCount > 0 ? `${Math.min(s.newCount, 99)} NEW` : undefined}
+                    badge={
+                      s.newCount > 0
+                        ? `${Math.min(s.newCount, 99)} NEW`
+                        : undefined
+                    }
                     alertsOn={s.alertsOn}
-                    meta={s.alertsOn ? "Alerts on" : "Alerts muted"}
+                    meta={buyerSavedMetaForRow(s, buyerDeviceSavedSearches)}
+                    onPress={() => openBuyerSavedRow(s)}
                   />
                   <View style={{ height: 12 }} />
                 </View>
               ))
             ) : (
-              <>
-                <SavedSearchCard
-                  name="John Doe"
-                  criteria="4+ bedrooms • House • $1.8M—2.4M"
-                  badge="8 NEW"
-                  alertsOn
-                  meta="Yesterday"
-                />
-                <View style={{ height: 12 }} />
-                <SavedSearchCard
-                  name="Footscray & Seddon"
-                  criteria="3+ bedrooms • Townhouse • $2M—3M"
-                  badge="2 NEW"
-                  alertsOn={false}
-                  meta="Paused 2d ago"
-                />
-              </>
+              <Text style={styles.emptySavedSearchesHint}>
+                Save a search from Explore (Buying) results to see it here.
+              </Text>
             )}
-            {savedProperties.length > 0 ? (
+            {buyingSavedFeatured != null ? (
               <>
                 <SectionHeader
                   title="Saved properties"
                   style={styles.sectionHeaderBeforeListingCard}
                   onSeeAll={() => router.push("/saved-properties" as Href)}
                 />
-                {savedProperties.map((item) => (
-                  <Pressable
-                    key={item.id}
-                    onPress={() => {
-                      if (item.id === VIEW_LIVE_LISTING_ID) {
-                        router.push("/view-live-listing" as Href);
-                      }
-                    }}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Open saved listing ${item.title}`}
-                  >
-                    <LargeListingCard
-                      title={item.title}
-                      price={item.price}
-                      specLine={item.specLine}
-                      badgeLeft={item.badgeLeft}
-                      badgeRight={item.badgeRight}
-                      footerLabels={item.footerLabels}
-                      imageSource={propertyImageAtIndex(item.imageIndex)}
-                    />
-                  </Pressable>
-                ))}
+                <Pressable
+                  key={buyingSavedFeatured.id}
+                  onPress={() => {
+                    const item = buyingSavedFeatured;
+                    if (item.id.startsWith("omm-")) {
+                      router.push({
+                        pathname: "/view-live-listing" as Href,
+                        params: { listingId: item.id },
+                      } as Href);
+                      return;
+                    }
+                    router.push({
+                      pathname: "/view-live-listing",
+                      params: {
+                        street: item.street,
+                        suburb: item.suburb,
+                        price: item.price,
+                        beds: String(item.bedrooms),
+                        baths: String(item.bathrooms),
+                        cars: String(item.carSpaces),
+                        imageIndex: String(item.imageIndex),
+                      },
+                    } as Href);
+                  }}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Open saved listing ${buyingSavedFeatured.title}`}
+                >
+                  <LargeListingCard
+                    title={buyingSavedFeatured.title}
+                    price={buyingSavedFeatured.price}
+                    specLine={buyingSavedFeatured.specLine}
+                    badgeLeft={buyingSavedFeatured.badgeLeft}
+                    badgeRight={buyingSavedFeatured.badgeRight}
+                    footerLabels={buyingSavedFeatured.footerLabels}
+                    imageSource={propertyImageAtIndex(
+                      buyingSavedFeatured.imageIndex,
+                    )}
+                  />
+                </Pressable>
               </>
             ) : null}
             <SectionHeader
               title="Recently Listed"
               style={styles.sectionHeaderBeforeListingCard}
               onSeeAll={() =>
-                router.push({ pathname: "/recent-listings", params: { mode: "listed" } } as Href)
+                router.push({
+                  pathname: "/recent-listings",
+                  params: { mode: "listed" },
+                } as Href)
               }
             />
-            {mobileHome?.buying.offMarketMatches.length ? (
+            {mergedOffMarketListed.length ? (
               <>
-                {mobileHome.buying.offMarketMatches.slice(0, 1).map((m) => (
+                {mergedOffMarketListed.slice(0, 1).map((m) => (
                   <Pressable
                     key={m.id}
                     onPress={() =>
@@ -1298,14 +1814,17 @@ export default function HomeScreen() {
                     />
                   </Pressable>
                 ))}
-                {mobileHome.buying.offMarketMatches.length > 1 ? (
+                {mergedOffMarketListed.length > 1 ? (
                   <ScrollView
                     horizontal
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.hScroll}
                   >
-                    {mobileHome.buying.offMarketMatches.slice(1, 10).map((m) => (
-                      <View key={`om-${m.id}`} style={{ marginRight: 12, width: 280 }}>
+                    {mergedOffMarketListed.slice(1, 10).map((m) => (
+                      <View
+                        key={`om-${m.id}`}
+                        style={{ marginRight: 12, width: 280 }}
+                      >
                         <Pressable
                           onPress={() =>
                             router.push({
@@ -1593,6 +2112,15 @@ const styles = StyleSheet.create({
     fontFamily: "Satoshi-Medium",
     color: "rgba(17,17,17,0.42)",
   },
+  soldStripPlaceholder: {
+    marginHorizontal: 4,
+    paddingVertical: 20,
+    paddingHorizontal: 8,
+    fontSize: 14,
+    lineHeight: 20,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(17,17,17,0.46)",
+  },
   kpiStrip: {
     flexDirection: "column",
     backgroundColor: "#fff",
@@ -1610,6 +2138,12 @@ const styles = StyleSheet.create({
   kpiCol: {
     flex: 1,
     minWidth: 0,
+  },
+  kpiPipelineSection: {
+    paddingTop: 12,
+    marginTop: 2,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: "rgba(17,17,17,0.08)",
   },
   kpiLabel: {
     fontSize: 12,
@@ -1870,16 +2404,69 @@ const styles = StyleSheet.create({
     marginTop: 8,
     marginBottom: 14,
   },
+  /** Space between Recent searches list and Buyer Brief card (avoid visual overlap). */
+  buyingRecentAboveBriefGap: {
+    height: 32,
+  },
   recentSearchToggle: { flexDirection: "row", alignItems: "center", gap: 8 },
+  /** Reliable vertical rhythm between Recent search cards (`gap` vs row marginBottom). */
+  recentSearchListGap: {
+    alignSelf: "stretch",
+    gap: 24,
+  },
   recentSearchBrowseRow: {
     flexDirection: "row",
-    alignItems: "center",
+    alignItems: "flex-start",
+    alignSelf: "stretch",
+    flexWrap: "nowrap",
     backgroundColor: "#fff",
     borderRadius: 14,
-    padding: 14,
-    marginBottom: 8,
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    marginBottom: 0,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: "rgba(17,17,17,0.08)",
+  },
+  /** Leading icon + title column — fills space between circle and trailing controls. */
+  recentSearchRowMainPress: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "flex-start",
+    minWidth: 0,
+  },
+  recentSearchRowTextCol: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: "flex-start",
+  },
+  /** Saved-search rows: title stack + subtitle row with trailing chevron. */
+  recentSearchPinnedBody: {
+    flex: 1,
+    minWidth: 0,
+    justifyContent: "flex-start",
+    /** Breath above title vs star circle (avoid visually sitting “under” icon). */
+    paddingTop: 2,
+  },
+  recentSearchSubMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+    minWidth: 0,
+  },
+  recentSearchSubMetaTextWrap: {
+    flex: 1,
+    minWidth: 0,
+    paddingRight: 4,
+  },
+  recentBrowseSubMeta: {
+    marginTop: 0,
+  },
+  recentSearchChevronInline: {
+    flexShrink: 0,
+    marginLeft: 4,
+    textAlign: "center",
+    includeFontPadding: false,
+    lineHeight: 14,
   },
   recentSearchIconCircle: {
     width: 44,
@@ -1888,7 +2475,15 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(17,17,17,0.07)",
     alignItems: "center",
     justifyContent: "center",
-    marginRight: 12,
+    flexShrink: 0,
+    marginRight: 14,
+    overflow: "hidden",
+  },
+  /** FontAwesome renders as text glyphs — stabilizes optical center in circles. */
+  recentSearchGlyphCenter: {
+    textAlign: "center",
+    includeFontPadding: false,
+    lineHeight: 18,
   },
   recentBrowseTitle: {
     fontSize: 16,
@@ -1901,12 +2496,24 @@ const styles = StyleSheet.create({
     color: "rgba(17,17,17,0.46)",
     marginTop: 2,
   },
-  saveChipBtn: { alignItems: "center", paddingHorizontal: 4, minWidth: 44 },
+  saveChipBtn: {
+    alignItems: "center",
+    alignSelf: "center",
+    paddingHorizontal: 4,
+    minWidth: 44,
+  },
   saveChipLabel: {
     marginTop: 4,
     fontSize: 10,
     fontFamily: "Satoshi-Medium",
     color: "rgba(17,17,17,0.55)",
+    letterSpacing: 0.2,
+  },
+  saveChipLabelSaved: {
+    marginTop: 4,
+    fontSize: 10,
+    fontFamily: "Satoshi-Medium",
+    color: "#f59e0b",
     letterSpacing: 0.2,
   },
   authCarouselCard: {
@@ -2166,12 +2773,23 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     letterSpacing: 0.2,
   },
-  savedCard: {
+  savedCardHitBox: {
+    alignSelf: "stretch",
+  },
+  savedCardChrome: {
+    alignSelf: "stretch",
     backgroundColor: "#fff",
     borderRadius: 14,
-    padding: 16,
     borderWidth: FIELD_OUTLINE_WIDTH,
-    borderColor: FIELD_OUTLINE_COLOR,
+    borderColor: SAVED_SEARCH_HOME_BORDER,
+    paddingVertical: 16,
+    paddingHorizontal: 18,
+    /* Light lift so borders differ from frost page BG */
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.06,
+    shadowRadius: 3,
+    elevation: 2,
   },
   savedTop: {
     flexDirection: "row",
@@ -2235,6 +2853,45 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 16,
+    flexWrap: "wrap",
+    rowGap: 8,
+    columnGap: 12,
+  },
+  resultsHeaderActions: {
+    flexDirection: "row",
+    alignItems: "center",
+    columnGap: 12,
+    flexShrink: 0,
+  },
+  saveSearchLink: {
+    fontSize: 11,
+    fontFamily: "Satoshi-Medium",
+    color: slateNavy,
+    letterSpacing: 0.3,
+    textDecorationLine: "underline",
+  },
+  emptySavedSearchesHint: {
+    fontSize: 14,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(0, 0, 0, 0.45)",
+    lineHeight: 20,
+    marginBottom: 4,
+  },
+  buyerListedSearchHint: {
+    fontSize: 12,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(0, 0, 0, 0.45)",
+    lineHeight: 17,
+    marginBottom: 16,
+    marginTop: -4,
+  },
+  buyerListedEmptyHint: {
+    fontSize: 14,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(0, 0, 0, 0.45)",
+    lineHeight: 20,
+    marginTop: 6,
+    marginBottom: 8,
   },
   resultsCount: {
     fontSize: 16,
@@ -2247,66 +2904,102 @@ const styles = StyleSheet.create({
     color: "rgba(0, 0, 0, 0.45)",
     letterSpacing: 0.4,
   },
-  resultDivider: {
-    height: StyleSheet.hairlineWidth,
-    backgroundColor: "rgba(0, 0, 0, 0.12)",
-    marginVertical: 14,
-  },
+  /** Buying search hits — ~40% image column, ~60% text column (design reference). */
   matchRow: {
     flexDirection: "row",
+    alignItems: "stretch",
     backgroundColor: "#fff",
     borderRadius: 14,
-    overflow: "hidden",
+    overflow: "visible",
     borderWidth: 1,
-    borderColor: "rgba(0, 0, 0, 0.08)",
+    borderColor: "rgba(15, 23, 42, 0.1)",
+    marginBottom: 14,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    elevation: 3,
   },
-  matchThumbWrap: {
-    width: 100,
-    height: 100,
+  matchThumbColumn: {
+    flex: 2,
+    minHeight: 128,
     position: "relative",
-    borderTopLeftRadius: 14,
-    borderBottomLeftRadius: 14,
+    borderTopLeftRadius: 13,
+    borderBottomLeftRadius: 13,
     overflow: "hidden",
+    backgroundColor: "rgba(0,0,0,0.04)",
   },
-  matchThumb: { width: "100%", height: "100%" },
-  matchTagOff: {
+  matchThumbImage: {
+    ...StyleSheet.absoluteFillObject,
+    width: undefined,
+    height: undefined,
+  },
+  matchRibbon: {
     position: "absolute",
-    top: 6,
-    left: 6,
-    backgroundColor: slateNavy,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
+    top: 8,
+    left: 8,
+    backgroundColor: "#111111",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
     borderRadius: 4,
+    maxWidth: "92%",
   },
-  matchTagText: { fontSize: 8, fontFamily: "Satoshi-Medium", color: "#fff" },
-  matchPct: {
-    position: "absolute",
-    bottom: 6,
-    left: 6,
-    backgroundColor: slateNavy,
-    paddingHorizontal: 6,
-    paddingVertical: 3,
-    borderRadius: 4,
-  },
-  matchPctText: { fontSize: 9, fontFamily: "Satoshi-Medium", color: "#fff" },
-  matchBody: { flex: 1, padding: 12, justifyContent: "center" },
-  matchName: { fontSize: 15, fontFamily: "Satoshi-Medium", color: "#000000" },
-  matchAddr: {
-    fontSize: 12,
+  matchRibbonText: {
+    fontSize: 8,
     fontFamily: "Satoshi-Medium",
-    color: "rgba(0, 0, 0, 0.55)",
-    marginTop: 4,
+    color: "#ffffff",
+    letterSpacing: 0.35,
   },
-  matchPrice: {
-    fontSize: 16,
+  matchScorePill: {
+    position: "absolute",
+    bottom: 8,
+    left: 8,
+    backgroundColor: "#111111",
+    paddingHorizontal: 7,
+    paddingVertical: 4,
+    borderRadius: 4,
+    maxWidth: "92%",
+  },
+  matchScorePillText: {
+    fontSize: 9,
+    fontFamily: "Satoshi-Medium",
+    color: "#ffffff",
+    letterSpacing: 0.2,
+  },
+  matchTextColumn: {
+    flex: 3,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    justifyContent: "center",
+    minHeight: 128,
+  },
+  matchTitle: {
+    fontSize: 17,
+    lineHeight: 22,
     fontFamily: "Satoshi-Medium",
     color: "#000000",
-    marginTop: 8,
   },
-  matchSpecs: {
-    fontSize: 11,
+  matchAddress: {
+    fontSize: 13,
+    fontFamily: "Satoshi-Medium",
+    color: "rgba(0, 0, 0, 0.52)",
+    marginTop: 6,
+    lineHeight: 18,
+  },
+  matchPriceLine: {
+    fontSize: 17,
+    fontFamily: "Satoshi-Medium",
+    color: "#000000",
+    marginTop: 10,
+    lineHeight: 22,
+  },
+  matchSpecsCaps: {
+    fontSize: 10,
     fontFamily: "Satoshi-Medium",
     color: "rgba(0, 0, 0, 0.45)",
-    marginTop: 6,
+    marginTop: 8,
+    lineHeight: 14,
+    letterSpacing: 0.45,
+    textTransform: "uppercase" as const,
   },
 });

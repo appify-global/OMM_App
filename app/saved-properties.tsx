@@ -1,6 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { type Href, useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -8,8 +9,10 @@ import { Text } from '@/components/OMMText';
 import { ScreenHeader } from '@/components/ScreenHeader';
 import { layout, slateNavy } from '@/constants/theme';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
+import { filterSavedListingsNotArchivedPublished } from '@/lib/agent-published-listings';
+import { useAgentPublishedListings } from '@/lib/agent-published-listings-context';
 import { propertyImageAtIndex } from '@/lib/propertyImages';
-import { VIEW_LIVE_LISTING_ID, type SavedListingCardData } from '@/lib/saved-listings';
+import type { SavedListingCardData } from '@/lib/saved-listings';
 import { useSavedListings } from '@/lib/saved-listings-context';
 import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
@@ -82,9 +85,21 @@ export default function SavedPropertiesScreen() {
   const hPad = useScreenHorizontalPadding();
   const router = useRouter();
   const { listings, ready } = useSavedListings();
+  const { listings: publishedRows } = useAgentPublishedListings();
+
+  const visibleListings = useMemo(
+    () => filterSavedListingsNotArchivedPublished(listings, publishedRows),
+    [listings, publishedRows],
+  );
 
   const openListing = (item: SavedListingCardData) => {
-    if (item.id !== VIEW_LIVE_LISTING_ID) return;
+    if (item.id.startsWith('omm-')) {
+      router.push({
+        pathname: '/view-live-listing',
+        params: { listingId: item.id },
+      } as Href);
+      return;
+    }
     router.push({
       pathname: '/view-live-listing',
       params: {
@@ -100,11 +115,11 @@ export default function SavedPropertiesScreen() {
   };
 
   const metaLeft =
-    listings.length === 0
+    visibleListings.length === 0
       ? 'No saved properties'
-      : listings.length === 1
+      : visibleListings.length === 1
         ? '1 saved property'
-        : `${listings.length} saved properties`;
+        : `${visibleListings.length} saved properties`;
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -120,12 +135,12 @@ export default function SavedPropertiesScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 28 }]}>
-        {ready && listings.length === 0 ? (
+        {ready && visibleListings.length === 0 ? (
           <Text style={styles.emptyHint}>
             Save a listing from its detail page — it will show here and on your home screen.
           </Text>
         ) : null}
-        {listings.map((item) => (
+        {visibleListings.map((item) => (
           <View key={item.id} style={{ marginBottom: CARD_GAP }}>
             <SavedPropertyRow item={item} onPress={() => openListing(item)} />
           </View>

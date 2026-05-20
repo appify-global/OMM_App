@@ -1,13 +1,23 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
 import { useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { layout, slateNavy, accent, ink } from '@/constants/theme';
+import { layout, accent, ink } from '@/constants/theme';
+import { useAgentDisputes } from '@/lib/agent-disputes-context';
 /**
  * Raise a dispute — solid-bordered fields, PROPERTY ADDRESS label.
  */
@@ -41,12 +51,14 @@ function FieldBox({
 export default function RaiseDisputeScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { raiseDispute } = useAgentDisputes();
   const [propertyAddress, setPropertyAddress] = useState('');
   const [category, setCategory] = useState('');
   const [otherParty, setOtherParty] = useState('');
   const [summary, setSummary] = useState('');
   const [details, setDetails] = useState('');
   const [resolvedAttempt, setResolvedAttempt] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   const submit = () => {
     if (
@@ -63,7 +75,29 @@ export default function RaiseDisputeScreen() {
       Alert.alert('Confirmation required', 'Please confirm you have tried to resolve this with the other agent.');
       return;
     }
-    Alert.alert('Submitted', 'Your dispute will be reviewed by support.');
+    void (async () => {
+      setSubmitting(true);
+      try {
+        const newId = await raiseDispute({
+          propertyAddress: propertyAddress.trim(),
+          category: category.trim(),
+          otherParty: otherParty.trim(),
+          summary: summary.trim(),
+          details: details.trim(),
+        });
+        router.replace({
+          pathname: '/dispute-detail',
+          params: { id: newId },
+        } as Href);
+      } catch {
+        Alert.alert(
+          'Could not save dispute',
+          'Something went wrong saving on this device. Check storage permissions and try again.',
+        );
+      } finally {
+        setSubmitting(false);
+      }
+    })();
   };
 
   return (
@@ -194,11 +228,21 @@ export default function RaiseDisputeScreen() {
 
           <View style={{ height: 28 }} />
 
-          <Pressable style={styles.cta} onPress={submit} accessibilityRole="button">
+          <Pressable
+            style={[styles.cta, submitting && { opacity: 0.55 }]}
+            onPress={submit}
+            accessibilityRole="button"
+            disabled={submitting}>
             {({ pressed }) => (
               <>
-                <Text style={styles.ctaText}>SUBMIT DISPUTE</Text>
-                {pressed && <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12 }]} />}
+                {submitting ? (
+                  <ActivityIndicator color={ink} />
+                ) : (
+                  <Text style={styles.ctaText}>SUBMIT DISPUTE</Text>
+                )}
+                {!submitting && pressed ? (
+                  <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12 }]} />
+                ) : null}
               </>
             )}
           </Pressable>

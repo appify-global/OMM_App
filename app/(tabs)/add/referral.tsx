@@ -9,7 +9,6 @@ import { Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-nat
 import type { StoredUserRole } from '@/lib/auth-session';
 import { getUserRole } from '@/lib/auth-session';
 import {
-  ILLUSTRATIVE_COMMISSION_OF_SALE_PCT,
   formatAudWhole,
   formatCommissionPoolLine,
   formatReferralEstimateLine,
@@ -37,11 +36,20 @@ const SLIDER_TICK_PCTS = [10, 25, 50, 75, 100] as const;
 export default function PublishListingReferral() {
   const router = useRouter();
   const bottomPad = useListingFlowBottomPad();
-  const { listingPriceFromAud, listingPriceToAud } = useListingDraft();
+  const {
+    listingPriceFromAud,
+    listingPriceToAud,
+    referralSharePct,
+    setReferralSharePct,
+    referralAssumedCommissionPct,
+    setReferralAssumedCommissionPct,
+    touchDraftSaved,
+  } = useListingDraft();
 
-  const [pct, setPct] = useState(25);
+  const pct = referralSharePct;
+  const assumedCommissionPct = referralAssumedCommissionPct;
+
   const [commissionModalOpen, setCommissionModalOpen] = useState(false);
-  const [assumedCommissionPct, setAssumedCommissionPct] = useState(ILLUSTRATIVE_COMMISSION_OF_SALE_PCT);
   const [role, setRole] = useState<StoredUserRole | null | undefined>(undefined);
 
   useFocusEffect(
@@ -62,15 +70,15 @@ export default function PublishListingReferral() {
   useEffect(() => {
     if (role === undefined) return;
     if (isBuyerAgent) {
-      setPct(0);
+      setReferralSharePct(0);
       return;
     }
-    setPct((p) => {
+    setReferralSharePct((p) => {
       if (p < SLIDER_MIN_ELIGIBLE) return SLIDER_MIN_ELIGIBLE;
       if (p > SLIDER_MAX) return SLIDER_MAX;
       return p;
     });
-  }, [role, isBuyerAgent]);
+  }, [role, isBuyerAgent, setReferralSharePct]);
 
   const guide = useMemo(
     () => resolvePriceGuideRange(listingPriceFromAud, listingPriceToAud),
@@ -110,8 +118,9 @@ export default function PublishListingReferral() {
   }, [eligibleReferral, guide, assumedCommissionPct]);
 
   const saveDraft = useCallback(() => {
+    touchDraftSaved();
     Alert.alert('Draft saved', 'Your listing draft has been saved.');
-  }, []);
+  }, [touchDraftSaved]);
 
   return (
     <View style={[styles.root, { paddingBottom: bottomPad }]}>
@@ -162,7 +171,7 @@ export default function PublishListingReferral() {
                 maximumValue={SLIDER_MAX}
                 step={1}
                 value={pct}
-                onValueChange={setPct}
+                onValueChange={setReferralSharePct}
                 minimumTrackTintColor="#000000"
                 maximumTrackTintColor="rgba(0,0,0,0.06)"
                 thumbTintColor="#fff"
@@ -230,7 +239,7 @@ export default function PublishListingReferral() {
                 key={c}
                 style={styles.modalOpt}
                 onPress={() => {
-                  setAssumedCommissionPct(c);
+                  setReferralAssumedCommissionPct(c);
                   setCommissionModalOpen(false);
                 }}>
                 <Text style={styles.modalOptText}>

@@ -1,13 +1,23 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useFocusEffect } from '@react-navigation/native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { TextInput } from '@/components/OMMTextInput';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { accent, ink, layout, slateNavy } from '@/constants/theme';
-import { getDisputeDetail } from '@/lib/disputes-mock';
+import { accent, ink, layout } from '@/constants/theme';
+import { useAgentDisputes } from '@/lib/agent-disputes-context';
 
 /**
  * Add response — empty message field only (no pre-fill).
@@ -25,15 +35,45 @@ export default function AddDisputeResponseScreen() {
   const insets = useSafeAreaInsets();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const disputeId = typeof id === 'string' ? id : id?.[0];
-  const d = disputeId ? getDisputeDetail(disputeId) : null;
+  const { getDetail, appendResponse } = useAgentDisputes();
   const [message, setMessage] = useState('');
+  const [submitting, setSubmitting] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      setSubmitting(false);
+    }, []),
+  );
+
+  const d = disputeId ? getDetail(disputeId) : null;
 
   const submit = () => {
+    if (!disputeId) {
+      Alert.alert('Missing dispute', 'Go back and open a dispute again.');
+      return;
+    }
     if (!message.trim()) {
       Alert.alert('Incomplete', 'Enter your response before submitting.');
       return;
     }
-    Alert.alert('Sent', 'Your response has been added to the dispute.');
+    void (async () => {
+      setSubmitting(true);
+      try {
+        const ok = await appendResponse(disputeId, message.trim());
+        if (!ok) {
+          Alert.alert(
+            'Could not send',
+            'This dispute may be closed or missing. Refresh the disputes list and try again.',
+          );
+          return;
+        }
+        Alert.alert('Sent', 'Your response has been added to the dispute.', [
+          { text: 'OK', onPress: () => router.back() },
+        ]);
+      } finally {
+        setSubmitting(false);
+      }
+    })();
   };
 
   return (
@@ -69,11 +109,21 @@ export default function AddDisputeResponseScreen() {
 
           <View style={{ height: BLOCK_GAP }} />
 
-          <Pressable style={styles.cta} onPress={submit} accessibilityRole="button">
+          <Pressable
+            style={[styles.cta, submitting && { opacity: 0.55 }]}
+            onPress={submit}
+            accessibilityRole="button"
+            disabled={submitting}>
             {({ pressed }) => (
               <>
-                <Text style={styles.ctaText}>SEND RESPONSE</Text>
-                {pressed && <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12 }]} />}
+                {submitting ? (
+                  <ActivityIndicator color={ink} />
+                ) : (
+                  <Text style={styles.ctaText}>SEND RESPONSE</Text>
+                )}
+                {!submitting && pressed ? (
+                  <View style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.08)', borderRadius: 12 }]} />
+                ) : null}
               </>
             )}
           </Pressable>

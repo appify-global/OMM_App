@@ -1,16 +1,24 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
+import { useMemo } from 'react';
 import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { accent, ink, layout } from '@/constants/theme';
+import {
+  computeListingPerformance,
+  computeListingPerformanceMetrics,
+  formatPerformanceMetric,
+} from '@/lib/agent-published-listings';
+import { useAgentPublishedListings } from '@/lib/agent-published-listings-context';
 import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 
 /**
  * Listing performance — stats + views chart.
+ * Live metrics are derived from on-device analytics when opened with `listingId` (buyer views / saves / enquiries).
  * [Figma 1053:9213](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-9213&t=2eZigRM0BwNtC5wd-4)
  */
 
@@ -24,10 +32,37 @@ const CARD_OUTLINE = {
   backgroundColor: '#fff',
 };
 
-/** Normalized bar heights, left → right (last bar = current period). */
-const BAR_FRACS = [
-  0.22, 0.26, 0.3, 0.34, 0.38, 0.42, 0.48, 0.52, 0.56, 0.62, 0.68, 0.74, 0.8, 0.85, 0.9, 0.94, 1,
-];
+/** Demo bars when no listing is selected (same shape as 30-day series). */
+const DEMO_BAR_FRACS = Array.from({ length: 30 }, (_, i) => 0.2 + (i / 29) * 0.8);
+
+const DEMO_STATS = {
+  views: '2,847',
+  saves: '186',
+  enquiries: '23',
+  viewsTrend: '+12%',
+  savesTrend: '+8%',
+  enquiriesTrend: '+15%',
+};
+
+function firstQueryParam(value: string | string[] | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function formatYAxisTick(max: number, frac: number): string {
+  const v = max * frac;
+  if (v >= 1000) return `${Math.round(v / 1000)}k`;
+  return String(Math.round(v));
+}
+
+function TrendGlyph({ trend }: { trend: string }) {
+  if (trend === '—') return null;
+  if (trend.startsWith('+'))
+    return <MaterialCommunityIcons name="trending-up" size={14} color={TREND} />;
+  if (trend.startsWith('-'))
+    return <MaterialCommunityIcons name="trending-down" size={14} color={TREND} />;
+  return null;
+}
 
 function StatCard({
   icon,
@@ -48,7 +83,7 @@ function StatCard({
       </View>
       <Text style={styles.statValue}>{value}</Text>
       <View style={styles.statTrendRow}>
-        <MaterialCommunityIcons name="trending-up" size={14} color={TREND} />
+        <TrendGlyph trend={trend} />
         <Text style={styles.statTrend}>{trend}</Text>
       </View>
     </View>
@@ -58,7 +93,49 @@ function StatCard({
 export default function ViewPerformanceScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { listingId: listingIdParam } = useLocalSearchParams<{ listingId?: string }>();
+  const listingId = firstQueryParam(listingIdParam)?.trim();
+  const { getById, ready } = useAgentPublishedListings();
   const chartH = 168;
+
+  const perf = useMemo(() => {
+    if (!listingId) return null;
+    if (!ready) return undefined;
+    const listing = getById(listingId);
+    if (listing) return computeListingPerformance(listing);
+    return computeListingPerformanceMetrics(undefined, 'Listing unavailable');
+  }, [listingId, getById, ready]);
+
+  const demoMode = listingId == null;
+  const loadingListing = listingId != null && perf === undefined;
+
+  const subtitle = demoMode
+    ? `${DEMO_PRIMARY_LISTING_TITLE} • Last 30 days`
+    : loadingListing
+      ? 'Loading listing analytics…'
+      : perf != null
+        ? `${perf.titleLine} • Last 30 days`
+        : 'Listing';
+
+  const chartFracs = demoMode ? DEMO_BAR_FRACS : perf?.chartBarFracs ?? DEMO_BAR_FRACS;
+  const chartMax = demoMode ? 2000 : perf?.chartMax ?? 1;
+
+  const viewsVal =
+    demoMode ? DEMO_STATS.views : loadingListing ? '…' : perf ? formatPerformanceMetric(perf.views30) : '0';
+  const savesVal =
+    demoMode ? DEMO_STATS.saves : loadingListing ? '…' : perf ? formatPerformanceMetric(perf.saves30) : '0';
+  const enquiriesVal =
+    demoMode
+      ? DEMO_STATS.enquiries
+      : loadingListing
+        ? '…'
+        : perf
+          ? formatPerformanceMetric(perf.enquiries30)
+          : '0';
+
+  const viewsTrend = demoMode ? DEMO_STATS.viewsTrend : perf?.viewsTrend ?? '—';
+  const savesTrend = demoMode ? DEMO_STATS.savesTrend : perf?.savesTrend ?? '—';
+  const enquiriesTrend = demoMode ? DEMO_STATS.enquiriesTrend : perf?.enquiriesTrend ?? '—';
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
@@ -66,28 +143,28 @@ export default function ViewPerformanceScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 28 }]}>
         <Text style={styles.title}>Performance</Text>
-        <Text style={styles.subtitle}>{DEMO_PRIMARY_LISTING_TITLE} • Last 30 days</Text>
+        <Text style={styles.subtitle}>{subtitle}</Text>
 
         <View style={styles.statsRow}>
           <StatCard
             icon={<MaterialCommunityIcons name="eye-outline" size={16} color="rgba(0, 0, 0, 0.5)" />}
             label="Views"
-            value="2,847"
-            trend="+12%"
+            value={viewsVal}
+            trend={viewsTrend}
           />
           <StatCard
             icon={<MaterialCommunityIcons name="heart-outline" size={16} color="rgba(0, 0, 0, 0.5)" />}
             label="Saves"
-            value="186"
-            trend="+8%"
+            value={savesVal}
+            trend={savesTrend}
           />
           <StatCard
             icon={
               <MaterialCommunityIcons name="comment-text-outline" size={16} color="rgba(0, 0, 0, 0.5)" />
             }
             label="Enquiries"
-            value="23"
-            trend="+15%"
+            value={enquiriesVal}
+            trend={enquiriesTrend}
           />
         </View>
 
@@ -95,20 +172,20 @@ export default function ViewPerformanceScreen() {
           <Text style={styles.chartKicker}>VIEWS OVER TIME • LAST 30 DAYS</Text>
           <View style={styles.chartBody}>
             <View style={styles.yAxis}>
-              <Text style={styles.yTick}>2k</Text>
-              <Text style={styles.yTick}>1k</Text>
+              <Text style={styles.yTick}>{formatYAxisTick(chartMax, 1)}</Text>
+              <Text style={styles.yTick}>{formatYAxisTick(chartMax, 0.5)}</Text>
               <Text style={styles.yTick}>0</Text>
             </View>
             <View style={styles.chartPlot}>
               <View style={[styles.barsRow, { height: chartH }]}>
-                {BAR_FRACS.map((frac, i) => (
+                {chartFracs.map((frac, i) => (
                   <View
                     key={i}
                     style={[
                       styles.bar,
                       {
                         height: Math.max(6, frac * chartH),
-                        backgroundColor: i === BAR_FRACS.length - 1 ? '#000000' : BAR_GREY,
+                        backgroundColor: i === chartFracs.length - 1 ? '#000000' : BAR_GREY,
                       },
                     ]}
                   />
@@ -116,8 +193,8 @@ export default function ViewPerformanceScreen() {
               </View>
               <View style={styles.xAxis}>
                 <Text style={styles.xTick}>1</Text>
-                <Text style={styles.xTick}>9</Text>
-                <Text style={styles.xTick}>17</Text>
+                <Text style={styles.xTick}>15</Text>
+                <Text style={styles.xTick}>30</Text>
               </View>
             </View>
           </View>
@@ -233,7 +310,7 @@ const styles = StyleSheet.create({
   barsRow: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    gap: 3,
+    gap: 2,
   },
   bar: {
     flex: 1,

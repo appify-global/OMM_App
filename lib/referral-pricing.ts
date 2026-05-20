@@ -58,6 +58,24 @@ export function formatAudWhole(amountAud: number): string {
   return `$${Math.round(amountAud).toLocaleString('en-AU', { maximumFractionDigits: 0 })}`;
 }
 
+/** Compact headline for sold strips (e.g. `$1.85M`, `$850k`). Whole AUD input. */
+export function formatSoldPriceCompactWholeAud(amountAud: number): string {
+  const n = Math.round(Math.abs(amountAud));
+  if (n >= 1_000_000) {
+    const m = n / 1_000_000;
+    const s = new Intl.NumberFormat('en-AU', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+    }).format(m);
+    return `$${s}M`;
+  }
+  if (n >= 1000) {
+    const k = Math.round(n / 1000);
+    return `$${k.toLocaleString('en-AU')}k`;
+  }
+  return formatAudWhole(n);
+}
+
 /**
  * Estimated gross commission pool (whole AUD) from the published guide, using
  * commission as a % of sale — replace with authority figures when available.

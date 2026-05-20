@@ -26,6 +26,8 @@ export type RecentlySoldItem = {
   soldAtDisplay: string;
   /** Index into `propertyImageAtIndex` on the client. */
   imageIndex: number;
+  /** Device-local listing cover URI; overrides catalog thumbnail when present. */
+  coverImageUri?: string;
 };
 
 export type AgentHomeMetricsPayload = {
@@ -33,6 +35,8 @@ export type AgentHomeMetricsPayload = {
   /** Live / published listings attributed to the agent (MVP: integer from API). */
   activeListingsCount: number;
   pendingListingsCount: number;
+  /** Settled / sold listings attributed to the agent (non-archived when from device store). */
+  soldListingsCount: number;
   /** Scheduled inspections in the agreed window (e.g. next 7d) — MVP count only. */
   inspectionsBookedCount: number;
   /** When null, no range to show (even if legal flag is on). */
@@ -68,6 +72,7 @@ export const FALLBACK_AGENT_HOME_METRICS: AgentHomeMetricsPayload = {
   ],
   activeListingsCount: 4,
   pendingListingsCount: 2,
+  soldListingsCount: 3,
   inspectionsBookedCount: 3,
   pipelineCommissionEstimateAud: { lowAud: 41250, highAud: 51500 },
 };
@@ -87,8 +92,20 @@ function parseRecentlySold(raw: unknown): RecentlySoldItem[] {
     const soldPriceDisplay = typeof row.soldPriceDisplay === 'string' ? row.soldPriceDisplay : '';
     const soldAtDisplay = typeof row.soldAtDisplay === 'string' ? row.soldAtDisplay : '';
     const imageIndex = typeof row.imageIndex === 'number' && Number.isFinite(row.imageIndex) ? row.imageIndex : 0;
+    const coverImageUri =
+      typeof row.coverImageUri === 'string' && row.coverImageUri.trim().length > 0
+        ? row.coverImageUri.trim()
+        : undefined;
     if (!id || !addressLine) continue;
-    out.push({ id, addressLine, suburb, soldPriceDisplay, soldAtDisplay, imageIndex });
+    out.push({
+      id,
+      addressLine,
+      suburb,
+      soldPriceDisplay,
+      soldAtDisplay,
+      imageIndex,
+      ...(coverImageUri ? { coverImageUri } : {}),
+    });
   }
   return out.length > 0 ? out : FALLBACK_AGENT_HOME_METRICS.recentlySold;
 }
@@ -121,10 +138,15 @@ export function parseAgentHomeMetrics(data: unknown): AgentHomeMetricsPayload {
     data.inspectionsBookedCount,
     FALLBACK_AGENT_HOME_METRICS.inspectionsBookedCount,
   );
+  const sold = parseNonNegativeInt(
+    data.soldListingsCount,
+    FALLBACK_AGENT_HOME_METRICS.soldListingsCount,
+  );
   return {
     recentlySold: parseRecentlySold(data.recentlySold),
     activeListingsCount: active,
     pendingListingsCount: pending,
+    soldListingsCount: sold,
     inspectionsBookedCount: inspections,
     pipelineCommissionEstimateAud: parsePipeline(data.pipelineCommissionEstimateAud),
   };
@@ -142,25 +164,34 @@ export function formatPipelineCommissionRangeDisplay(
   return `${f(range.lowAud)}–${f(range.highAud)}`;
 }
 
+export type FetchAgentHomeMetricsResult = {
+  metrics: AgentHomeMetricsPayload;
+  /** True when `EXPO_PUBLIC_API_URL` is set and home metrics API returned 200. */
+  ok: boolean;
+};
+
 /**
  * Loads agent home metrics from the API when configured and a Clerk JWT is available;
- * otherwise returns the same-shaped fallback payload.
+ * otherwise returns the same-shaped fallback payload with `ok: false`.
  */
 export async function fetchAgentHomeMetrics(
   getToken: () => Promise<string | null>,
-): Promise<AgentHomeMetricsPayload> {
+): Promise<FetchAgentHomeMetricsResult> {
   const base = process.env.EXPO_PUBLIC_API_URL;
   if (!base) {
-    return FALLBACK_AGENT_HOME_METRICS;
+    return { metrics: FALLBACK_AGENT_HOME_METRICS, ok: false };
   }
   try {
-    const res = await apiFetch('/api/agent-home-metrics', getToken, { method: 'GET' });
+    let res = await apiFetch('/api/mobile/agent-home-metrics', getToken, { method: 'GET' });
     if (!res.ok) {
-      return FALLBACK_AGENT_HOME_METRICS;
+      res = await apiFetch('/api/agent-home-metrics', getToken, { method: 'GET' });
+    }
+    if (!res.ok) {
+      return { metrics: FALLBACK_AGENT_HOME_METRICS, ok: false };
     }
     const json: unknown = await res.json();
-    return parseAgentHomeMetrics(json);
+    return { metrics: parseAgentHomeMetrics(json), ok: true };
   } catch {
-    return FALLBACK_AGENT_HOME_METRICS;
+    return { metrics: FALLBACK_AGENT_HOME_METRICS, ok: false };
   }
 }

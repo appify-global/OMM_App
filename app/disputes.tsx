@@ -1,14 +1,15 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useFocusEffect } from '@react-navigation/native';
 import { type Href, useRouter } from 'expo-router';
 import type { ReactNode } from 'react';
-import { useMemo, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { accent, ink, layout, slateNavy } from '@/constants/theme';
+import { useAgentDisputes } from '@/lib/agent-disputes-context';
 import type { DisputeStatus } from '@/lib/disputes-mock';
-import { DISPUTES_LIST } from '@/lib/disputes-mock';
 
 /**
  * Disputes hub — filters + outlined cards + raise CTA.
@@ -107,12 +108,19 @@ const badge = StyleSheet.create({
 export default function DisputesScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
+  const { rows, refresh } = useAgentDisputes();
   const [filter, setFilter] = useState<FilterKey>('open');
 
-  const rows = useMemo(() => {
-    if (filter === 'all') return DISPUTES_LIST;
-    return DISPUTES_LIST.filter((d) => d.status === filter);
-  }, [filter]);
+  useFocusEffect(
+    useCallback(() => {
+      void refresh();
+    }, [refresh]),
+  );
+
+  const filtered = useMemo(() => {
+    if (filter === 'all') return rows;
+    return rows.filter((d) => d.status === filter);
+  }, [filter, rows]);
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -162,7 +170,7 @@ export default function DisputesScreen() {
         </ScrollView>
 
         <View style={styles.list}>
-          {rows.map((d) => (
+          {filtered.map((d) => (
             <Pressable
               key={d.id}
               onPress={() =>
@@ -187,6 +195,12 @@ export default function DisputesScreen() {
               )}
             </Pressable>
           ))}
+          {filtered.length === 0 ? (
+            <Text style={styles.empty}>
+              No disputes in this view. Raise a dispute to open a formal Trust & Safety record on-device until sync is
+              available.
+            </Text>
+          ) : null}
         </View>
 
         <Pressable
@@ -315,6 +329,13 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: MUTED,
     lineHeight: 15,
+  },
+  empty: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: MUTED,
+    lineHeight: 19,
+    paddingVertical: 12,
   },
   cta: {
     height: 52,

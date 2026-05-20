@@ -1,5 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { type Href, useRouter } from 'expo-router';
+import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
 import { useEffect, useState } from 'react';
 import { Text } from '@/components/OMMText';
@@ -18,6 +18,7 @@ import {
 } from '@/components/list-add/flow-shared';
 import { useListingDraft } from '@/components/list-add/listing-draft-context';
 import { slateNavy } from '@/constants/theme';
+import { useAgentPublishedListings } from '@/lib/agent-published-listings-context';
 import { persistDemoLiveListingDisclosure } from '@/lib/demo-live-listing-disclosure';
 import { DEMO_PRIMARY_SUBURB_LINE } from '@/lib/melbourne-demo-locations';
 
@@ -334,14 +335,45 @@ const sm = StyleSheet.create({
 
 export default function ListingPublishedScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ listingId?: string | string[] }>();
   const insets = useSafeAreaInsets();
   const bottomPad = useListingFlowBottomPad();
   const { addressDisclosure } = useListingDraft();
+  const { getById, listings } = useAgentPublishedListings();
+
+  const listingIdRaw = Array.isArray(params.listingId)
+    ? params.listingId[0]
+    : params.listingId;
+  const publishedRow =
+    (listingIdRaw ? getById(listingIdRaw) : listings[0]) ?? null;
+
+  const display = publishedRow
+    ? {
+        listingIdLabel: publishedRow.id,
+        propertyLine:
+          publishedRow.addressDisclosure === 'not_disclose'
+            ? publishedRow.titleLine
+            : publishedRow.addressLine,
+        priceLine: publishedRow.priceRangeDisplay,
+        referralFee: DEMO.referralFee,
+        authority: 'in 30 days',
+        soi: 'Auto-gen • Attached',
+      }
+    : {
+        listingIdLabel: DEMO.listingId,
+        propertyLine: DEMO.property,
+        priceLine: DEMO.price,
+        referralFee: DEMO.referralFee,
+        authority: DEMO.authority,
+        soi: DEMO.soi,
+      };
+
   const [sheet, setSheet] = useState<Sheet>(null);
 
   useEffect(() => {
-    void persistDemoLiveListingDisclosure(addressDisclosure);
-  }, [addressDisclosure]);
+    const disclosure = publishedRow?.addressDisclosure ?? addressDisclosure;
+    void persistDemoLiveListingDisclosure(disclosure);
+  }, [publishedRow?.addressDisclosure, addressDisclosure]);
 
   const goHome = () =>
     router.replace(`/(tabs)?homeSegment=selling&_ts=${Date.now()}` as Href);
@@ -367,31 +399,31 @@ export default function ListingPublishedScreen() {
           listing.
         </Text>
 
-        <Text style={styles.listingIdLine}>LISTING ID • {DEMO.listingId}</Text>
+        <Text style={styles.listingIdLine}>LISTING ID • {display.listingIdLabel}</Text>
 
         <View style={styles.summaryCard}>
           <Text style={styles.cardKicker}>PROPERTY</Text>
-          <Text style={styles.propertyName}>{DEMO.property}</Text>
+          <Text style={styles.propertyName}>{display.propertyLine}</Text>
           <View style={styles.cardRule} />
           <View style={styles.grid}>
             <View style={styles.gridRow}>
               <View style={styles.gridCell}>
                 <Text style={styles.gridLabel}>LISTING PRICE</Text>
-                <Text style={styles.gridValue}>{DEMO.price}</Text>
+                <Text style={styles.gridValue}>{display.priceLine}</Text>
               </View>
               <View style={styles.gridCell}>
                 <Text style={styles.gridLabel}>REFERRAL FEE</Text>
-                <Text style={styles.gridValue}>{DEMO.referralFee}</Text>
+                <Text style={styles.gridValue}>{display.referralFee}</Text>
               </View>
             </View>
             <View style={styles.gridRow}>
               <View style={styles.gridCell}>
                 <Text style={styles.gridLabel}>AUTHORITY EXPIRES</Text>
-                <Text style={styles.gridValue}>{DEMO.authority}</Text>
+                <Text style={styles.gridValue}>{display.authority}</Text>
               </View>
               <View style={styles.gridCell}>
                 <Text style={styles.gridLabel}>SOI</Text>
-                <Text style={styles.gridValue}>{DEMO.soi}</Text>
+                <Text style={styles.gridValue}>{display.soi}</Text>
               </View>
             </View>
           </View>
@@ -428,10 +460,24 @@ export default function ListingPublishedScreen() {
         <Pressable
           style={styles.primaryWide}
           onPress={() =>
-            router.push({
-              pathname: '/view-live-listing',
-              params: { addressDisclosure },
-            } as Href)
+        router.push({
+          pathname: '/view-live-listing',
+          params:
+            publishedRow != null
+              ? {
+                  addressDisclosure: publishedRow.addressDisclosure,
+                  listingId: publishedRow.id,
+                  skipListingAnalytics: '1',
+                  title: publishedRow.titleLine,
+                  street: publishedRow.streetLine,
+                  suburb: publishedRow.suburbLine,
+                  price: publishedRow.priceRangeDisplay,
+                  beds: String(publishedRow.beds),
+                  baths: String(publishedRow.baths),
+                  cars: String(publishedRow.cars),
+                }
+              : { addressDisclosure },
+        } as Href)
           }
           accessibilityRole="button">
           <Text style={styles.primaryWideLabel}>VIEW LIVE LISTING</Text>

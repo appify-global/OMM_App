@@ -1,23 +1,36 @@
 import { Text } from "@/components/OMMText";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useLocalSearchParams, useRouter, type Href } from "expo-router";
-import { useEffect, useState } from "react";
-import { Image, Pressable, ScrollView, StyleSheet, View, type ImageSourcePropType } from "react-native";
+import { useEffect, useMemo, useState } from "react";
+import { Image, Pressable, ScrollView, StyleSheet, View, Alert, type ImageSourcePropType } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { accent, frost, ink, layout, slateNavy } from '@/constants/theme';
 import { useTabScreenBottomPad } from "@/lib/useTabScreenBottomPad";
 import { useTabBarOnScroll } from "@/lib/tab-bar-visibility";
 
-import { ManageListingSheet } from "@/components/ManageListingSheet";
+import { ManageListingSheet, MANAGE_LISTING_MENU_ITEMS_ARCHIVED } from "@/components/ManageListingSheet";
 
 import {
     DEMO_MANAGE_LISTING_HEADER,
     DEMO_PRIMARY_LISTING_TITLE,
 } from "@/lib/melbourne-demo-locations";
 import { PROPERTY_IMG_1, propertyImageAtIndex } from "@/lib/propertyImages";
+import { useAgentPublishedListings } from "@/lib/agent-published-listings-context";
+import {
+  mergePublishedListingArchived,
+  type PublishedAgentListing,
+  listingHeroImageSource,
+  publishedListingArchivedManageSubtitle,
+  publishedListingArchivedRibbon,
+  publishedListingManageSubtitleLine,
+  publishedListingRibbonLine,
+  publishedListingStatusBadge,
+  isPublishedListingArchived,
+  resolvedPublishedListingStatus,
+} from "@/lib/agent-published-listings";
 
-type TabKey = "live" | "contract" | "draft" | "sold";
+type TabKey = "live" | "contract" | "draft" | "sold" | "archive";
 
 type ListingDemo = {
   id: string;
@@ -32,6 +45,56 @@ type ListingDemo = {
   manageHeader: string;
   manageSubtitle: string;
 };
+
+function publishedAgentToListingDemo(p: PublishedAgentListing): ListingDemo {
+  const st = resolvedPublishedListingStatus(p);
+  return {
+    id: p.id,
+    image: listingHeroImageSource(p),
+    statusLabel: publishedListingStatusBadge(st),
+    ribbon: publishedListingRibbonLine(p),
+    beds: p.beds,
+    baths: p.baths,
+    cars: p.cars,
+    title: p.titleLine,
+    price: p.priceRangeDisplay,
+    manageHeader: p.addressDisclosure === "not_disclose" ? p.titleLine : p.addressLine,
+    manageSubtitle: publishedListingManageSubtitleLine(p),
+  };
+}
+
+function publishedDemosForSegment(
+  rows: PublishedAgentListing[],
+  segment: TabKey,
+): ListingDemo[] {
+  if (segment === "draft" || segment === "archive") return [];
+  return rows
+    .filter((p) => !isPublishedListingArchived(p))
+    .filter((p) => {
+      const st = resolvedPublishedListingStatus(p);
+      if (segment === "live") return st === "live";
+      if (segment === "contract") return st === "pending";
+      if (segment === "sold") return st === "sold";
+      return false;
+    })
+    .map(publishedAgentToListingDemo);
+}
+
+function publishedArchivedListingDemos(rows: PublishedAgentListing[]): ListingDemo[] {
+  return rows.filter(isPublishedListingArchived).map((p) => ({
+    id: p.id,
+    image: listingHeroImageSource(p),
+    statusLabel: "ARCHIVED",
+    ribbon: publishedListingArchivedRibbon(p),
+    beds: p.beds,
+    baths: p.baths,
+    cars: p.cars,
+    title: p.titleLine,
+    price: p.priceRangeDisplay,
+    manageHeader: p.addressDisclosure === "not_disclose" ? p.titleLine : p.addressLine,
+    manageSubtitle: publishedListingArchivedManageSubtitle(p),
+  }));
+}
 
 const LISTINGS_BY_SEGMENT: Record<TabKey, ListingDemo[]> = {
   live: [
@@ -146,6 +209,34 @@ const LISTINGS_BY_SEGMENT: Record<TabKey, ListingDemo[]> = {
       manageSubtitle: "Sold $2,100,000 • Settled 02 Apr 2026",
     },
   ],
+  archive: [
+    {
+      id: "archive-1",
+      image: propertyImageAtIndex(8),
+      statusLabel: "ARCHIVED",
+      ribbon: "Archived 01 May 2026 • Hidden from buyers",
+      beds: 3,
+      baths: 2,
+      cars: 2,
+      title: "Kooyong Rd · Armadale",
+      price: "$2,650,000",
+      manageHeader: "27 Kooyong Rd, Armadale VIC 3143",
+      manageSubtitle: "$2,650,000 • Archived • Hidden from search",
+    },
+    {
+      id: "archive-2",
+      image: propertyImageAtIndex(9),
+      statusLabel: "ARCHIVED",
+      ribbon: "Archived 18 Apr 2026 • Hidden from buyers",
+      beds: 2,
+      baths: 1,
+      cars: 1,
+      title: "Joseph Rd · Footscray",
+      price: "$895,000",
+      manageHeader: "108/8 Joseph Rd, Footscray VIC 3011",
+      manageSubtitle: "$895,000 • Archived • Hidden from search",
+    },
+  ],
 };
 
 function firstQueryString(
@@ -156,7 +247,8 @@ function firstQueryString(
 }
 
 function tabKeyFromSegmentQuery(q: string | undefined): TabKey | null {
-  if (q === "live" || q === "contract" || q === "draft" || q === "sold") return q;
+  if (q === "live" || q === "contract" || q === "draft" || q === "sold" || q === "archive")
+    return q;
   return null;
 }
 
@@ -358,6 +450,7 @@ function ListingCard({
 export default function ManageListingsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { listings: agentPublishedListings, updateListing } = useAgentPublishedListings();
   const params = useLocalSearchParams<{
     segment?: string | string[];
     q?: string | string[];
@@ -371,7 +464,26 @@ export default function ManageListingsScreen() {
   const [selectedListing, setSelectedListing] = useState<ListingDemo | null>(null);
   const { onScroll } = useTabBarOnScroll();
 
-  const segmentListings = LISTINGS_BY_SEGMENT[activeSegment];
+  const sheetMenuItems = useMemo(() => {
+    const id = selectedListing?.id;
+    if (!id || !id.startsWith("omm-")) return undefined;
+    const row = agentPublishedListings.find((l) => l.id === id);
+    if (row && isPublishedListingArchived(row)) return MANAGE_LISTING_MENU_ITEMS_ARCHIVED;
+    return undefined;
+  }, [selectedListing?.id, agentPublishedListings]);
+
+  const segmentListings =
+    activeSegment === "draft"
+      ? LISTINGS_BY_SEGMENT.draft
+      : activeSegment === "archive"
+        ? [
+            ...publishedArchivedListingDemos(agentPublishedListings),
+            ...LISTINGS_BY_SEGMENT.archive,
+          ]
+        : [
+            ...publishedDemosForSegment(agentPublishedListings, activeSegment),
+            ...LISTINGS_BY_SEGMENT[activeSegment],
+          ];
 
   const openManageSheet = (listing: ListingDemo) => {
     setSelectedListing(listing);
@@ -396,18 +508,66 @@ export default function ManageListingsScreen() {
           selectedListing?.manageSubtitle ??
           "$2,450,000 • Live • Authority expires in 14 days • SOI 20 Apr"
         }
+        menuItems={sheetMenuItems}
         onMenuItemPress={(item) => {
+          const navListingId = selectedListing?.id;
           setManageSheetOpen(false);
-          if (item === "Edit listing details")
-            router.push("/edit-listing" as Href);
-          if (item === "Update photos & floorplan")
-            router.push("/photos-floorplan" as Href);
-          if (item === "View performance")
-            router.push("/view-performance" as Href);
-          if (item === "Change status")
-            router.push("/change-listing-status" as Href);
-          if (item === "Archive listing")
-            router.push("/archive-listing" as Href);
+          if (item === "Edit listing details" && navListingId)
+            router.push({
+              pathname: "/edit-listing",
+              params: { listingId: navListingId },
+            } as Href);
+          if (item === "Update photos & floorplan" && navListingId)
+            router.push({
+              pathname: "/photos-floorplan",
+              params: { listingId: navListingId },
+            } as Href);
+          if (item === "View performance" && navListingId)
+            router.push({
+              pathname: "/view-performance",
+              params: { listingId: navListingId },
+            } as Href);
+          if (item === "Change status" && navListingId)
+            router.push({
+              pathname: "/change-listing-status",
+              params: { listingId: navListingId },
+            } as Href);
+          if (item === "Restore listing" && navListingId) {
+            const row = agentPublishedListings.find((l) => l.id === navListingId);
+            if (!row || !isPublishedListingArchived(row)) {
+              Alert.alert(
+                "Nothing to restore",
+                "Only archived listings published from this device can be restored here.",
+              );
+              return;
+            }
+            Alert.alert(
+              "Restore listing?",
+              "This listing will appear again under Live, Pending, or Sold depending on its saved status.",
+              [
+                { text: "Cancel", style: "cancel" },
+                {
+                  text: "Restore",
+                  onPress: () =>
+                    void (async () => {
+                      const next = mergePublishedListingArchived(row, false);
+                      const ok = await updateListing(next);
+                      if (ok)
+                        Alert.alert("Restored", "Listing is visible again in Manage listings.", [
+                          { text: "OK" },
+                        ]);
+                      else Alert.alert("Could not restore", "Try again.");
+                    })(),
+                },
+              ],
+            );
+            return;
+          }
+          if (item === "Archive listing" && navListingId)
+            router.push({
+              pathname: "/archive-listing",
+              params: { listingId: navListingId },
+            } as Href);
         }}
       />
       <ScrollView
@@ -433,6 +593,7 @@ export default function ManageListingsScreen() {
               { key: "contract" as const, label: "Under contract" },
               { key: "draft" as const, label: "Draft" },
               { key: "sold" as const, label: "Sold" },
+              { key: "archive" as const, label: "Archive" },
             ] as const
           ).map(({ key, label }) => (
             <Pressable
@@ -471,10 +632,12 @@ export default function ManageListingsScreen() {
               {activeSegment === "contract"
                 ? "Under contract"
                 : activeSegment === "sold"
-                ? "Sold listings"
-                : activeSegment === "draft"
-                ? "Drafts"
-                : "Live listings"}
+                  ? "Sold listings"
+                  : activeSegment === "draft"
+                    ? "Drafts"
+                    : activeSegment === "archive"
+                      ? "Archived listings"
+                      : "Live listings"}
             </Text>
             <Text style={styles.emptySub}>Nothing here yet in this demo.</Text>
           </View>

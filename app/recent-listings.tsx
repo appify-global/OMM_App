@@ -8,8 +8,14 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 /** [Figma 1053:1232](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-1232) — See All · Listings */
 
 import { ScreenHeader } from '@/components/ScreenHeader';
+import {
+  type PublishedAgentListing,
+  isPublishedListingArchived,
+} from '@/lib/agent-published-listings';
+import { useAgentPublishedListings } from '@/lib/agent-published-listings-context';
 import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { propertyImageAtIndex } from '@/lib/propertyImages';
+import { thumbnailIndexFromListingId } from '@/lib/mobile-home-api';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 import { layout, slateNavy } from '@/constants/theme';
 
@@ -25,6 +31,24 @@ type Row = {
   baths: number;
   cars: number;
 };
+
+function rowFromPublished(p: PublishedAgentListing): Row {
+  return {
+    id: p.id,
+    street: p.streetLine,
+    suburb: p.suburbLine || 'Australia',
+    price: p.priceRangeDisplay,
+    beds: p.beds,
+    baths: p.baths,
+    cars: p.cars,
+  };
+}
+
+function thumbIdxForListingRow(row: Row, fallbackIndex: number): number {
+  if (row.id.startsWith('omm-')) return thumbnailIndexFromListingId(row.id);
+  const n = Number.parseInt(row.id, 10);
+  return Number.isFinite(n) ? n % 12 : fallbackIndex % 12;
+}
 
 const ROWS: Row[] = [
   {
@@ -130,17 +154,24 @@ export default function RecentListingsScreen() {
   const insets = useSafeAreaInsets();
   const hPad = useScreenHorizontalPadding();
   const router = useRouter();
+  const { listings: publishedRows } = useAgentPublishedListings();
   const { mode } = useLocalSearchParams<{ mode?: string }>();
   const listMode = listModeFromParams(mode);
+
+  const visiblePublished = publishedRows.filter((p) => !isPublishedListingArchived(p));
+  const augmentedRows: Row[] =
+    listMode === 'sold'
+      ? ROWS
+      : [...visiblePublished.map(rowFromPublished), ...ROWS];
 
   const headerTitle =
     listMode === 'sold' ? 'Recently sold' : listMode === 'listed' ? 'Recently listed' : 'Recently published';
   const metaLeft =
     listMode === 'sold'
-      ? `${ROWS.length} sold properties`
+      ? `${augmentedRows.length} sold properties`
       : listMode === 'listed'
-        ? '24 new listings'
-        : '24 off-market listings';
+        ? `${augmentedRows.length} new listings`
+        : `${augmentedRows.length} off-market listings`;
   const rowStatus: 'LIVE' | 'SOLD' = listMode === 'sold' ? 'SOLD' : 'LIVE';
 
   return (
@@ -157,23 +188,24 @@ export default function RecentListingsScreen() {
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 28 }]}>
-          {ROWS.map((row, index) => (
+          {augmentedRows.map((row, index) => (
             <ListingRow
               key={row.id}
               row={row}
-              index={index}
+              index={thumbIdxForListingRow(row, index)}
               status={rowStatus}
               onPress={() =>
                 router.push({
                   pathname: '/view-live-listing',
                   params: {
+                    ...(row.id.startsWith('omm-') ? { listingId: row.id } : {}),
                     street: row.street,
                     suburb: row.suburb,
                     price: row.price,
                     beds: String(row.beds),
                     baths: String(row.baths),
                     cars: String(row.cars),
-                    imageIndex: String(index),
+                    imageIndex: String(thumbIdxForListingRow(row, index)),
                   },
                 } as Href)
               }

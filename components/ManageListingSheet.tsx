@@ -15,7 +15,18 @@ export const MANAGE_LISTING_MENU_ITEMS = [
   'Archive listing',
 ] as const;
 
-export type ManageListingMenuItem = (typeof MANAGE_LISTING_MENU_ITEMS)[number];
+export type ManageListingMenuItem =
+  | (typeof MANAGE_LISTING_MENU_ITEMS)[number]
+  | 'Restore listing';
+
+/** Menu for listings that are archived (last action is restore). */
+export const MANAGE_LISTING_MENU_ITEMS_ARCHIVED: ManageListingMenuItem[] = [
+  'Edit listing details',
+  'Update photos & floorplan',
+  'View performance',
+  'Change status',
+  'Restore listing',
+];
 
 /** Local alias — avoids stale bundles that still resolve `MENU_ITEMS.map`. */
 const MENU_ITEMS = MANAGE_LISTING_MENU_ITEMS;
@@ -28,6 +39,8 @@ type Props = {
   /** e.g. "$2,450,000 • Live • Authority expires in 14 days • SOI 20 Apr" */
   subtitle?: string;
   onMenuItemPress?: (item: ManageListingMenuItem) => void;
+  /** Override default action list (e.g. archived listings show Restore). */
+  menuItems?: readonly ManageListingMenuItem[];
 };
 
 /**
@@ -39,6 +52,7 @@ export function ManageListingSheet({
   title = DEMO_MANAGE_LISTING_HEADER,
   subtitle = '$2,450,000 • Live • Authority expires in 14 days • SOI 20 Apr',
   onMenuItemPress,
+  menuItems,
 }: Props) {
   const insets = useSafeAreaInsets();
 
@@ -65,7 +79,7 @@ export function ManageListingSheet({
             <Text style={styles.subtitle}>{subtitle}</Text>
 
             <View style={styles.menu}>
-              {MENU_ITEMS.map((label, index) => (
+              {(menuItems ?? MENU_ITEMS).map((label, index) => (
                 <View key={label}>
                   {index > 0 ? <View style={styles.divider} /> : null}
                   <Pressable

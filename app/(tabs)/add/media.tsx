@@ -20,9 +20,6 @@ import {
   captureListingVideo,
   pickListingPhotos,
   pickListingVideos,
-  type ListingDraftFloorPlan,
-  type ListingDraftPhoto,
-  type ListingDraftVideo,
   pickListingFloorPlan,
 } from '@/lib/listing-media-pickers';
 import { formatSoiSize } from '@/lib/soi-attachment';
@@ -37,26 +34,30 @@ import {
   fieldShell,
   useListingFlowBottomPad,
 } from '@/components/list-add/flow-shared';
+import { useListingDraft } from '@/components/list-add/listing-draft-context';
 
 export default function PublishListingMedia() {
   const router = useRouter();
   const bottomPad = useListingFlowBottomPad();
+  const { draftPhotos, setDraftPhotos, draftVideos, setDraftVideos, draftFloorPlan, setDraftFloorPlan, touchDraftSaved } =
+    useListingDraft();
   const { width } = useWindowDimensions();
   const innerW = width - PL_PAD * 2;
   const gap = 8;
   const cell = (innerW - gap * 2) / 3;
 
-  const [photos, setPhotos] = useState<ListingDraftPhoto[]>([]);
-  const [videos, setVideos] = useState<ListingDraftVideo[]>([]);
-  const [floorPlan, setFloorPlan] = useState<ListingDraftFloorPlan | null>(null);
+  const photos = draftPhotos;
+  const videos = draftVideos;
+  const floorPlan = draftFloorPlan;
   const [busy, setBusy] = useState<'photos' | 'videos' | 'floor' | null>(null);
 
   const slotsLeft = LISTING_MAX_PHOTOS - photos.length;
   const videosLeft = LISTING_MAX_VIDEOS - videos.length;
 
   const saveDraft = useCallback(() => {
+    touchDraftSaved();
     Alert.alert('Draft saved', 'Your listing draft has been saved.');
-  }, []);
+  }, [touchDraftSaved]);
 
   const mergePhotoResult = useCallback(
     (r: Awaited<ReturnType<typeof pickListingPhotos>>) => {
@@ -65,9 +66,9 @@ export default function PublishListingMedia() {
         if (r.error) Alert.alert('Photos', r.error);
         return;
       }
-      setPhotos((prev) => [...prev, ...r.items].slice(0, LISTING_MAX_PHOTOS));
+      setDraftPhotos((prev) => [...prev, ...r.items].slice(0, LISTING_MAX_PHOTOS));
     },
-    [],
+    [setDraftPhotos],
   );
 
   const mergeVideoResult = useCallback(
@@ -77,9 +78,9 @@ export default function PublishListingMedia() {
         if (r.error) Alert.alert('Video', r.error);
         return;
       }
-      setVideos((prev) => [...prev, ...r.items].slice(0, LISTING_MAX_VIDEOS));
+      setDraftVideos((prev) => [...prev, ...r.items].slice(0, LISTING_MAX_VIDEOS));
     },
-    [],
+    [setDraftVideos],
   );
 
   const requestAddPhotos = useCallback(
@@ -182,19 +183,19 @@ export default function PublishListingMedia() {
         if (r.error) Alert.alert('Floor plan', r.error);
         return;
       }
-      setFloorPlan(r.floor);
+      setDraftFloorPlan(r.floor);
     } finally {
       setBusy(null);
     }
-  }, []);
+  }, [setDraftFloorPlan]);
 
   const removePhoto = useCallback((id: string) => {
-    setPhotos((prev) => prev.filter((p) => p.id !== id));
-  }, []);
+    setDraftPhotos((prev) => prev.filter((p) => p.id !== id));
+  }, [setDraftPhotos]);
 
   const removeVideo = useCallback((id: string) => {
-    setVideos((prev) => prev.filter((v) => v.id !== id));
-  }, []);
+    setDraftVideos((prev) => prev.filter((v) => v.id !== id));
+  }, [setDraftVideos]);
 
   return (
     <View style={[styles.root, { paddingBottom: bottomPad }]}>
@@ -386,7 +387,7 @@ export default function PublishListingMedia() {
             </Pressable>
             {floorPlan && busy !== 'floor' ? (
               <Pressable
-                onPress={() => setFloorPlan(null)}
+                onPress={() => setDraftFloorPlan(null)}
                 hitSlop={8}
                 style={styles.floorClearHit}
                 accessibilityRole="button"

@@ -144,6 +144,9 @@ function PublishListingStep1() {
     listingPriceFromAud,
     listingPriceToAud,
     setListingPriceRange,
+    listingDetails,
+    setListingDetails,
+    touchDraftSaved,
   } = useListingDraft();
 
   const [address, setAddress] = useState("");
@@ -206,18 +209,28 @@ function PublishListingStep1() {
 
   useFocusEffect(
     useCallback(() => {
+      if (listingDetails) {
+        setAddress(listingDetails.address);
+        setPropertyType(listingDetails.propertyType);
+        setBedrooms(listingDetails.bedrooms);
+        setBathrooms(listingDetails.bathrooms);
+        setCarSpaces(listingDetails.carSpaces);
+        setLandAreaSize(listingDetails.landAreaSize);
+        setInternalArea(listingDetails.internalArea);
+      }
       if (listingPriceFromAud != null) {
         setPriceFrom(formatPriceInputDisplay(String(listingPriceFromAud)));
       }
       if (listingPriceToAud != null) {
         setPriceTo(formatPriceInputDisplay(String(listingPriceToAud)));
       }
-    }, [listingPriceFromAud, listingPriceToAud]),
+    }, [listingDetails, listingPriceFromAud, listingPriceToAud]),
   );
 
   const saveDraft = useCallback(() => {
+    touchDraftSaved();
     Alert.alert("Draft saved", "Your listing draft has been saved.");
-  }, []);
+  }, [touchDraftSaved]);
 
   const goStep2 = useCallback(() => {
     if (!address.trim()) {
@@ -226,8 +239,30 @@ function PublishListingStep1() {
     const fromAud = parseFormattedAudWholeDollars(priceFrom);
     const toAud = parseFormattedAudWholeDollars(priceTo);
     setListingPriceRange(fromAud, toAud);
+    setListingDetails({
+      address: address.trim(),
+      propertyType,
+      bedrooms: bedrooms || "3",
+      bathrooms: bathrooms || "2",
+      carSpaces: carSpaces || "2",
+      landAreaSize,
+      internalArea,
+    });
     router.push("/add/media" as Href);
-  }, [priceFrom, priceTo, router, setListingPriceRange]);
+  }, [
+    address,
+    bathrooms,
+    bedrooms,
+    carSpaces,
+    internalArea,
+    landAreaSize,
+    priceFrom,
+    priceTo,
+    propertyType,
+    router,
+    setListingDetails,
+    setListingPriceRange,
+  ]);
 
   return (
     <View style={[styles.root, { paddingBottom: bottomPad }]}>

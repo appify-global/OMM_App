@@ -1,11 +1,24 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useMemo } from 'react';
 import { Text } from '@/components/OMMText';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { AppButton } from '@/components/AppButton';
 import { accent, ink, layout } from '@/constants/theme';
-import { DEMO_PRIMARY_LISTING_TITLE } from '@/lib/melbourne-demo-locations';
+import {
+  mergePublishedListingArchived,
+  isPublishedListingArchived,
+} from '@/lib/agent-published-listings';
+import { useAgentPublishedListings } from '@/lib/agent-published-listings-context';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 
 /**
@@ -28,9 +41,89 @@ const BULLETS = [
   'Can be restored anytime',
 ];
 
+function firstQueryParam(value: string | string[] | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  return Array.isArray(value) ? value[0] : value;
+}
+
 export default function ArchiveListingScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const { listingId: listingIdParam } = useLocalSearchParams<{ listingId?: string }>();
+  const listingId = firstQueryParam(listingIdParam)?.trim();
+  const { listings, ready, updateListing } = useAgentPublishedListings();
+
+  const listing = useMemo(
+    () => (listingId ? listings.find((l) => l.id === listingId) : undefined),
+    [listingId, listings],
+  );
+
+  const displayTitle = listing?.titleLine ?? listing?.addressLine ?? 'this listing';
+
+  const archive = async () => {
+    if (!listingId || !listing) {
+      Alert.alert(
+        'Listing unavailable',
+        'Open Manage listings and choose a listing you published from this device.',
+      );
+      return;
+    }
+    if (isPublishedListingArchived(listing)) {
+      Alert.alert('Already archived', 'This listing is already in your Archive tab.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+      return;
+    }
+    const next = mergePublishedListingArchived(listing, true);
+    const ok = await updateListing(next);
+    if (!ok) {
+      Alert.alert('Could not archive', 'Listing could not be updated on this device.');
+      return;
+    }
+    Alert.alert('Archived', 'Listing moved to Archive — hidden from buyers.', [
+      { text: 'OK', onPress: () => router.back() },
+    ]);
+  };
+
+  if (!listingId) {
+    return (
+      <View style={[styles.screen, { paddingTop: insets.top + 24, paddingHorizontal: layout.screenGutter }]}>
+        <Text style={styles.title}>Archive listing</Text>
+        <Text style={styles.helperMuted}>Missing listing reference.</Text>
+        <View style={{ marginTop: 28 }}>
+          <AppButton variant="filled" onPress={() => router.back()} textStyle={styles.primaryBtnLabel}>
+            GO BACK
+          </AppButton>
+        </View>
+      </View>
+    );
+  }
+
+  if (!ready) {
+    return (
+      <View style={[styles.screen, styles.centered, { paddingTop: insets.top + 40 }]}>
+        <ActivityIndicator color="#111" />
+        <Text style={[styles.helperMuted, { marginTop: 16 }]}>Loading listing…</Text>
+      </View>
+    );
+  }
+
+  if (!listing) {
+    return (
+      <View style={[styles.screen, { paddingTop: insets.top + 24, paddingHorizontal: layout.screenGutter }]}>
+        <Text style={styles.title}>Archive listing</Text>
+        <Text style={styles.helperMuted}>
+          Only listings published from this device can be archived here. Demo listings use sample data that
+          isn&apos;t saved locally.
+        </Text>
+        <View style={{ marginTop: 28 }}>
+          <AppButton variant="filled" onPress={() => router.back()} textStyle={styles.primaryBtnLabel}>
+            GO BACK
+          </AppButton>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
@@ -40,8 +133,8 @@ export default function ArchiveListingScreen() {
         <Text style={styles.title}>Archive listing</Text>
 
         <Text style={styles.lead}>
-          Archiving hides <Text style={styles.leadBold}>{DEMO_PRIMARY_LISTING_TITLE}</Text> from active search.
-          Buyers will no longer see it. You can restore it later from archived listings.
+          Archiving hides <Text style={styles.leadBold}>{displayTitle}</Text> from active search. Buyers will
+          no longer see it. You can restore it later from the Archive tab.
         </Text>
 
         <View style={[styles.infoCard, CARD_OUTLINE]}>
@@ -72,7 +165,7 @@ export default function ArchiveListingScreen() {
 
         <Pressable
           style={styles.archiveBtn}
-          onPress={() => router.back()}
+          onPress={() => void archive()}
           accessibilityRole="button">
           <Text style={styles.archiveBtnText}>ARCHIVE LISTING</Text>
         </Pressable>
@@ -90,6 +183,7 @@ export default function ArchiveListingScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
+  centered: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: layout.screenGutter },
   scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 4 },
   title: {
     fontSize: 28,
@@ -97,6 +191,16 @@ const styles = StyleSheet.create({
     color: '#000000',
     letterSpacing: -0.6,
     marginBottom: 14,
+  },
+  helperMuted: {
+    fontSize: 15,
+    color: 'rgba(0, 0, 0, 0.55)',
+    lineHeight: 22,
+  },
+  primaryBtnLabel: {
+    fontSize: 14,
+    fontFamily: 'Satoshi-Medium',
+    letterSpacing: 0.35,
   },
   lead: {
     fontSize: 15,

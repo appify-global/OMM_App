@@ -1,6 +1,6 @@
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useRouter } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import {
   ActivityIndicator,
@@ -28,6 +28,8 @@ import {
   type ListingDraftFloorPlan,
   type ListingDraftPhoto,
 } from '@/lib/listing-media-pickers';
+import { mergePublishedListingMedia } from '@/lib/agent-published-listings';
+import { useAgentPublishedListings } from '@/lib/agent-published-listings-context';
 import { formatSoiSize } from '@/lib/soi-attachment';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
 
@@ -39,17 +41,43 @@ const CARD_OUTLINE = {
   backgroundColor: '#fff',
 };
 
+function firstQueryParam(value: string | string[] | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  return Array.isArray(value) ? value[0] : value;
+}
+
 export default function PhotosFloorplanScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const params = useLocalSearchParams<{ listingId?: string | string[] }>();
+  const listingId = firstQueryParam(params.listingId);
+
+  const { listings, ready, refresh, updateListing } = useAgentPublishedListings();
+
+  const listing = useMemo(
+    () => (listingId ? listings.find((l) => l.id === listingId) : undefined),
+    [listings, listingId],
+  );
+
   const winW = Dimensions.get('window').width;
   const cell = (winW - layout.screenGutter * 2 - GRID_GAP * 2) / 3;
 
   const [photos, setPhotos] = useState<ListingDraftPhoto[]>([]);
   const [floorPlan, setFloorPlan] = useState<ListingDraftFloorPlan | null>(null);
   const [busy, setBusy] = useState<'photos' | 'floor' | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const slotsLeft = LISTING_MAX_PHOTOS - photos.length;
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+
+  useEffect(() => {
+    if (!listing) return;
+    setPhotos(listing.listingPhotos ? [...listing.listingPhotos] : []);
+    setFloorPlan(listing.listingFloorPlan ?? null);
+  }, [listing]);
 
   const mergePhotoResult = useCallback((r: Awaited<ReturnType<typeof pickListingPhotos>>) => {
     if (!r.ok) {
@@ -125,6 +153,72 @@ export default function PhotosFloorplanScreen() {
     setPhotos((prev) => prev.filter((p) => p.id !== id));
   }, []);
 
+  const movePhotoSlot = useCallback((from: number, to: number) => {
+    setPhotos((prev) => {
+      if (from < 0 || from >= prev.length || to < 0 || to >= prev.length) return prev;
+      const next = [...prev];
+      const [item] = next.splice(from, 1);
+      next.splice(to, 0, item);
+      return next;
+    });
+  }, []);
+
+  const onSaveMedia = useCallback(async () => {
+    if (!listingId) {
+      Alert.alert(
+        'No listing selected',
+        'Open Manage listings, tap Manage on a property you published on this device, then choose Update photos & floorplan.',
+      );
+      return;
+    }
+    const current = listings.find((l) => l.id === listingId);
+    if (!current) {
+      Alert.alert(
+        'Listing unavailable',
+        'Only listings published from this device can be updated here.',
+      );
+      return;
+    }
+    setSaving(true);
+    try {
+      const next = mergePublishedListingMedia(current, photos, floorPlan);
+      const ok = await updateListing(next);
+      if (!ok) {
+        Alert.alert('Could not save', 'Something went wrong updating media on this device.');
+        return;
+      }
+      Alert.alert('Saved', 'Photos and floor plan are updated for this listing.', [
+        { text: 'OK', onPress: () => router.back() },
+      ]);
+    } finally {
+      setSaving(false);
+    }
+  }, [listingId, listings, photos, floorPlan, updateListing, router]);
+
+  if (listingId && !ready) {
+    return (
+      <View style={[styles.screen, styles.centered, { paddingTop: insets.top + 40 }]}>
+        <ActivityIndicator color="#111" />
+        <Text style={styles.loadingHint}>Loading listing…</Text>
+      </View>
+    );
+  }
+
+  if (listingId && ready && !listing) {
+    return (
+      <View style={[styles.screen, { paddingTop: insets.top + 24, paddingHorizontal: layout.screenGutter }]}>
+        <Text style={styles.title}>Photos & floorplan</Text>
+        <Text style={styles.helperMuted}>
+          We couldn&apos;t find this listing on this device. Use Manage listings → Manage on a listing you
+          published here.
+        </Text>
+        <Pressable onPress={() => router.back()} style={styles.cancelWrap} accessibilityRole="button">
+          <Text style={styles.cancel}>Go back</Text>
+        </Pressable>
+      </View>
+    );
+  }
+
   return (
     <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
       <ScrollView
@@ -132,7 +226,9 @@ export default function PhotosFloorplanScreen() {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.scroll, { paddingBottom: insets.bottom + 28 }]}>
         <Text style={styles.title}>Photos & floorplan</Text>
-        <Text style={styles.subtitle}>Drag to reorder — image 1 is cover on cards & PDF.</Text>
+        <Text style={styles.subtitle}>
+          Reorder with the arrows under each photo — first photo is the cover on cards & PDF.
+        </Text>
 
         <View style={styles.grid}>
           {Array.from({ length: LISTING_MAX_PHOTOS }).map((_, i) => {
@@ -156,6 +252,34 @@ export default function PhotosFloorplanScreen() {
                       accessibilityLabel="Remove photo">
                       <MaterialCommunityIcons name="close" size={16} color="#ffffff" />
                     </Pressable>
+                    {photos.length > 1 ? (
+                      <View style={styles.reorderBar}>
+                        <Pressable
+                          style={styles.reorderHit}
+                          disabled={i === 0 || busy !== null}
+                          onPress={() => movePhotoSlot(i, i - 1)}
+                          accessibilityRole="button"
+                          accessibilityLabel="Move photo earlier (toward cover)">
+                          <MaterialCommunityIcons
+                            name="chevron-left"
+                            size={18}
+                            color={i === 0 ? 'rgba(0,0,0,0.15)' : '#111'}
+                          />
+                        </Pressable>
+                        <Pressable
+                          style={styles.reorderHit}
+                          disabled={i >= photos.length - 1 || busy !== null}
+                          onPress={() => movePhotoSlot(i, i + 1)}
+                          accessibilityRole="button"
+                          accessibilityLabel="Move photo later">
+                          <MaterialCommunityIcons
+                            name="chevron-right"
+                            size={18}
+                            color={i >= photos.length - 1 ? 'rgba(0,0,0,0.15)' : '#111'}
+                          />
+                        </Pressable>
+                      </View>
+                    ) : null}
                   </View>
                 ) : (
                   <Pressable
@@ -228,10 +352,11 @@ export default function PhotosFloorplanScreen() {
         ) : null}
 
         <Pressable
-          style={styles.saveBtn}
-          onPress={() => router.back()}
+          style={[styles.saveBtn, saving && { opacity: 0.66 }]}
+          onPress={() => void onSaveMedia()}
+          disabled={saving || busy !== null}
           accessibilityRole="button">
-          <Text style={styles.saveBtnText}>SAVE MEDIA</Text>
+          <Text style={styles.saveBtnText}>{saving ? 'SAVING…' : 'SAVE MEDIA'}</Text>
         </Pressable>
         <Pressable
           onPress={() => router.back()}
@@ -247,6 +372,20 @@ export default function PhotosFloorplanScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
+  centered: { justifyContent: 'center', alignItems: 'center' },
+  loadingHint: {
+    marginTop: 14,
+    fontSize: 15,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0,0,0,0.55)',
+  },
+  helperMuted: {
+    marginTop: 12,
+    fontSize: 15,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0,0,0,0.55)',
+    lineHeight: 22,
+  },
   scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 4 },
   title: {
     fontSize: 28,
@@ -288,6 +427,26 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0,0,0,0.52)',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  reorderBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 5,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: 'rgba(0,0,0,0.08)',
+  },
+  reorderHit: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    minWidth: 36,
+    alignItems: 'center',
   },
   coverBadge: {
     position: 'absolute',

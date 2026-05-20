@@ -15,6 +15,12 @@ import { db, schema } from "./index";
 
 import { DEMO_AGENT_ID, DEMO_BUYER_ID } from "@/lib/app-constants";
 import { getAppUserId } from "@/lib/auth-user";
+import {
+  featuresWithOmmMeta,
+  mapDbStatusToMobile,
+  parseOmmListingMeta,
+  type OmmListingMobileMeta,
+} from "@/lib/mobile-published-listings";
 
 const HAS_DB = Boolean(process.env.DATABASE_URL);
 
@@ -401,4 +407,404 @@ export async function createListingForAgent(
   });
 
   return id;
+}
+
+function parseAudDecimal(v: string | null | undefined): number | null {
+  if (v == null || v === "") return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? Math.round(n) : null;
+}
+
+export type MobilePublishedListingRow = {
+  id: string;
+  publishedAt: string;
+  addressLine: string;
+  titleLine: string;
+  suburbLine: string;
+  streetLine: string;
+  priceRangeDisplay: string;
+  listingPriceFromAud?: number | null;
+  listingPriceToAud?: number | null;
+  beds: number;
+  baths: number;
+  cars: number;
+  landSqm: number | null;
+  propertyType: string;
+  addressDisclosure: "disclose" | "not_disclose";
+  description?: string;
+  sellerInspectionAvailability?: string;
+  sellerInspectionAvailabilityTags?: OmmListingMobileMeta["sellerInspectionAvailabilityTags"];
+  sellerInspectionAvailabilityNotes?: string;
+  listingPhotos?: { id: string; uri: string; width?: number; height?: number }[];
+  listingFloorPlan?: { uri: string; name?: string };
+  listingAnalytics?: OmmListingMobileMeta["listingAnalytics"];
+  localInspectionBookings?: OmmListingMobileMeta["localInspectionBookings"];
+  listingStatus?: "live" | "pending" | "sold";
+  soldMarkedAt?: string;
+  archivedAt?: string;
+};
+
+function mapListingRowToMobile(
+  l: typeof schema.listings.$inferSelect,
+  media: (typeof schema.listingMedia.$inferSelect)[],
+): MobilePublishedListingRow {
+  const meta = parseOmmListingMeta(
+    Array.isArray(l.features) ? (l.features as string[]) : [],
+  );
+  const addressLine = [l.address.trim(), l.suburb.trim()].filter(Boolean).join(", ");
+  const streetLine = l.address.trim();
+  const suburbLine = l.suburb.trim();
+  const titleLine = l.title.trim() || `${streetLine} · ${suburbLine}`;
+  const fromAud = parseAudDecimal(l.priceFrom);
+  const toAud = parseAudDecimal(l.priceTo);
+  const photos = media
+    .filter((m) => m.kind === "PHOTO")
+    .sort((a, b) => a.position - b.position)
+    .map((m, i) => ({
+      id: m.id,
+      uri: m.url,
+      width: 1200,
+      height: 800,
+    }));
+  const floor = media.find((m) => m.kind === "FLOOR_PLAN");
+
+  const listingStatus =
+    meta.listingStatus ?? mapDbStatusToMobile(l.status) ?? "live";
+
+  return {
+    id: l.id,
+    publishedAt: (l.publishedAt ?? l.createdAt).toISOString(),
+    addressLine,
+    titleLine,
+    suburbLine,
+    streetLine,
+    priceRangeDisplay: l.priceDisplay ?? "—",
+    listingPriceFromAud: fromAud,
+    listingPriceToAud: toAud,
+    beds: l.bedrooms ?? 0,
+    baths: l.bathrooms ?? 0,
+    cars: l.carSpaces ?? 0,
+    landSqm: l.landSizeSqm ?? null,
+    propertyType: meta.propertyType ?? "House",
+    addressDisclosure: meta.addressDisclosure ?? "disclose",
+    description: l.description ?? undefined,
+    sellerInspectionAvailability: meta.sellerInspectionAvailability,
+    sellerInspectionAvailabilityTags: meta.sellerInspectionAvailabilityTags,
+    sellerInspectionAvailabilityNotes: meta.sellerInspectionAvailabilityNotes,
+    listingPhotos: photos.length ? photos : undefined,
+    listingFloorPlan: floor
+      ? { uri: floor.url, name: floor.caption ?? "Floor plan" }
+      : undefined,
+    listingAnalytics: meta.listingAnalytics,
+    localInspectionBookings: meta.localInspectionBookings,
+    listingStatus,
+    soldMarkedAt: meta.soldMarkedAt,
+    archivedAt: meta.archivedAt,
+  };
+}
+
+/** All agent listings for Expo (published-listings sync). */
+export async function getPublishedListingsForMobileAgent(
+  agentId: string,
+): Promise<MobilePublishedListingRow[]> {
+  if (!HAS_DB) return [];
+  const rows = await db
+    .select()
+    .from(schema.listings)
+    .where(eq(schema.listings.agentId, agentId))
+    .orderBy(desc(schema.listings.publishedAt), desc(schema.listings.updatedAt));
+
+  if (!rows.length) return [];
+
+  const media = await db
+    .select()
+    .from(schema.listingMedia)
+    .where(
+      sql`${schema.listingMedia.listingId} = ANY(${sql.raw(
+        `ARRAY[${rows.map((r) => `'${r.id.replace(/'/g, "''")}'`).join(",")}]`,
+      )})`,
+    );
+
+  const byListing = new Map<string, (typeof schema.listingMedia.$inferSelect)[]>();
+  for (const m of media) {
+    const list = byListing.get(m.listingId) ?? [];
+    list.push(m);
+    byListing.set(m.listingId, list);
+  }
+
+  return rows.map((l) => mapListingRowToMobile(l, byListing.get(l.id) ?? []));
+}
+
+export async function incrementListingEnquiryCount(listingId: string): Promise<boolean> {
+  if (!HAS_DB) return false;
+  await db
+    .update(schema.listings)
+    .set({
+      enquiriesCount: sql`${schema.listings.enquiriesCount} + 1`,
+      updatedAt: new Date(),
+    })
+    .where(eq(schema.listings.id, listingId));
+  return true;
+}
+
+function newMessageId(): string {
+  return `msg-${randomBytes(8).toString("hex")}`;
+}
+
+/** Agent or buyer sends a message in a thread they own. */
+export async function appendMessageToThread(input: {
+  threadId: string;
+  ownerId: string;
+  direction: "IN" | "OUT";
+  body: string;
+}): Promise<boolean> {
+  if (!HAS_DB) return false;
+  const trimmed = input.body.trim();
+  if (!trimmed) return false;
+
+  const thread = await getThreadByIdForOwner(input.threadId, input.ownerId);
+  if (!thread) return false;
+
+  const now = new Date();
+  const preview = trimmed.length > 72 ? `${trimmed.slice(0, 69)}…` : trimmed;
+
+  await db.transaction(async (tx) => {
+    await tx.insert(schema.messages).values({
+      id: newMessageId(),
+      threadId: input.threadId,
+      direction: input.direction,
+      body: trimmed,
+      sentAt: now,
+    });
+    await tx
+      .update(schema.threads)
+      .set({
+        preview,
+        lastMessageAt: now,
+        updatedAt: now,
+        unread: input.direction === "IN",
+      })
+      .where(eq(schema.threads.id, input.threadId));
+  });
+
+  return true;
+}
+
+export async function patchListingMobileMeta(
+  listingId: string,
+  agentId: string,
+  patch: Partial<OmmListingMobileMeta>,
+): Promise<boolean> {
+  if (!HAS_DB) return false;
+  const rows = await db
+    .select()
+    .from(schema.listings)
+    .where(
+      and(eq(schema.listings.id, listingId), eq(schema.listings.agentId, agentId)),
+    )
+    .limit(1);
+  const row = rows[0];
+  if (!row) return false;
+
+  const existing = parseOmmListingMeta(
+    Array.isArray(row.features) ? (row.features as string[]) : [],
+  );
+  const next = { ...existing, ...patch };
+  const features = featuresWithOmmMeta(
+    Array.isArray(row.features) ? (row.features as string[]) : [],
+    next,
+  );
+
+  await db
+    .update(schema.listings)
+    .set({ features, updatedAt: new Date() })
+    .where(eq(schema.listings.id, listingId));
+  return true;
+}
+
+function newThreadId(): string {
+  return `thr-${randomBytes(8).toString("hex")}`;
+}
+
+export type CreateThreadForOwnerInput = {
+  ownerId: string;
+  participantName: string;
+  participantFirm?: string;
+  context: string;
+  category: (typeof schema.messageCategoryEnum.enumValues)[number];
+  seedInboundBody?: string;
+};
+
+/** Reuse an existing thread for the same owner + context + category, or create one. */
+export async function findOrCreateThreadForOwner(
+  input: CreateThreadForOwnerInput,
+): Promise<string | null> {
+  if (!HAS_DB) return null;
+
+  const existing = await db
+    .select({ id: schema.threads.id })
+    .from(schema.threads)
+    .where(
+      and(
+        eq(schema.threads.ownerId, input.ownerId),
+        eq(schema.threads.context, input.context),
+        eq(schema.threads.category, input.category),
+      ),
+    )
+    .limit(1);
+
+  if (existing[0]?.id) return existing[0].id;
+
+  const id = newThreadId();
+  const now = new Date();
+  const preview = input.seedInboundBody?.trim()
+    ? input.seedInboundBody.trim().length > 72
+      ? `${input.seedInboundBody.trim().slice(0, 69)}…`
+      : input.seedInboundBody.trim()
+    : "No messages yet";
+
+  await db.insert(schema.threads).values({
+    id,
+    ownerId: input.ownerId,
+    participantId: null,
+    participantName: input.participantName,
+    participantFirm: input.participantFirm ?? null,
+    participantInitials: input.participantName
+      .split(/\s+/)
+      .map((w) => w[0])
+      .join("")
+      .slice(0, 2)
+      .toUpperCase(),
+    context: input.context,
+    category: input.category,
+    unread: Boolean(input.seedInboundBody?.trim()),
+    pinned: false,
+    preview,
+    lastMessageAt: input.seedInboundBody?.trim() ? now : null,
+    createdAt: now,
+    updatedAt: now,
+  });
+
+  if (input.seedInboundBody?.trim()) {
+    await appendMessageToThread({
+      threadId: id,
+      ownerId: input.ownerId,
+      direction: "IN",
+      body: input.seedInboundBody.trim(),
+    });
+  }
+
+  return id;
+}
+
+export type AgentHomeMetricsDbPayload = {
+  recentlySold: {
+    id: string;
+    addressLine: string;
+    suburb: string;
+    soldPriceDisplay: string;
+    soldAtDisplay: string;
+    imageIndex: number;
+    coverImageUri?: string;
+  }[];
+  activeListingsCount: number;
+  pendingListingsCount: number;
+  soldListingsCount: number;
+  inspectionsBookedCount: number;
+  pipelineCommissionEstimateAud: { lowAud: number; highAud: number } | null;
+};
+
+function soldAgeLabel(d: Date | null): string {
+  if (!d) return "Sold recently";
+  const days = Math.floor((Date.now() - +d) / 86400000);
+  if (days < 1) return "Sold today";
+  if (days === 1) return "Sold 1d ago";
+  if (days < 7) return `Sold ${days}d ago`;
+  if (days < 14) return "Sold 1w ago";
+  if (days < 30) return `Sold ${Math.floor(days / 7)}w ago`;
+  return d.toLocaleDateString("en-AU", { day: "numeric", month: "short" });
+}
+
+/** Agent home KPIs from Railway Postgres (same shape as mobile `fetchAgentHomeMetrics`). */
+export async function getAgentHomeMetricsForAgent(
+  agentId: string,
+): Promise<AgentHomeMetricsDbPayload | null> {
+  if (!HAS_DB) return null;
+
+  const rows = await db
+    .select()
+    .from(schema.listings)
+    .where(eq(schema.listings.agentId, agentId));
+
+  const active = rows.filter((l) =>
+    ["LIVE", "UNDER_OFFER", "PRE_MARKET"].includes(l.status),
+  );
+  const pending = rows.filter((l) =>
+    ["DRAFT", "PRE_MARKET"].includes(l.status),
+  );
+  const sold = rows.filter((l) => l.status === "SOLD");
+
+  const mobileRows = await getPublishedListingsForMobileAgent(agentId);
+  let inspectionsBookedCount = 0;
+  for (const m of mobileRows) {
+    inspectionsBookedCount += m.localInspectionBookings?.length ?? 0;
+  }
+
+  const recentlySold = sold
+    .sort((a, b) => {
+      const ta = a.updatedAt?.getTime() ?? 0;
+      const tb = b.updatedAt?.getTime() ?? 0;
+      return tb - ta;
+    })
+    .slice(0, 3)
+    .map((l, i) => {
+      const parts = (l.address ?? l.title ?? "").split(",").map((s) => s.trim());
+      const addressLine = parts[0] ?? l.title ?? "—";
+      const suburb =
+        l.suburb?.trim() ||
+        (parts.length >= 2 ? parts.slice(1).join(", ") : "Melbourne");
+      return {
+        id: l.id,
+        addressLine,
+        suburb,
+        soldPriceDisplay: l.priceDisplay ?? "—",
+        soldAtDisplay: soldAgeLabel(l.updatedAt),
+        imageIndex: i % 7,
+      };
+    });
+
+  let pipelineLow = 0;
+  let pipelineHigh = 0;
+  for (const l of active) {
+    const from = l.priceFrom != null ? Number(l.priceFrom) : null;
+    const to = l.priceTo != null ? Number(l.priceTo) : null;
+    const mid =
+      from != null && to != null
+        ? (from + to) / 2
+        : from != null
+          ? from
+          : to != null
+            ? to
+            : null;
+    if (mid != null && Number.isFinite(mid)) {
+      const est = mid * 0.022;
+      pipelineLow += est * 0.85;
+      pipelineHigh += est * 1.05;
+    }
+  }
+
+  return {
+    recentlySold,
+    activeListingsCount: active.length,
+    pendingListingsCount: pending.length,
+    soldListingsCount: sold.length,
+    inspectionsBookedCount,
+    pipelineCommissionEstimateAud:
+      active.length > 0 && pipelineLow > 0
+        ? {
+            lowAud: Math.round(pipelineLow),
+            highAud: Math.round(pipelineHigh),
+          }
+        : null,
+  };
 }

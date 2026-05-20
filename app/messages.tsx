@@ -9,13 +9,10 @@ import { TextInput } from '@/components/OMMTextInput';
 import { Image, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-/**
- * Messages inbox.
- * [Figma 1053:7188 / section 1053:7187](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-7187)
- */
-
 import { accent, borderHairline, fillMisty, ink, inkSubtle, palette, slateNavy } from '@/constants/theme';
-import { countDealsAwaitingViewerAcknowledgement, DEMO_CHAT_PROPERTY_REF } from '@/lib/deal-acknowledgement';
+import { countDealsAwaitingViewerAcknowledgement } from '@/lib/deal-acknowledgement';
+import { useOmmMessages } from '@/lib/omm-messages-context';
+import { relativeTimeFromIso } from '@/lib/omm-messages';
 import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 import { AGENT_IMG } from '@/lib/propertyImages';
 
@@ -44,12 +41,14 @@ function Chip({
 function ShortcutBanner({
   icon,
   text,
+  onPress,
 }: {
   icon: ComponentProps<typeof FontAwesome>['name'];
   text: string;
+  onPress?: () => void;
 }) {
   return (
-    <Pressable style={styles.shortcut} accessibilityRole="button">
+    <Pressable style={styles.shortcut} accessibilityRole="button" onPress={onPress}>
       <FontAwesome name={icon} size={16} color="#000000" style={styles.shortcutIcon} />
       <Text style={styles.shortcutText}>{text}</Text>
       <FontAwesome name="chevron-right" size={12} color="rgba(0, 0, 0, 0.35)" />
@@ -57,58 +56,34 @@ function ShortcutBanner({
   );
 }
 
-type Thread = {
-  id: string;
+function ThreadRow({
+  name,
+  preview,
+  time,
+  unread,
+  onPress,
+}: {
   name: string;
   preview: string;
   time: string;
   unread: boolean;
-  propertyRef: string;
-};
-
-const THREADS: Thread[] = [
-  {
-    id: '1',
-    name: 'Anton Zhouk',
-    preview: 'SOI + floorplan sent — review by 5pm?',
-    time: '2M',
-    unread: true,
-    propertyRef: DEMO_CHAT_PROPERTY_REF,
-  },
-  {
-    id: '2',
-    name: 'Anton Zhouk',
-    preview: 'SOI + floorplan sent — review by 5pm?',
-    time: '2M',
-    unread: true,
-    propertyRef: DEMO_CHAT_PROPERTY_REF,
-  },
-  {
-    id: '3',
-    name: 'Anton Zhouk',
-    preview: 'SOI + floorplan sent — review by 5pm?',
-    time: '2M',
-    unread: true,
-    propertyRef: DEMO_CHAT_PROPERTY_REF,
-  },
-];
-
-function ThreadRow({ row, onPress }: { row: Thread; onPress: () => void }) {
+  onPress: () => void;
+}) {
   return (
     <Pressable onPress={onPress} style={styles.threadRow} accessibilityRole="button">
       <View style={styles.threadAvatarWrap}>
         <Image source={AGENT_IMG} style={styles.threadAvatar} resizeMode="cover" />
-        {row.unread ? <View style={styles.unreadDot} /> : null}
+        {unread ? <View style={styles.unreadDot} /> : null}
       </View>
       <View style={styles.threadBody}>
         <View style={styles.threadTop}>
           <Text style={styles.threadName} numberOfLines={1}>
-            {row.name}
+            {name}
           </Text>
-          <Text style={styles.threadTime}>{row.time}</Text>
+          <Text style={styles.threadTime}>{time}</Text>
         </View>
         <Text style={styles.threadPreview} numberOfLines={2}>
-          {row.preview}
+          {preview}
         </Text>
       </View>
     </Pressable>
@@ -119,6 +94,7 @@ export default function MessagesScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const hPad = useScreenHorizontalPadding();
+  const { threads, refresh, markRead } = useOmmMessages();
   const [filter, setFilter] = useState<FilterKey>('all');
   const [query, setQuery] = useState('');
   const [awaitingAckCount, setAwaitingAckCount] = useState(0);
@@ -126,28 +102,47 @@ export default function MessagesScreen() {
   useFocusEffect(
     useCallback(() => {
       let alive = true;
-      countDealsAwaitingViewerAcknowledgement().then((count) => {
+      void refresh();
+      void countDealsAwaitingViewerAcknowledgement().then((count) => {
         if (alive) setAwaitingAckCount(count);
       });
       return () => {
         alive = false;
       };
-    }, []),
+    }, [refresh]),
   );
 
+  const unreadCount = useMemo(() => threads.filter((t) => t.unread).length, [threads]);
+
   const filtered = useMemo(() => {
-    if (filter === 'unread') return THREADS.filter((t) => t.unread);
-    return THREADS;
-  }, [filter]);
+    let rows = threads;
+    if (filter === 'unread') rows = rows.filter((t) => t.unread);
+    if (filter === 'buyers') rows = rows.filter((t) => t.perspective === 'seller');
+    if (filter === 'listings') rows = rows.filter((t) => Boolean(t.listingId));
+    const q = query.trim().toLowerCase();
+    if (q) {
+      rows = rows.filter(
+        (t) =>
+          t.participantName.toLowerCase().includes(q) ||
+          t.preview.toLowerCase().includes(q) ||
+          t.contextLine.toLowerCase().includes(q),
+      );
+    }
+    return rows;
+  }, [threads, filter, query]);
 
   const openThread = useCallback(
-    (row: Thread) => {
+    (threadId: string, propertyRef?: string) => {
+      void markRead(threadId);
       router.push({
         pathname: '/contact-seller-chat',
-        params: { propertyRef: row.propertyRef },
+        params: {
+          threadId,
+          ...(propertyRef ? { propertyRef } : {}),
+        },
       } as Href);
     },
-    [router],
+    [markRead, router],
   );
 
   return (
@@ -191,19 +186,24 @@ export default function MessagesScreen() {
         </View>
 
         <View style={[styles.listBody, hPad]}>
-          <ShortcutBanner icon="bolt" text="3 new enquiries" />
-          <View style={{ height: 10 }} />
+          {unreadCount > 0 ? (
+            <>
+              <ShortcutBanner
+                icon="bolt"
+                text={`${unreadCount} unread message${unreadCount === 1 ? '' : 's'}`}
+              />
+              <View style={{ height: 10 }} />
+            </>
+          ) : null}
           {awaitingAckCount > 0 ? (
             <>
               <Pressable
                 style={styles.shortcut}
                 accessibilityRole="button"
-                onPress={() =>
-                  router.push({
-                    pathname: '/contact-seller-chat',
-                    params: { propertyRef: DEMO_CHAT_PROPERTY_REF },
-                  } as Href)
-                }>
+                onPress={() => {
+                  const chat = threads.find((t) => t.propertyRef);
+                  if (chat) openThread(chat.id, chat.propertyRef);
+                }}>
                 <FontAwesome name="check-circle" size={16} color="#000000" style={styles.shortcutIcon} />
                 <Text style={styles.shortcutText}>
                   {awaitingAckCount} transaction awaiting your acknowledgement
@@ -213,22 +213,36 @@ export default function MessagesScreen() {
               <View style={{ height: 10 }} />
             </>
           ) : null}
-          <ShortcutBanner icon="star" text="2 transactions awaiting review" />
-          <View style={{ height: 18 }} />
 
-          {filtered.map((row) => (
-            <View key={row.id}>
-              <ThreadRow row={row} onPress={() => openThread(row)} />
-              <View style={styles.threadRule} />
-            </View>
-          ))}
+          {filtered.length === 0 ? (
+            <Text style={styles.emptyInbox}>
+              {query.trim() ? 'No threads match your search.' : 'No messages yet.'}
+            </Text>
+          ) : (
+            filtered.map((row) => (
+              <View key={row.id}>
+                <ThreadRow
+                  name={row.participantName}
+                  preview={row.preview}
+                  time={relativeTimeFromIso(row.lastMessageAtIso)}
+                  unread={row.unread}
+                  onPress={() => openThread(row.id, row.propertyRef)}
+                />
+                <View style={styles.threadRule} />
+              </View>
+            ))
+          )}
         </View>
       </ScrollView>
 
       <Pressable
         style={[styles.fab, { bottom: Math.max(insets.bottom, 20) + 8 }]}
         accessibilityRole="button"
-        accessibilityLabel="Compose message">
+        accessibilityLabel="Compose message"
+        onPress={() => {
+          const first = threads[0];
+          if (first) openThread(first.id, first.propertyRef);
+        }}>
         <FontAwesome name="pencil" size={20} color={palette.black} />
       </Pressable>
     </View>
@@ -249,6 +263,11 @@ const styles = StyleSheet.create({
   },
   listBody: {
     paddingTop: 12,
+  },
+  emptyInbox: {
+    fontSize: 15,
+    color: 'rgba(0, 0, 0, 0.45)',
+    paddingVertical: 24,
   },
   searchOuter: {
     marginBottom: 16,

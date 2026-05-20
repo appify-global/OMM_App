@@ -3,7 +3,7 @@ import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { type Href, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Text } from '@/components/OMMText';
-import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, StyleSheet, TextInput, View } from 'react-native';
 
 import {
   PL_PAD,
@@ -17,7 +17,13 @@ import {
   fieldShell,
   useListingFlowBottomPad,
 } from '@/components/list-add/flow-shared';
+import { useListingDraft } from '@/components/list-add/listing-draft-context';
 import { DEMO_SOI_SUBURB_POSTCODE } from '@/lib/melbourne-demo-locations';
+import { suburbFromAddress } from '@/lib/agent-published-listings';
+import {
+  inspectionAvailabilityIsComplete,
+  type InspectionAvailabilityTags,
+} from '@/lib/listing-inspection-availability';
 import { slateNavy } from '@/constants/theme';
 import {
   SOI_MAX_BYTES,
@@ -166,24 +172,38 @@ export default function PublishListingSoi() {
   const router = useRouter();
   const params = useLocalSearchParams<{ suburb?: string }>();
   const bottomPad = useListingFlowBottomPad();
+  const {
+    listingDetails,
+    inspectionAvailabilityTags,
+    setInspectionAvailabilityTags,
+    inspectionAvailabilityNotes,
+    setInspectionAvailabilityNotes,
+    setPublishFlowSoiChoice,
+    touchDraftSaved,
+  } = useListingDraft();
   const [choice, setChoice] = useState<SoiChoice>('auto');
   const [activeFlow, setActiveFlow] = useState<ActiveSoiFlow>(null);
   const [attachment, setAttachment] = useState<SoiAttachment | null>(null);
   const [picking, setPicking] = useState(false);
   const flowTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const suburbFromDraft =
+    listingDetails?.address?.trim().length ? suburbFromAddress(listingDetails.address).trim() : '';
   const suburbLine =
     typeof params.suburb === 'string' && params.suburb.trim().length > 0
       ? params.suburb.trim()
-      : DEMO_SOI_SUBURB_POSTCODE;
+      : suburbFromDraft.length > 0
+        ? suburbFromDraft
+        : DEMO_SOI_SUBURB_POSTCODE;
 
   useEffect(() => {
     loadSoiAttachment().then(setAttachment);
   }, []);
 
   const saveDraft = useCallback(() => {
+    touchDraftSaved();
     Alert.alert('Draft saved', 'Your listing draft has been saved.');
-  }, []);
+  }, [touchDraftSaved]);
 
   const clearFlowTimer = useCallback(() => {
     if (flowTimerRef.current != null) {
@@ -214,10 +234,11 @@ export default function PublishListingSoi() {
     flowTimerRef.current = setTimeout(() => {
       flowTimerRef.current = null;
       setActiveFlow(null);
+      setPublishFlowSoiChoice('auto');
       router.push('/add/referral' as Href);
     }, 3000);
     return clearFlowTimer;
-  }, [activeFlow, clearFlowTimer, router]);
+  }, [activeFlow, clearFlowTimer, router, setPublishFlowSoiChoice]);
 
   const cancelFlow = () => {
     setActiveFlow(null);
@@ -241,12 +262,26 @@ export default function PublishListingSoi() {
     }
   };
 
+  const toggleInspectionTag = (key: keyof InspectionAvailabilityTags) => {
+    setInspectionAvailabilityTags((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
   const onContinue = () => {
+    if (
+      !inspectionAvailabilityIsComplete(inspectionAvailabilityTags, inspectionAvailabilityNotes)
+    ) {
+      Alert.alert(
+        'Inspection availability',
+        'Tell buyers when they can inspect — choose at least one option or add notes.',
+      );
+      return;
+    }
     if (choice === 'auto') {
       setActiveFlow({ kind: 'auto' });
       return;
     }
     if (attachment) {
+      setPublishFlowSoiChoice('upload');
       router.push('/add/referral' as Href);
       return;
     }
@@ -393,6 +428,47 @@ export default function PublishListingSoi() {
             </View>
           </View>
         )}
+
+        <View style={[styles.inspectSection, styles.inspectSectionTopRule]}>
+          <Text style={styles.inspectSectionTitle}>Inspection availability</Text>
+          <Text style={styles.inspectLede}>
+            When can buyers inspect? This appears on your live listing so interested parties know how to arrange a
+            visit.
+          </Text>
+          <View style={styles.chipWrap}>
+            {(
+              [
+                ['byAppointment', 'By appointment'],
+                ['openHome', 'Open home'],
+                ['flexibleHours', 'Flexible hours'],
+              ] as const
+            ).map(([key, label]) => {
+              const on = inspectionAvailabilityTags[key];
+              return (
+                <Pressable
+                  key={key}
+                  onPress={() => toggleInspectionTag(key)}
+                  style={[styles.inspectChip, on && styles.inspectChipOn]}
+                  accessibilityRole="checkbox"
+                  accessibilityState={{ checked: on }}>
+                  <Text style={[styles.inspectChipLabel, on && styles.inspectChipLabelOn]}>{label}</Text>
+                </Pressable>
+              );
+            })}
+          </View>
+          <Text style={styles.inspectNotesLabel}>Extra detail (optional)</Text>
+          <TextInput
+            style={[styles.inspectNotesInput, fieldShell]}
+            placeholder="e.g. Saturdays 10am—12pm · 24h notice appreciated"
+            placeholderTextColor="rgba(0,0,0,0.35)"
+            value={inspectionAvailabilityNotes}
+            onChangeText={setInspectionAvailabilityNotes}
+            multiline
+            maxLength={500}
+            textAlignVertical="top"
+          />
+        </View>
+
         <View style={{ height: 24 }} />
       </ScrollView>
 
@@ -505,4 +581,52 @@ const styles = StyleSheet.create({
   },
   statusTitle: { fontSize: 14, fontFamily: 'Satoshi-Medium', color: '#000000' },
   statusSub: { fontSize: 11, color: 'rgba(0,0,0,0.55)', marginTop: 2 },
+
+  inspectSection: { paddingTop: 4 },
+  inspectSectionTopRule: {
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: '#c6c6c8',
+    marginTop: 20,
+    paddingTop: 22,
+  },
+  inspectSectionTitle: {
+    fontSize: 17,
+    fontFamily: 'Satoshi-Medium',
+    color: PL_BODY,
+    marginBottom: 8,
+  },
+  inspectLede: { fontSize: 13, color: PL_MUTED, lineHeight: 19.5, marginBottom: 16 },
+  chipWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 14 },
+  inspectChip: {
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: '#dbdbdb',
+    backgroundColor: '#fff',
+  },
+  inspectChipOn: {
+    borderColor: PL_BODY,
+    backgroundColor: '#f7f7f8',
+  },
+  inspectChipLabel: { fontSize: 13, fontFamily: 'Satoshi-Medium', color: PL_BODY },
+  inspectChipLabelOn: { fontFamily: 'Satoshi-Medium' },
+  inspectNotesLabel: {
+    fontSize: 11,
+    fontFamily: 'Satoshi-Medium',
+    color: '#565656',
+    letterSpacing: 0.35,
+    marginBottom: 8,
+    textTransform: 'uppercase',
+  },
+  inspectNotesInput: {
+    minHeight: 88,
+    borderRadius: 9,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 14,
+    color: PL_BODY,
+    lineHeight: 20,
+    marginBottom: 0,
+  },
 });

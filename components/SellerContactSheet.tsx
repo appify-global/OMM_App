@@ -24,6 +24,8 @@ type SellerContactSheetProps = {
   title?: string;
   /** Override subtitle hint under title. */
   hint?: string;
+  /** Called when the buyer taps email or phone (e.g. listing enquiry analytics). */
+  onContactChannelPress?: () => void;
 };
 
 /**
@@ -40,6 +42,7 @@ export function SellerContactSheet({
   showPhone = true,
   title = 'Seller contact',
   hint = 'Email or call the Real Estate Agent.',
+  onContactChannelPress,
 }: SellerContactSheetProps) {
   const insets = useSafeAreaInsets();
 
@@ -74,7 +77,10 @@ export function SellerContactSheet({
           <View style={styles.row}>
             <Text style={styles.kicker}>EMAIL</Text>
             <Pressable
-              onPress={() => void Linking.openURL(`mailto:${email}`)}
+              onPress={() => {
+                onContactChannelPress?.();
+                void Linking.openURL(`mailto:${email}`);
+              }}
               accessibilityRole="link"
               accessibilityLabel={`Email ${email}`}>
               <Text style={styles.value}>{email}</Text>
@@ -88,7 +94,10 @@ export function SellerContactSheet({
               <View style={styles.row}>
                 <Text style={styles.kicker}>PHONE</Text>
                 <Pressable
-                  onPress={() => void Linking.openURL(`tel:${phoneTel}`)}
+                  onPress={() => {
+                    onContactChannelPress?.();
+                    void Linking.openURL(`tel:${phoneTel}`);
+                  }}
                   accessibilityRole="link"
                   accessibilityLabel={`Call ${phoneDisplay}`}>
                   <Text style={styles.value}>{phoneDisplay}</Text>

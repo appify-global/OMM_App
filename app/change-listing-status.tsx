@@ -1,11 +1,25 @@
-import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Text } from '@/components/OMMText';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Alert,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { accent, layout } from '@/constants/theme';
+import { AppButton } from '@/components/AppButton';
+import { accent, ink, layout } from '@/constants/theme';
 import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
+import {
+  mergePublishedListingStatus,
+  resolvedPublishedListingStatus,
+  type PublishedListingStatus,
+} from '@/lib/agent-published-listings';
+import { useAgentPublishedListings } from '@/lib/agent-published-listings-context';
 
 /**
  * Change listing status — option cards + radio.
@@ -20,9 +34,7 @@ const CARD_OUTLINE = {
   backgroundColor: '#fff',
 };
 
-type StatusId = 'live' | 'pending' | 'sold';
-
-const OPTIONS: { id: StatusId; title: string; description: string }[] = [
+const OPTIONS: { id: PublishedListingStatus; title: string; description: string }[] = [
   {
     id: 'live',
     title: 'Live',
@@ -40,6 +52,11 @@ const OPTIONS: { id: StatusId; title: string; description: string }[] = [
   },
 ];
 
+function firstQueryParam(value: string | string[] | undefined): string | undefined {
+  if (value === undefined) return undefined;
+  return Array.isArray(value) ? value[0] : value;
+}
+
 function Radio({ selected }: { selected: boolean }) {
   return (
     <View style={styles.radioOuter}>
@@ -51,7 +68,85 @@ function Radio({ selected }: { selected: boolean }) {
 export default function ChangeListingStatusScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
-  const [status, setStatus] = useState<StatusId>('live');
+  const { listingId: listingIdParam } = useLocalSearchParams<{ listingId?: string }>();
+  const listingId = firstQueryParam(listingIdParam)?.trim();
+  const { listings, ready, updateListing } = useAgentPublishedListings();
+
+  const listing = useMemo(
+    () => (listingId ? listings.find((l) => l.id === listingId) : undefined),
+    [listingId, listings],
+  );
+
+  const [status, setStatus] = useState<PublishedListingStatus>('live');
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (listing) {
+      setStatus(resolvedPublishedListingStatus(listing));
+    }
+  }, [listing]);
+
+  const save = useCallback(async () => {
+    if (!listingId || !listing) {
+      Alert.alert(
+        'Listing unavailable',
+        'Open Manage listings and choose a listing you published from this device.',
+      );
+      return;
+    }
+    setSaving(true);
+    try {
+      const next = mergePublishedListingStatus(listing, status);
+      const ok = await updateListing(next);
+      if (!ok) {
+        Alert.alert('Could not save', 'Status could not be updated on this device.');
+        return;
+      }
+      Alert.alert('Updated', 'Listing status saved.', [{ text: 'OK', onPress: () => router.back() }]);
+    } finally {
+      setSaving(false);
+    }
+  }, [listingId, listing, status, updateListing, router]);
+
+  if (!listingId) {
+    return (
+      <View style={[styles.screen, { paddingTop: insets.top + 24, paddingHorizontal: layout.screenGutter }]}>
+        <Text style={styles.title}>Change status</Text>
+        <Text style={styles.helperMuted}>Missing listing reference.</Text>
+        <View style={{ marginTop: 28 }}>
+          <AppButton variant="filled" onPress={() => router.back()} textStyle={styles.primaryBtnLabel}>
+            GO BACK
+          </AppButton>
+        </View>
+      </View>
+    );
+  }
+
+  if (!ready) {
+    return (
+      <View style={[styles.screen, styles.centered, { paddingTop: insets.top + 40 }]}>
+        <ActivityIndicator color="#111" />
+        <Text style={[styles.helperMuted, { marginTop: 16 }]}>Loading listing…</Text>
+      </View>
+    );
+  }
+
+  if (!listing) {
+    return (
+      <View style={[styles.screen, { paddingTop: insets.top + 24, paddingHorizontal: layout.screenGutter }]}>
+        <Text style={styles.title}>Change status</Text>
+        <Text style={styles.helperMuted}>
+          Only listings published from this device can be updated here. Demo listings use sample data that
+          isn&apos;t saved locally.
+        </Text>
+        <View style={{ marginTop: 28 }}>
+          <AppButton variant="filled" onPress={() => router.back()} textStyle={styles.primaryBtnLabel}>
+            GO BACK
+          </AppButton>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top + 8 }]}>
@@ -83,10 +178,11 @@ export default function ChangeListingStatusScreen() {
         </View>
 
         <Pressable
-          style={styles.updateBtn}
-          onPress={() => router.back()}
+          style={[styles.updateBtn, saving && styles.updateBtnDisabled]}
+          onPress={() => void save()}
+          disabled={saving}
           accessibilityRole="button">
-          <Text style={styles.updateBtnText}>UPDATE STATUS</Text>
+          <Text style={styles.updateBtnText}>{saving ? 'SAVING…' : 'UPDATE STATUS'}</Text>
         </Pressable>
         <Pressable
           onPress={() => router.back()}
@@ -102,6 +198,7 @@ export default function ChangeListingStatusScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: '#fff' },
+  centered: { justifyContent: 'center', alignItems: 'center', paddingHorizontal: layout.screenGutter },
   scroll: { paddingHorizontal: layout.screenGutter, paddingTop: 4 },
   title: {
     fontSize: 28,
@@ -116,6 +213,16 @@ const styles = StyleSheet.create({
     color: 'rgba(0, 0, 0, 0.55)',
     lineHeight: 20,
     marginBottom: 24,
+  },
+  helperMuted: {
+    fontSize: 15,
+    color: 'rgba(0, 0, 0, 0.55)',
+    lineHeight: 22,
+  },
+  primaryBtnLabel: {
+    fontSize: 14,
+    fontFamily: 'Satoshi-Medium',
+    letterSpacing: 0.35,
   },
   options: { gap: 12, marginBottom: 28 },
   optionCard: {
@@ -157,8 +264,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  updateBtnDisabled: { opacity: 0.65 },
   updateBtnText: {
-    color: '#000000',
+    color: ink,
     fontSize: 14,
     fontFamily: 'Satoshi-Medium',
     letterSpacing: 0.45,
