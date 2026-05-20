@@ -1,0 +1,108 @@
+name: Railway Deploy Watch
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: railway-watch-${{ github.event.pull_request.head.sha || github.sha }}
+  cancel-in-progress: true
+
+jobs:
+  watch:
+    name: Watch Railway deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Wait for Railway deployment
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          COMMIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${RAILWAY_TOKEN:-}" ]; then
+            echo "::error::RAILWAY_TOKEN secret is not set. Add it in repo Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+          SHORT_SHA="${COMMIT_SHA:0:7}"
+          API="https://backboard.railway.app/graphql/v2"
+          PROJECT_QUERY='{"query":"query { projectToken { project { id name services { edges { node { id name deployments(first: 10) { edges { node { id status staticUrl meta createdAt } } } } } } } } }"}'
+
+          deadline=$(( $(date +%s) + 1140 ))
+          attempt=0
+          found_once=0
+
+          while [ "$(date +%s)" -lt "$deadline" ]; do
+            attempt=$((attempt + 1))
+            echo "[attempt $attempt] looking for Railway deployment of $SHORT_SHA"
+
+            resp=$(curl -sS -X POST "$API" \
+              -H "Authorization: Bearer $RAILWAY_TOKEN" \
+              -H "Content-Type: application/json" \
+              -d "$PROJECT_QUERY") || { echo "Railway API call failed; retrying in 10s"; sleep 10; continue; }
+
+            if echo "$resp" | jq -e '.errors' >/dev/null 2>&1; then
+              echo "::warning::Railway API returned errors:"
+              echo "$resp" | jq '.errors'
+              sleep 10
+              continue
+            fi
+
+            match=$(echo "$resp" | jq -r --arg sha "$COMMIT_SHA" '
+              [ .data.projectToken.project.services.edges[]?.node
+                | { service: .name,
+                    dep: ( .deployments.edges[]?.node
+                           | select((.meta // {}) | tostring | contains($sha)) ) }
+                | select(.dep != null) ]
+              | sort_by(.dep.createdAt) | reverse | .[0]
+              | if . == null then "" else "\(.service)|\(.dep.status)|\(.dep.staticUrl // "")|\(.dep.id)" end
+            ')
+
+            if [ -z "$match" ]; then
+              if [ "$EVENT_NAME" = "pull_request" ] && [ "$attempt" -ge 6 ]; then
+                echo "::notice::No Railway deployment found for $SHORT_SHA after 60s. Railway PR environments may not be enabled; skipping."
+                exit 0
+              fi
+              echo "no matching deployment yet for $SHORT_SHA"
+              sleep 10
+              continue
+            fi
+
+            found_once=1
+            service="${match%%|*}"; rest="${match#*|}"
+            status="${rest%%|*}"; rest="${rest#*|}"
+            url="${rest%%|*}"; id="${rest#*|}"
+
+            echo "service=$service deployment=$id status=$status url=$url"
+
+            case "$status" in
+              SUCCESS)
+                echo "::notice title=Railway deploy succeeded::$service is live — $url"
+                exit 0
+                ;;
+              FAILED|CRASHED)
+                echo "::error title=Railway deploy $status::$service failed at deployment $id"
+                exit 1
+                ;;
+              REMOVED|SKIPPED)
+                echo "::warning::Deployment ended as $status — treating as non-success"
+                exit 1
+                ;;
+              *)
+                sleep 10
+                ;;
+            esac
+          done
+
+          if [ "$found_once" -eq 0 ]; then
+            echo "::error::Timed out without ever seeing a Railway deployment for $SHORT_SHA"
+          else
+            echo "::error::Timed out waiting for Railway deployment of $SHORT_SHA to reach a terminal status"
+          fi
+          exit 1
