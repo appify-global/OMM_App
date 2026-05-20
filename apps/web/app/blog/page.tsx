@@ -1,11 +1,12 @@
 import Link from "next/link";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import FindPageMasthead from "../components/FindPageMasthead";
 import { fetchPosts } from "../lib/api";
 
 export const metadata = {
-  title: "Blog — OMM",
-  description: "Field notes, agent practice and market letters from the OMM editors.",
+  title: "Insights - MATCH",
+  description: "Field notes, agent practice and market letters from MATCH.",
 };
 
 export default async function BlogPage() {
@@ -16,79 +17,60 @@ export default async function BlogPage() {
   return (
     <>
       <SiteHeader />
-      <main>
-        <div className="page-shell">
-          <header className="page-masthead">
-            <div>
-              <p className="section-kicker">
-                <span className="sq sq--filled sq--sm" aria-hidden="true" />
-                <span>The Blog</span>
-              </p>
-              <h1>
-                <em>Field notes</em> from<br />the private market.
-              </h1>
-              <p className="page-lede">
-                Essays, primers, data and interviews. Written by our editors
-                with agents, buyers and owners across Australia.
-              </p>
-            </div>
-            <dl className="page-stats">
-              <div>
-                <dt>Published</dt>
-                <dd>{posts.length}</dd>
-              </div>
-              <div>
-                <dt>Subscribers</dt>
-                <dd>12.4k</dd>
-              </div>
-            </dl>
-          </header>
+      <main className="home-find find-page">
+        <div className="find-page__inner">
+          <FindPageMasthead
+            kicker="Insights"
+            title={
+              <>
+                <span className="find-page__title-strong">Field notes</span>
+                <span className="find-page__title-soft">
+                  {" "}
+                  from the private market.
+                </span>
+              </>
+            }
+            lede="Essays, primers, data and interviews - written with agents, buyers and owners across Australia."
+            stats={[
+              { label: "Published", value: posts.length },
+              { label: "Subscribers", value: "12.4k" },
+            ]}
+          />
 
-          <article className="blog-feature">
+          <article className="find-page__blog-feature">
             <Link
               href={`/blog/${feature.slug}`}
-              className="blog-feature-image"
+              className="find-page__blog-feature-image"
               style={{ backgroundImage: `url(${feature.image})` }}
               aria-label={feature.title}
             />
-            <div className="blog-feature-body">
-              <p className="blog-feature-meta">
-                <span className="sq sq--filled sq--sm" aria-hidden="true" />
-                <span>{feature.category}</span>
-                <span aria-hidden="true">·</span>
-                <span>{feature.date}</span>
+            <div>
+              <p className="find-page__kicker">
+                {feature.category} · {feature.date}
               </p>
               <h2>
-                <Link
-                  href={`/blog/${feature.slug}`}
-                  style={{ color: "inherit", textDecoration: "none" }}
-                >
-                  {feature.title}
-                </Link>
+                <Link href={`/blog/${feature.slug}`}>{feature.title}</Link>
               </h2>
-              <p>{feature.dek}</p>
-              <p className="blog-feature-byline">
-                By {feature.author} &middot; {feature.readTime} read
+              <p className="find-page__blog-feature-desc">{feature.dek}</p>
+              <p className="find-page__kicker">
+                By {feature.author} · {feature.readTime} read
               </p>
             </div>
           </article>
 
-          <div className="blog-grid">
+          <div className="find-page__blog-grid">
             {rest.map((p) => (
-              <Link key={p.id} href={`/blog/${p.slug}`} className="blog-card">
+              <Link key={p.id} href={`/blog/${p.slug}`} className="find-page__blog-card">
                 <div
-                  className="blog-card-image"
+                  className="find-page__blog-card-image"
                   style={{ backgroundImage: `url(${p.image})` }}
                   aria-hidden="true"
                 />
-                <p className="blog-card-meta">
-                  <span className="sq sq--filled sq--sm" aria-hidden="true" />
-                  <span>{p.category}</span>
-                </p>
+                <p className="find-page__kicker">{p.category}</p>
                 <h3>{p.title}</h3>
-                <small>
-                  {p.author} &middot; {p.readTime} read
-                </small>
+                <p>
+                  {p.author} · {p.readTime} read
+                </p>
               </Link>
             ))}
           </div>

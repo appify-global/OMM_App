@@ -1,11 +1,13 @@
 import type { Metadata, Viewport } from "next";
 import { ClerkProvider } from "@clerk/nextjs";
 import "./globals.css";
-import MobileBottomNav from "./components/MobileBottomNav";
+import "./find.css";
+import { clerkAuthAppearance } from "../lib/clerk-appearance";
+import { satoshi } from "../lib/fonts";
 
 export const metadata: Metadata = {
-  title: "OMM",
-  description: "Off-market property, before it reaches the listings.",
+  title: "MATCH - Private property search",
+  description: "Search off-market property across Victoria before it reaches the portals.",
   icons: {
     icon: [
       { url: "/favicon-16.png?v=2", sizes: "16x16", type: "image/png" },
@@ -18,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#fcfaf6",
+  themeColor: "#ffffff",
 };
 
 export default function RootLayout({
@@ -27,29 +29,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <ClerkProvider
-      appearance={{
-        variables: {
-          colorPrimary: "#1c1c1c",
-          colorBackground: "#fcfaf6",
-          colorText: "#1c1c1c",
-          fontFamily: "var(--font-fraunces, 'Fraunces'), Georgia, serif",
-          borderRadius: "2px",
-        },
-      }}
-    >
-      <html lang="en">
-        <head>
-          <link rel="preconnect" href="https://fonts.googleapis.com" />
-          <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-          <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..700;1,9..144,300..700&family=Inter:wght@400;500;600;700&display=swap"
-          />
-        </head>
-        <body suppressHydrationWarning>
+    <ClerkProvider appearance={clerkAuthAppearance}>
+      <html lang="en" className={satoshi.variable}>
+        <body className={satoshi.className} suppressHydrationWarning>
           {children}
-          <MobileBottomNav />
         </body>
       </html>
     </ClerkProvider>

@@ -96,7 +96,7 @@ export default function NewBriefPage() {
               Post a buyer <em>brief</em>.
             </h1>
             <p className="page-lede">
-              Be specific on suburbs, budget, and timing. Matches are private —
+              Be specific on suburbs, budget, and timing. Matches are private -
               only agents with relevant off-market stock will see your brief.
             </p>
           </div>
@@ -119,7 +119,7 @@ export default function NewBriefPage() {
                 <Field
                   label="Preferred suburbs or areas"
                   kicker="i"
-                  hint="Comma-separated. Be precise — boundaries help."
+                  hint="Comma-separated. Be precise - boundaries help."
                 >
                   <input
                     type="text"

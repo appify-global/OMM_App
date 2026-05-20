@@ -1,55 +1,42 @@
 export type NavItem = {
   label: string;
   href: string;
-  section: string;
+  /** Renders as inert text (no link) while in waitlist / pre-launch mode. */
+  disabled?: boolean;
 };
 
-export const navItems: NavItem[] = [
-  { label: "Listings", href: "/listings", section: "I" },
-  { label: "Suburbs", href: "/suburbs", section: "II" },
-  { label: "Briefs", href: "/briefs", section: "III" },
-  { label: "Blog", href: "/blog", section: "IV" },
-  { label: "About", href: "/about", section: "V" },
+/** Top header - FIND-style horizontal nav.
+ *  Pre-launch: only `About` is navigable. The rest stay visible (so the
+ *  product surface is implied) but don't route anywhere. Flip `disabled`
+ *  to false when the relevant page is ready to ship. */
+export const headerNavItems: NavItem[] = [
+  { label: "Search", href: "/listings", disabled: true },
+  { label: "Suburbs", href: "/suburbs", disabled: true },
+  { label: "Briefs", href: "/briefs", disabled: true },
+  { label: "Insights", href: "/blog", disabled: true },
+  { label: "About", href: "/about" },
 ];
 
-export const footerDirectoryLinks: string[][] = [
-  [
-    "Private property VIC",
-    "Private property NSW",
-    "Private property QLD",
-    "Private property SA",
-    "Private property WA",
-    "Private property TAS",
-  ],
-  [
-    "Hawthorn",
-    "Kew",
-    "Camberwell",
-    "Toorak",
-    "South Yarra",
-    "Brighton",
-  ],
-  [
-    "Create a buyer brief",
-    "Saved searches",
-    "View map search",
-    "Buying off-market",
-    "Property insights",
-    "Agent messages",
-  ],
+/** Overlay menu - mobile / legacy. */
+export const menuNavItems: NavItem[] = [
+  { label: "Buy", href: "/listings", disabled: true },
+  { label: "Suburbs", href: "/suburbs", disabled: true },
+  { label: "Briefs", href: "/briefs", disabled: true },
+  { label: "Insights", href: "/blog", disabled: true },
+  { label: "About", href: "/about" },
 ];
 
-export const footerDirectoryHeadings = ["By state", "By suburb", "By tool"];
+export const navItems: NavItem[] = headerNavItems;
 
-export const footerLinks = [
-  "About",
-  "Contact",
-  "Agent access",
-  "Legal",
-  "Privacy",
-  "Site map",
-  "Careers",
-];
+export function dockLabelForPath(pathname: string): string {
+  if (pathname === "/") return "Home";
+  if (pathname.startsWith("/listings")) return "Buy";
+  if (pathname.startsWith("/suburbs")) return "Suburbs";
+  if (pathname.startsWith("/briefs")) return "Briefs";
+  if (pathname.startsWith("/blog")) return "Insights";
+  if (pathname.startsWith("/about")) return "About";
+  return "Menu";
+}
 
 export const todayDateline = (): string => {
   const d = new Date();

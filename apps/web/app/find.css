@@ -1,0 +1,4012 @@
+/* FIND-inspired marketing shell — cleaned up single-scene hero */
+
+:root {
+  --find-bg: #ffffff;
+  --find-muted: rgba(0, 0, 0, 0.45);
+  --find-muted-strong: rgba(0, 0, 0, 0.28);
+}
+
+body {
+  background: var(--find-bg);
+  color: #000;
+}
+
+/* ----- Section snap (home only) -----
+ * Proximity-snap kicks in only when you're near a section edge, so mid-scroll
+ * inside the hero or a section never feels trapped. Each full-viewport section
+ * declares itself a snap target; the hero opts OUT so its sticky scrub runway
+ * stays untouched. */
+html:has(.home-find) {
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 0;
+}
+
+.home-find > .find-product,
+.home-find > .find-listings,
+.home-find > .find-cta {
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+}
+
+.home-find > .hero-find-scroll {
+  scroll-snap-align: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.home-find) {
+    scroll-snap-type: none;
+  }
+}
+
+/* Mobile browsers: proximity snap fights momentum hero scrub — disable on phones */
+@media (max-width: 720px) {
+  html:has(.home-find):not(:has(.find-page--about)) {
+    scroll-snap-type: none;
+  }
+}
+
+/* ----- About page — full-viewport panels, proximity snap (footer reachable) ----- */
+html:has(.find-page--about) {
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 0;
+}
+
+.find-page--about > .about-panel,
+.find-page--about > .find-cta {
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+}
+
+html:has(.find-page--about) .site-footer {
+  scroll-snap-align: start;
+}
+
+.find-page--about {
+  background: #fff;
+  color: #000;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:has(.find-page--about) {
+    scroll-snap-type: none;
+  }
+}
+
+.site-dock,
+.mobile-bottom-nav {
+  display: none !important;
+}
+
+/* ----- Header ----- */
+
+.site-header--find {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 100;
+  background: transparent;
+  isolation: isolate;
+  pointer-events: none;
+}
+
+.site-header--find .site-header-inner,
+.site-header--find a,
+.site-header--find button {
+  pointer-events: auto;
+}
+
+.site-header--find .site-header-inner {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 24px;
+  max-width: 1280px;
+  margin: 0 auto;
+  min-height: 64px;
+  padding: 0 clamp(20px, 4vw, 40px);
+}
+
+.brand-logo {
+  display: block;
+  width: auto;
+  height: 22px;
+  max-width: min(118px, 32vw);
+}
+
+.brand--hidden {
+  width: 0;
+  min-width: 0;
+  overflow: hidden;
+  padding: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.site-header-nav {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(20px, 3vw, 36px);
+}
+
+.site-header-nav a {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--ink);
+  transition: color 160ms ease;
+}
+
+.site-header-nav a:hover,
+.site-header-nav a.is-active {
+  color: var(--find-muted);
+}
+
+.site-header-nav .is-disabled {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.28);
+  cursor: not-allowed;
+  user-select: none;
+}
+
+.btn-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 22px;
+  border-radius: 999px;
+  background: #000;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: transform 160ms ease, background 160ms ease;
+}
+
+.btn-pill:hover {
+  background: #1a1a1a;
+  transform: translateY(-1px);
+}
+
+.btn-pill--sm {
+  padding: 10px 18px;
+  font-size: 13px;
+}
+
+.btn-pill--ghost {
+  background: transparent;
+  color: #000;
+  box-shadow: none;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.btn-pill--ghost:hover {
+  background: rgba(0, 0, 0, 0.06);
+  transform: none;
+}
+
+.site-header-auth {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.site-header-user-avatar {
+  width: 36px;
+  height: 36px;
+}
+
+.btn-pill-arrow {
+  font-size: 16px;
+  line-height: 1;
+}
+
+/* ----- Hero — sky → clouds → building → headline → front clouds → copy ----- */
+
+/* Hero extends under the transparent header; subsequent sections sit below */
+.home-find {
+  padding-top: 0;
+}
+
+
+/* Scroll runway — sticky hero locks in viewport for the full animation
+ * Runway = 100vh (one viewport hold) + 380vh (animation scrub) = 480vh total
+ * Headline arrives at progress ~0.78, then there's a deliberate HOLD on it
+ * for the final 22% of runway so users can read before sticky releases.
+ *
+ * Mobile: 480vh = ~4.5 finger-flicks of scroll to get past the hero. Tuned
+ * down to 280vh on phones so the luxury scroll still plays but doesn't feel
+ * like a stairmaster. Each scroll progress beat still hits at the same %, just
+ * compressed into less travel. */
+.hero-find-scroll {
+  position: relative;
+  height: 480vh;
+}
+
+@media (max-width: 720px) {
+  .hero-find-scroll {
+    height: 280vh;
+    /* iOS Safari: promote momentum scrolling on the document; avoid nested
+     * scroll traps that fight the hero scrub runway. */
+    touch-action: pan-y;
+  }
+
+  html:has(.home-find) {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: auto;
+  }
+
+  /* GPU layer promotion for 1:1 scroll-driven hero on iOS/Android */
+  @media (prefers-reduced-motion: no-preference) {
+    .hero-find__headline,
+    .hero-find__actions,
+    .hero-find__apartment,
+    .hero-find__clouds,
+    .hero-find__wordmark-scene,
+    .hero-find__whiteout {
+      will-change: transform, opacity;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-find-scroll {
+    height: 240vh;
+  }
+}
+
+.hero-find {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100svh;
+  max-height: 100svh;
+  width: 100%;
+  overflow: hidden;
+  background: #5fa8de;
+  /* Shared vertical rhythm — every screen size keeps the headline / lede / CTA
+   * in the same proportional zone, with the penthouse anchored below.
+   * Tuned on desktop (1440x900) to match the reference screenshot, then
+   * scaled by clamp() so phones and tablets land in the same composition. */
+  --hero-headline-top: clamp(160px, 30vh, 320px);
+  --hero-actions-gap: clamp(120px, 16vh, 200px);
+  --hero-property-top: clamp(360px, 56vh, 540px);
+}
+
+/* MUST come AFTER .hero-find so sticky positioning isn't overridden by relative */
+.hero-find.hero-find--sticky {
+  position: sticky;
+  top: 0;
+}
+
+/* ============================================
+   FIRST-PAINT — unified fade-in (whole hero at once)
+   No staggered pop-ins: sky, clouds, house, copy, CTA share one opacity ramp.
+   .hero-find--booting stays visible if JS never runs (no opacity:0 on booting).
+   ============================================ */
+
+@media (prefers-reduced-motion: no-preference) {
+  .hero-find--booting {
+    opacity: 0;
+  }
+
+  .hero-find--loaded {
+    animation: hero-enter-fade 1.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+}
+
+@keyframes hero-enter-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Sky — cool blue with FIND-style warm horizon bottom-left */
+.hero-find__sky {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    linear-gradient(
+      118deg,
+      rgba(255, 198, 140, 0.55) 0%,
+      rgba(255, 168, 110, 0.28) 18%,
+      transparent 42%
+    ),
+    linear-gradient(
+      to bottom,
+      #4a9fd4 0%,
+      #6eb0e6 38%,
+      #9ec9ea 72%,
+      #c5dff0 100%
+    );
+  pointer-events: none;
+}
+
+/* Extra golden-hour bloom — bottom-left (FIND sunset)
+ * Plain alpha blend (NOT screen) — screen blend on a sharp gradient over
+ * moving cloud layers creates visible diagonal banding artefacts */
+.hero-find__sunset {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 52% 42% at 4% 96%,
+      rgba(255, 210, 150, 0.55) 0%,
+      rgba(255, 175, 105, 0.28) 32%,
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 35% 28% at 0% 100%,
+      rgba(255, 235, 200, 0.32) 0%,
+      transparent 70%
+    );
+  opacity: 0.85;
+}
+
+/* Cloud band — sits low (horizon-style), never covers the headline */
+.hero-find__clouds {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 65%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+.hero-find__clouds--back {
+  z-index: 1;
+}
+
+/* Wisps flanking the home — same band as the property, behind the cutout */
+.hero-find__clouds--property {
+  top: var(--hero-property-top);
+  bottom: 0;
+  height: auto;
+  z-index: 1;
+}
+
+/* Front cloud bank — rises & grows as you scroll (FIND atmosphere)
+ * Sits BEHIND the wordmark (z-index 6 vs wordmark 7) so letters punch through
+ * Mask + blur kill the hard PNG edges that screen-blend turns into streaks */
+.hero-find__clouds--front {
+  position: absolute;
+  inset: auto 0 0 0;
+  /* Overscan above the viewport so the cloud bank never reveals a hard top edge
+   * as it scrolls behind the transparent header. */
+  top: -24vh;
+  height: 124vh;
+  z-index: 6;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+}
+
+/* === Ambient cloud drift — runs independently of scroll ===
+ * Bigger amplitude + faster loops so drift is visibly alive when stopped.
+ * Each layer drifts on a different vector for natural parallax depth. */
+
+@keyframes cloud-drift-right {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(140px, -18px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes cloud-drift-left {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(-150px, 14px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes cloud-drift-slow {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(90px, -32px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes cloud-drift-slow-reverse {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(-110px, 24px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+@keyframes cloud-drift-diag {
+  0%   { transform: translate3d(0, 0, 0); }
+  50%  { transform: translate3d(120px, -40px, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* Wrap any cloud image in this and drift continuously — applied via a wrapper
+ * so it stacks cleanly with the parent's scroll-driven transform */
+.hero-find__cloud-drift {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Faster loops (was 32-50s, now 16-26s) for visible motion at rest */
+.hero-find__cloud-drift--a { animation: cloud-drift-right 18s ease-in-out infinite; }
+.hero-find__cloud-drift--b { animation: cloud-drift-left 22s ease-in-out infinite; }
+.hero-find__cloud-drift--c { animation: cloud-drift-slow 26s ease-in-out infinite; }
+.hero-find__cloud-drift--d { animation: cloud-drift-slow-reverse 20s ease-in-out infinite; }
+.hero-find__cloud-drift--e { animation: cloud-drift-diag 24s ease-in-out infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-find__cloud-drift {
+    animation: none !important;
+  }
+}
+
+/* Each cloud PNG gets an aggressive feathered mask + soft blur so the
+ * straight rectangular bounds of the PNG never bleed through screen-blend.
+ * Mask is a TIGHT ellipse with a long fade — corners are fully transparent
+ * well before the PNG edge, so no diagonal streaks from rotated/scaled rects */
+.hero-find__clouds--front .hero-find__clouds-img {
+  filter: blur(2px);
+  -webkit-mask-image: radial-gradient(
+    ellipse 60% 55% at 50% 55%,
+    #000 20%,
+    rgba(0, 0, 0, 0.55) 55%,
+    rgba(0, 0, 0, 0.15) 80%,
+    transparent 92%
+  );
+  mask-image: radial-gradient(
+    ellipse 60% 55% at 50% 55%,
+    #000 20%,
+    rgba(0, 0, 0, 0.55) 55%,
+    rgba(0, 0, 0, 0.15) 80%,
+    transparent 92%
+  );
+}
+
+.hero-find__clouds-img--front-left,
+.hero-find__clouds-img--front-center,
+.hero-find__clouds-img--front-right,
+.hero-find__clouds-img--front-top-left,
+.hero-find__clouds-img--front-top-right {
+  position: absolute;
+  display: block;
+  height: auto;
+}
+
+.hero-find__clouds-img--front-left {
+  bottom: 0;
+  left: -22vw;
+  width: min(1300px, 100vw);
+  opacity: 1;
+  transform: translateY(6%) scale(1.15);
+}
+
+.hero-find__clouds-img--front-center {
+  bottom: 0;
+  left: 50%;
+  width: min(2000px, 160vw);
+  opacity: 1;
+  transform: translateX(-50%) translateY(18%) scale(1.25);
+}
+
+.hero-find__clouds-img--front-right {
+  bottom: 0;
+  right: -22vw;
+  width: min(1300px, 100vw);
+  opacity: 1;
+  transform: translateY(2%) scale(1.15) scaleX(-1);
+}
+
+/* Upper cloud puffs — drift behind the wordmark, around the letters */
+.hero-find__clouds-img--front-top-left {
+  top: -2%;
+  left: -10vw;
+  width: min(820px, 60vw);
+  opacity: 0.95;
+  transform: scale(1) scaleX(-1);
+}
+
+.hero-find__clouds-img--front-top-right {
+  top: 0;
+  right: -10vw;
+  width: min(820px, 60vw);
+  opacity: 0.95;
+}
+
+.hero-find__clouds-img {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  display: block;
+  width: auto;
+  height: auto;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  transform: translateX(-50%);
+  transform-origin: center bottom;
+}
+
+/* Property flanks — must come after base .hero-find__clouds-img (overrides left: 50%) */
+.hero-find__clouds-img.hero-find__clouds-img--property-left {
+  left: -4vw;
+  right: auto;
+  width: min(500px, 46vw);
+  opacity: 0.72;
+  filter: sepia(0.12) saturate(1.15) hue-rotate(-6deg) blur(1.5px);
+  transform: translateY(22%) scale(0.88);
+  -webkit-mask-image: radial-gradient(ellipse 65% 60% at 50% 55%, #000 25%, transparent 92%);
+  mask-image: radial-gradient(ellipse 65% 60% at 50% 55%, #000 25%, transparent 92%);
+}
+
+.hero-find__clouds-img.hero-find__clouds-img--property-right {
+  right: -4vw;
+  left: auto;
+  width: min(500px, 46vw);
+  opacity: 0.68;
+  filter: blur(1.5px);
+  transform: translateY(26%) scale(0.88) scaleX(-1);
+  -webkit-mask-image: radial-gradient(ellipse 65% 60% at 50% 55%, #000 25%, transparent 92%);
+  mask-image: radial-gradient(ellipse 65% 60% at 50% 55%, #000 25%, transparent 92%);
+}
+
+/* Tree-line clouds — sit right around the rooftop trees to soften edges */
+.hero-find__clouds--tree {
+  position: absolute;
+  top: var(--hero-property-top);
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 3;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+.hero-find__clouds-img.hero-find__clouds-img--tree-left {
+  left: 2vw;
+  right: auto;
+  bottom: clamp(40px, 8vh, 90px);
+  width: min(320px, 28vw);
+  opacity: 0.55;
+  filter: blur(1.5px);
+  transform: translateY(0) scale(0.78);
+  -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 55%, #000 20%, transparent 90%);
+  mask-image: radial-gradient(ellipse 60% 60% at 50% 55%, #000 20%, transparent 90%);
+}
+
+.hero-find__clouds-img.hero-find__clouds-img--tree-right {
+  right: 2vw;
+  left: auto;
+  bottom: clamp(40px, 8vh, 90px);
+  width: min(320px, 28vw);
+  opacity: 0.55;
+  filter: blur(1.5px);
+  transform: translateY(0) scale(0.78) scaleX(-1);
+  -webkit-mask-image: radial-gradient(ellipse 60% 60% at 50% 55%, #000 20%, transparent 90%);
+  mask-image: radial-gradient(ellipse 60% 60% at 50% 55%, #000 20%, transparent 90%);
+}
+
+/* Soft wisp on the roof tree — behind the home cutout */
+.hero-find__clouds--roof {
+  top: calc(var(--hero-property-top) - clamp(8px, 1.5vh, 16px));
+  bottom: auto;
+  height: clamp(140px, 20vh, 220px);
+  z-index: 1;
+}
+
+.hero-find__clouds-img.hero-find__clouds-img--roof {
+  left: 50%;
+  right: auto;
+  bottom: 0;
+  width: min(420px, 38vw);
+  opacity: 0.88;
+  transform: translateX(-50%) translateY(42%) scale(0.95);
+}
+
+/* Front mist — sits at the bottom edge only, low and subtle */
+.hero-find__clouds-img--front.hero-find__clouds-img--center {
+  width: min(1300px, 115vw);
+  opacity: 0.55;
+  transform: translateX(-50%) translateY(75%) scale(1.15);
+}
+
+/* Text-level cloud layer — drops with headline; left cloud overlaps "Search" */
+.hero-find__clouds--text {
+  position: absolute;
+  top: clamp(140px, 26vh, 320px);
+  right: 0;
+  left: 0;
+  height: clamp(240px, 34vh, 400px);
+  z-index: 4;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  will-change: transform;
+}
+
+.hero-find__clouds-img--text {
+  position: absolute;
+  display: block;
+  width: auto;
+  height: auto;
+  margin: 0;
+  padding: 0;
+}
+
+.hero-find__clouds-img--text-left {
+  width: min(820px, 68vw);
+  bottom: -8%;
+  left: -6vw;
+  opacity: 0.88;
+}
+
+.hero-find__clouds-img--text-right {
+  width: min(640px, 52vw);
+  bottom: 18%;
+  right: -6vw;
+  opacity: 0.65;
+  transform: scaleX(-1);
+}
+
+/* Headline cluster — sits a bit lower (FIND-style mid-screen) */
+.hero-find__headline {
+  position: absolute;
+  top: var(--hero-headline-top);
+  right: 0;
+  left: 0;
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 clamp(16px, 4vw, 40px);
+  text-align: center;
+  will-change: transform;
+}
+
+.hero-find__actions {
+  position: absolute;
+  top: calc(var(--hero-headline-top) + var(--hero-actions-gap));
+  right: 0;
+  left: 0;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(16px, 2vh, 24px);
+  padding: 0 clamp(16px, 4vw, 40px);
+  text-align: center;
+  will-change: transform;
+}
+
+.hero-find__actions .hero-find__lede {
+  margin: 0;
+}
+
+.hero-find__title {
+  margin: 0;
+  font-size: clamp(2.4rem, 9.6vw, 10.5rem);
+  font-weight: 700;
+  line-height: 0.92;
+  letter-spacing: -0.055em;
+  white-space: nowrap;
+  color: #000;
+  transition: opacity 80ms linear;
+  text-wrap: balance;
+}
+
+.hero-find__lede {
+  margin: 0;
+  font-size: clamp(15px, 1.7vw, 22px);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.012em;
+  white-space: nowrap;
+  max-width: 100%;
+  text-wrap: balance;
+}
+
+/* Below ~720px the lede line "Off-market property... See homes before..."
+ * is wider than the viewport — let it wrap to 2 lines instead of forcing
+ * horizontal overflow that shoves the CTA offscreen.
+ * Same treatment for the headline below 560px — "Search before it's listed"
+ * at 11vw is wider than the viewport on phones, so let it wrap to 2 lines. */
+@media (max-width: 720px) {
+  .hero-find__lede {
+    white-space: normal;
+    max-width: 32ch;
+  }
+}
+
+@media (max-width: 560px) {
+  .hero-find__title {
+    white-space: normal;
+    max-width: 14ch;
+    text-wrap: balance;
+  }
+}
+
+.hero-find__lede-strong {
+  color: #000;
+}
+
+.hero-find__lede-soft {
+  color: rgba(0, 0, 0, 0.42);
+}
+
+/* Confident hero CTA — button itself doesn't move; label flips up on hover.
+ * iOS Safari fixes:
+ *  - `border: 0` kills the default 1px button border that paints as a white halo
+ *    against the dark pill on Retina screens (the "weird white border" bug).
+ *  - `-webkit-tap-highlight-color: transparent` removes the grey flash on tap.
+ *  - `-webkit-appearance: none` resets iOS' native button chrome (rounded grey
+ *    fill, inner shadow) that bleeds through `background: #000`.
+ *  - `transform: translateZ(0)` promotes the pill to its own layer so the
+ *    box-shadow renders against a stable backdrop instead of sub-pixel
+ *    flickering during scroll. */
+.btn-pill--hero {
+  position: relative;
+  padding: 20px 36px;
+  font-size: 16px;
+  font-weight: 500;
+  gap: 12px;
+  letter-spacing: -0.005em;
+  border: 0;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-tap-highlight-color: transparent;
+  transform: translateZ(0);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.18), 0 2px 6px rgba(0, 0, 0, 0.12);
+  transition: box-shadow 220ms ease;
+}
+
+.btn-pill--hero:hover {
+  transform: none;
+  background: #000;
+  box-shadow: 0 14px 32px rgba(0, 0, 0, 0.22), 0 3px 8px rgba(0, 0, 0, 0.14);
+}
+
+/* Label mask — clips the two stacked text spans during the flip */
+.btn-pill__label {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  line-height: 1.1;
+  vertical-align: middle;
+}
+
+.btn-pill__label-text {
+  display: block;
+  transition: transform 380ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* The clone sits 100% below the visible label, slides up into view */
+.btn-pill__label-text--clone {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+}
+
+.btn-pill--hero:hover .btn-pill__label-text {
+  transform: translateY(-100%);
+}
+
+.btn-pill--hero .btn-pill-arrow {
+  display: inline-block;
+  font-size: 20px;
+  transition: transform 380ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.btn-pill--hero:hover .btn-pill-arrow {
+  transform: translateX(4px);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.hero-find__apartment {
+  position: absolute;
+  top: var(--hero-property-top);
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  line-height: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Legacy cutouts — height-driven */
+.hero-find__apartment-img:not(.hero-find__apartment-img--tower) {
+  display: block;
+  width: auto;
+  height: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  object-fit: contain;
+  object-position: center bottom;
+  transform: translateY(12%);
+  transform-origin: center bottom;
+}
+
+/* FIND-style: wide penthouse crop filling the bottom band, bottom-flush */
+.hero-find__apartment-img.hero-find__apartment-img--tower {
+  display: block;
+  width: min(100vw, 1600px);
+  height: auto;
+  max-width: 100vw;
+  max-height: min(62vh, 720px);
+  margin: 0;
+  padding: 0;
+  object-fit: contain;
+  object-position: center bottom;
+  transform: translateY(0);
+  transform-origin: center bottom;
+  filter: saturate(1.04) contrast(1.02);
+}
+
+/* Penthouse render — native 1024px width keeps it sharp.
+ * Width scales with viewport, height capped by remaining hero space so the
+ * cutout never collides with the lede/CTA on short or narrow screens. */
+.hero-find__apartment-img.hero-find__apartment-img--penthouse {
+  width: min(96vw, 1024px);
+  max-width: 96vw;
+  max-height: min(40vh, 360px);
+  /* Drop-shadow disabled — at peak scale it creates a hard vertical seam in the
+   * middle of the building cutout where the alpha map has subtle artefacts */
+  filter: saturate(1.06) contrast(1.04);
+  image-rendering: -webkit-optimize-contrast;
+}
+
+.hero-find__apartment[style*="transform"] .hero-find__apartment-img--tower {
+  transform: translateY(0);
+}
+
+/* ----- Why section ----- */
+
+.find-why {
+  position: relative;
+  z-index: 4;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(56px, 8vh, 88px) clamp(20px, 4vw, 40px);
+  background: #fff;
+  /* Scroll-driven reveal — appears as you exit the hero (no JS) */
+  opacity: 0;
+  transform: translateY(48px);
+  animation: find-why-reveal both linear;
+  animation-timeline: view();
+  animation-range: entry 0% entry 60%;
+}
+
+@keyframes find-why-reveal {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Safari (no view-timeline yet) — fall back to a one-shot fade-in */
+@supports not (animation-timeline: view()) {
+  .find-why {
+    opacity: 1;
+    transform: none;
+    animation: find-why-fallback 700ms 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  @keyframes find-why-fallback {
+    from { opacity: 0; transform: translateY(28px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+.find-why__grid {
+  display: grid;
+  grid-template-columns: minmax(100px, 180px) 1fr;
+  gap: clamp(24px, 5vw, 80px);
+  align-items: start;
+}
+
+.find-why__label {
+  margin: 0;
+  padding-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--find-muted);
+}
+
+.find-why__headline {
+  margin: 0;
+  font-size: clamp(26px, 3.8vw, 44px);
+  font-weight: 500;
+  line-height: 1.18;
+  letter-spacing: -0.03em;
+}
+
+.find-why__headline strong {
+  font-weight: 500;
+  color: #000;
+}
+
+.find-why__headline span {
+  color: var(--find-muted-strong);
+}
+
+/* ----- Product: FIND-style split — headline left, steps right, one viewport ----- */
+
+.find-product {
+  box-sizing: border-box;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  padding: 72px clamp(28px, 5.5vw, 80px) clamp(32px, 4vh, 48px);
+  background: #fff;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.find-product__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: start;
+  gap: clamp(48px, 8vw, 112px);
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+/* Left: split headline + pill CTA (FIND "Real Estate, Rewired.") */
+.find-product__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(36px, 5.5vh, 52px);
+  padding-top: clamp(4px, 1vh, 12px);
+}
+
+.find-product h2.find-product__title {
+  margin: 0;
+  font-size: clamp(2.85rem, 5.2vw, 5.25rem);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.038em;
+}
+
+.find-product__title-strong {
+  display: block;
+  color: #000;
+}
+
+.find-product__title-soft {
+  display: block;
+  color: rgba(0, 0, 0, 0.34);
+}
+
+.find-product__cta.btn-pill--hero {
+  flex-shrink: 0;
+}
+
+/* Right: "Steps:" + numbered list (FIND layout) */
+.find-product__steps-wrap {
+  min-width: 0;
+  padding-top: clamp(4px, 1vh, 12px);
+}
+
+.find-steps__heading {
+  margin: 0 0 20px;
+  font-size: 17px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: #000;
+}
+
+.find-steps {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.find-step {
+  display: flex;
+  align-items: flex-start;
+  gap: clamp(20px, 2.5vw, 36px);
+  padding: clamp(22px, 3vh, 30px) 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.find-step:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.find-step__num {
+  flex-shrink: 0;
+  width: 1.5rem;
+  padding-top: 0.2em;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgba(0, 0, 0, 0.32);
+}
+
+.find-step__copy {
+  margin: 0;
+  font-size: clamp(1.0625rem, 1.5vw, 1.375rem);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.015em;
+}
+
+.find-step__title {
+  font-weight: 500;
+  color: #000;
+}
+
+.find-step__text {
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.find-listings__eyebrow {
+  margin: 0 0 10px;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.42);
+}
+
+@media (max-width: 900px) {
+  .find-product {
+    min-height: auto;
+    padding: 80px clamp(20px, 5vw, 28px) 56px;
+  }
+
+  .find-product__inner {
+    grid-template-columns: 1fr;
+    gap: 44px;
+  }
+
+  .find-product__intro,
+  .find-product__steps-wrap {
+    padding-top: 0;
+  }
+
+  .find-product h2.find-product__title {
+    font-size: clamp(2.35rem, 9vw, 3.1rem);
+  }
+
+  .find-step__copy {
+    font-size: 1.0625rem;
+  }
+}
+
+/* Second product band — full viewport, grey field */
+.find-product--platform {
+  min-height: 100svh;
+  background: #f7f7f7;
+}
+
+@media (max-width: 900px) {
+  .find-product--platform {
+    min-height: auto;
+    padding-bottom: 56px;
+  }
+}
+
+/* ----- Listings strip ----- */
+
+.find-listings {
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+}
+
+.find-listings__inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: clamp(48px, 8vh, 72px) clamp(28px, 5.5vw, 80px);
+}
+
+.find-listings__head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 20px;
+  margin-bottom: 28px;
+}
+
+.find-listings__head h2 {
+  margin: 8px 0 0;
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.034em;
+}
+
+.find-listings__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.find-listing-card {
+  display: block;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: #fff;
+  text-decoration: none;
+  color: inherit;
+  transition: border-color 180ms ease;
+}
+
+.find-listing-card:hover {
+  border-color: rgba(0, 0, 0, 0.16);
+}
+
+.find-listing-card__media {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+}
+
+.find-listing-card__img {
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  filter: blur(14px) saturate(0.75);
+  transform: scale(1.08);
+}
+
+.find-listing-card__lock {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.42);
+  backdrop-filter: blur(10px) saturate(1.1);
+  -webkit-backdrop-filter: blur(10px) saturate(1.1);
+  color: #000;
+}
+
+.find-listing-card__lock-icon {
+  opacity: 0.88;
+}
+
+.find-listing-card__lock-label {
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+}
+
+.find-listing-card__body {
+  position: relative;
+  overflow: hidden;
+  padding: 14px 16px 16px;
+  min-height: 4.5rem;
+}
+
+.find-listing-card__body-blur {
+  filter: blur(7px);
+  opacity: 0.55;
+  user-select: none;
+  pointer-events: none;
+}
+
+.find-listing-card__body-blur h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.find-listing-card__body-blur p {
+  margin: 0;
+  font-size: 13px;
+  color: var(--find-muted);
+}
+
+.find-listing-card__body-mask {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: rgba(0, 0, 0, 0.42);
+  text-align: center;
+}
+
+.find-link {
+  font-size: 14px;
+  font-weight: 500;
+  border-bottom: 1px solid currentColor;
+}
+
+.site-footer--find {
+  margin-top: 0;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+}
+
+.site-footer--find .site-footer__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: clamp(24px, 4vw, 48px);
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: clamp(24px, 4vh, 32px) clamp(28px, 5.5vw, 80px);
+}
+
+.site-footer--find .site-footer__imprint {
+  margin: 0;
+  max-width: 36ch;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.site-footer--find .site-footer__nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: clamp(20px, 3vw, 36px);
+}
+
+.site-footer--find .site-footer__nav a {
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: #000;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 160ms ease;
+}
+
+.site-footer--find .site-footer__nav a:hover {
+  color: rgba(0, 0, 0, 0.5);
+}
+
+@media (max-width: 768px) {
+  .site-footer--find .site-footer__inner {
+    grid-template-columns: 1fr;
+    align-items: start;
+    gap: 20px;
+  }
+
+  .site-footer--find .site-footer__nav {
+    justify-content: flex-start;
+    gap: 20px 28px;
+  }
+}
+
+@media (max-width: 900px) {
+  .site-header-nav {
+    display: none;
+  }
+
+  .site-header--find .site-header-inner {
+    grid-template-columns: 1fr auto;
+  }
+
+  .find-why__grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .find-listings__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .find-steps {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ----- CTA — full viewport, black, single Apply pill ----- */
+
+.find-cta {
+  box-sizing: border-box;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: #000;
+  color: #fff;
+}
+
+.find-cta__inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(28px, 4.5vh, 44px);
+  width: 100%;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: clamp(48px, 8vh, 80px) clamp(28px, 5.5vw, 80px);
+  text-align: center;
+}
+
+.find-cta h2.find-cta__title {
+  margin: 0;
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.038em;
+  color: #fff;
+}
+
+.find-cta__text {
+  margin: 0;
+  max-width: 38ch;
+  font-size: clamp(15px, 1.4vw, 17px);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  color: rgba(255, 255, 255, 0.42);
+}
+
+.find-cta .btn-pill--hero {
+  background: #fff;
+  color: #000;
+  box-shadow: 0 10px 28px rgba(255, 255, 255, 0.08), 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.find-cta .btn-pill--hero:hover {
+  background: #f0f0f0;
+  color: #000;
+}
+
+/* ===== Hero responsive tiers — keep the desktop composition at every size =====
+ * Goal: headline + lede + CTA cluster sits in upper-mid viewport, penthouse
+ * anchored to bottom, never colliding. Tuned to match the reference shot. */
+
+/* Tablet portrait (iPad-ish) */
+@media (max-width: 1024px) {
+  .hero-find {
+    --hero-headline-top: clamp(140px, 26vh, 240px);
+    --hero-actions-gap: clamp(110px, 14vh, 170px);
+    --hero-property-top: clamp(340px, 54vh, 520px);
+  }
+
+  .hero-find__apartment-img.hero-find__apartment-img--penthouse {
+    max-height: min(38vh, 320px);
+  }
+}
+
+/* ===== Mobile (≤640px) — center the text cluster, supersize the house, ===== */
+/* put clouds BEHIND the headline like the desktop shot.                       */
+@media (max-width: 640px) {
+  .hero-find {
+    /* House owns the bottom ~50% */
+    --hero-property-top: clamp(380px, 52vh, 520px);
+  }
+
+  /* === Center the headline+lede+CTA as ONE block in the sky band ===
+   * Can't use `transform: translateY()` here because HeroFind.tsx writes
+   * an inline transform (scroll fade) and inline wins. Instead compute the
+   * `top` so the rendered block lands centered in the sky zone (0 →
+   * --hero-property-top). Title height ~= 2 lines @ ~13vw × 0.95 ≈ 24vw,
+   * so half-height ≈ 12vw. Bias to 66% of the sky band to push the cluster
+   * lower in the frame. */
+  .hero-find__headline {
+    top: calc((var(--hero-property-top) * 0.66) - 12vw);
+    padding: 0 16px;
+    z-index: auto;
+  }
+
+  /* "Search" stays BEHIND clouds, "before it's listed" comes IN FRONT */
+  .hero-find__title-word {
+    position: relative;
+  }
+
+  .hero-find__title-word--search {
+    z-index: 3;
+  }
+
+  .hero-find__title-word--rest {
+    z-index: 10;
+  }
+
+  /* Actions block — tucked right under the headline (small breathing room only) */
+  .hero-find__actions {
+    top: calc((var(--hero-property-top) * 0.66) + 12vw + 2vh);
+    padding: 0 16px;
+    gap: 14px;
+    z-index: 10;
+  }
+
+  .hero-find__title {
+    font-size: clamp(2.2rem, 12vw, 3.6rem);
+    letter-spacing: -0.045em;
+    line-height: 0.95;
+  }
+
+  .hero-find__lede {
+    font-size: clamp(13px, 3.4vw, 16px);
+  }
+
+  /* Bigger house — edge to edge, dominates the bottom half */
+  .hero-find__apartment-img.hero-find__apartment-img--penthouse {
+    width: 100vw;
+    max-width: 100vw;
+    max-height: min(48vh, 420px);
+  }
+
+  .btn-pill--hero {
+    padding: 16px 28px;
+    font-size: 15px;
+  }
+
+  /* === FREEZE all cloud animations on mobile ===
+   * The drift keyframes move clouds 90-150px which is way too much on a 390px
+   * viewport — just hold them still. */
+  .hero-find__cloud-drift,
+  .hero-find__cloud-drift--a,
+  .hero-find__cloud-drift--b,
+  .hero-find__cloud-drift--c,
+  .hero-find__cloud-drift--d,
+  .hero-find__cloud-drift--e {
+    animation: none !important;
+  }
+
+  /* === Clouds — bring them OVER the headline like the desktop shot === */
+  /* Make the text-level cloud layer cover more of the sky band */
+  .hero-find__clouds--text {
+    top: 0;
+    height: calc(var(--hero-property-top) * 0.85);
+    z-index: 4;
+    overflow: visible;
+  }
+
+  /* Left cloud — drapes over the start of "Search", big and soft */
+  .hero-find__clouds-img--text-left {
+    width: min(720px, 140vw);
+    bottom: auto;
+    top: 8%;
+    left: -38vw;
+    opacity: 0.92;
+  }
+
+  /* Right cloud — drapes over end of "listed" / right side */
+  .hero-find__clouds-img--text-right {
+    width: min(600px, 120vw);
+    bottom: auto;
+    top: 22%;
+    right: -38vw;
+    opacity: 0.88;
+  }
+
+  /* Property-flank clouds — mid-level, between headline and house */
+  .hero-find__clouds--property {
+    top: auto;
+    bottom: calc(100svh - var(--hero-property-top) + 12vh);
+    overflow: visible;
+  }
+
+  .hero-find__clouds-img--property-left {
+    width: min(620px, 130vw);
+    opacity: 0.9;
+    transform: translateY(0) scale(1.2);
+    bottom: 0;
+  }
+
+  .hero-find__clouds-img--property-right {
+    width: min(620px, 130vw);
+    opacity: 0.85;
+    transform: translateY(0) scale(1.2) scaleX(-1);
+    bottom: 0;
+  }
+
+  /* Tree-level clouds — hug the rooftop, soft mist just above the house */
+  .hero-find__clouds--tree {
+    top: auto;
+    bottom: calc(100svh - var(--hero-property-top) - 2vh);
+    overflow: visible;
+  }
+
+  .hero-find__clouds-img--tree-left {
+    width: min(540px, 110vw);
+    opacity: 0.8;
+    bottom: 0;
+    left: -12vw;
+  }
+
+  .hero-find__clouds-img--tree-right {
+    width: min(540px, 110vw);
+    opacity: 0.78;
+    bottom: 0;
+    right: -12vw;
+  }
+
+  /* Extra low clouds via pseudo-elements — soft wisps right above the house */
+  .hero-find__clouds--tree::before,
+  .hero-find__clouds--tree::after {
+    content: "";
+    position: absolute;
+    display: block;
+    background-image: url("/hero/cloud.png");
+    background-repeat: no-repeat;
+    background-size: contain;
+    pointer-events: none;
+    mix-blend-mode: screen;
+    filter: blur(2px);
+    opacity: 0.6;
+    -webkit-mask-image: radial-gradient(
+      ellipse 70% 65% at 50% 50%,
+      #000 15%,
+      rgba(0, 0, 0, 0.5) 50%,
+      transparent 85%
+    );
+    mask-image: radial-gradient(
+      ellipse 70% 65% at 50% 50%,
+      #000 15%,
+      rgba(0, 0, 0, 0.5) 50%,
+      transparent 85%
+    );
+  }
+
+  .hero-find__clouds--tree::before {
+    bottom: -35vh;
+    left: -10%;
+    width: min(620px, 140vw);
+    height: min(350px, 75vw);
+    opacity: 0.7;
+  }
+
+  .hero-find__clouds--tree::after {
+    bottom: -32vh;
+    right: -12%;
+    width: min(460px, 100vw);
+    height: min(250px, 55vw);
+    opacity: 0.6;
+    transform: scaleX(-1);
+  }
+}
+
+/* Small mobile (iPhone SE etc.) */
+@media (max-width: 380px) {
+  .hero-find {
+    --hero-property-top: clamp(360px, 50vh, 480px);
+  }
+
+  .hero-find__title {
+    font-size: clamp(1.95rem, 12vw, 2.8rem);
+  }
+
+  .hero-find__apartment-img.hero-find__apartment-img--penthouse {
+    max-height: min(46vh, 380px);
+  }
+
+  .btn-pill--hero {
+    padding: 14px 24px;
+    font-size: 14px;
+  }
+}
+
+/* Short viewports (landscape phone, ChromeOS split, etc.) — compress vertical
+ * spacing so the whole composition still fits in one viewport. */
+@media (max-height: 640px) and (orientation: landscape) {
+  .hero-find {
+    --hero-headline-top: clamp(72px, 12vh, 110px);
+    --hero-actions-gap: clamp(70px, 11vh, 110px);
+    --hero-property-top: clamp(220px, 48vh, 320px);
+  }
+
+  .hero-find__title {
+    font-size: clamp(2rem, 7vw, 4rem);
+  }
+
+  .hero-find__apartment-img.hero-find__apartment-img--penthouse {
+    max-height: min(32vh, 240px);
+  }
+}
+
+/* Ultrawide / very large displays — let the headline grow past the default
+ * 10.5rem cap so it doesn't look stranded in a sea of sky. */
+@media (min-width: 1800px) {
+  .hero-find__title {
+    font-size: clamp(8rem, 8.5vw, 13rem);
+  }
+
+  .hero-find {
+    --hero-headline-top: clamp(220px, 26vh, 360px);
+    --hero-actions-gap: clamp(160px, 17vh, 240px);
+    --hero-property-top: clamp(420px, 50vh, 620px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-find-scroll {
+    height: auto;
+  }
+
+  .hero-find__sky,
+  .hero-find__clouds,
+  .hero-find__headline,
+  .hero-find__actions,
+  .hero-find__apartment {
+    transform: none !important;
+  }
+
+  .hero-find__apartment-img {
+    transform: translateY(12%);
+  }
+}
+
+/* ----- Auth (sign-in) — MATCH typography, plain white shell ----- */
+
+.auth-find {
+  min-height: 100svh;
+  background: #fff;
+  color: #000;
+}
+
+.auth-find__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(20px, 4vw, 28px) clamp(20px, 4vw, 40px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.auth-find__logo {
+  display: block;
+  width: auto;
+  height: 22px;
+  max-width: min(118px, 32vw);
+}
+
+.auth-find__back {
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.45);
+  text-decoration: none;
+  transition: color 160ms ease;
+}
+
+.auth-find__back:hover {
+  color: #000;
+}
+
+.auth-find__shell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 420px);
+  gap: clamp(40px, 8vw, 96px);
+  align-items: start;
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: clamp(40px, 8vh, 72px) clamp(20px, 4vw, 40px) 96px;
+}
+
+.auth-find__copy {
+  position: sticky;
+  top: clamp(88px, 12vh, 120px);
+}
+
+.auth-find__title {
+  margin: 0 0 clamp(16px, 2.5vh, 24px);
+  font-size: clamp(2.25rem, 5.5vw, 3.75rem);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: -0.055em;
+  color: #000;
+}
+
+.auth-find__lede {
+  margin: 0;
+  max-width: 36ch;
+  font-size: clamp(16px, 1.6vw, 20px);
+  font-weight: 500;
+  line-height: 1.45;
+  letter-spacing: -0.012em;
+}
+
+.auth-find__lede-strong {
+  color: #000;
+}
+
+.auth-find__lede-soft {
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.auth-find__foot {
+  margin: clamp(24px, 4vh, 36px) 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.auth-find__foot-link {
+  color: #000;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+  transition: border-color 160ms ease;
+}
+
+.auth-find__foot-link:hover {
+  border-color: #000;
+}
+
+.auth-find__form {
+  width: 100%;
+}
+
+/* Clerk card — align with FIND buttons and Satoshi */
+.auth-find-clerk__root {
+  width: 100%;
+}
+
+.auth-find-clerk__card-box {
+  width: 100%;
+}
+
+.auth-find-clerk__card {
+  width: 100%;
+  margin: 0;
+  padding: clamp(24px, 3vw, 32px);
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.06) !important;
+  background: #fff !important;
+}
+
+/* Page copy carries the headline — keep the card focused on the form */
+.auth-find-clerk__header {
+  display: none !important;
+}
+
+.auth-find-clerk__header-title {
+  font-size: 18px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.02em !important;
+}
+
+.auth-find-clerk__header-subtitle {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: rgba(0, 0, 0, 0.45) !important;
+}
+
+.auth-find-clerk__label {
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  color: rgba(0, 0, 0, 0.55) !important;
+}
+
+.auth-find-clerk__input {
+  border-radius: 10px !important;
+  border-color: rgba(0, 0, 0, 0.12) !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.auth-find-clerk__social-btn,
+.auth-find-clerk__primary-btn {
+  height: auto !important;
+  min-height: 44px !important;
+  padding: 12px 20px !important;
+  border-radius: 999px !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  letter-spacing: -0.01em !important;
+  box-shadow: none !important;
+}
+
+.auth-find-clerk__primary-btn {
+  background: #000 !important;
+}
+
+.auth-find-clerk__primary-btn:hover {
+  background: #1a1a1a !important;
+}
+
+.auth-find-clerk__social-btn {
+  border: 1px solid rgba(0, 0, 0, 0.12) !important;
+  background: #fff !important;
+  color: #000 !important;
+}
+
+.auth-find-clerk__footer-link {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+}
+
+.auth-find-clerk__divider-text {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: rgba(0, 0, 0, 0.4) !important;
+}
+
+@media (max-width: 860px) {
+  .auth-find__shell {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .auth-find__copy {
+    position: static;
+  }
+}
+
+/* ============================================
+   AUTH MODAL — Sign in / Sign up (Clerk)
+   ============================================ */
+
+.auth-route {
+  position: relative;
+  min-height: 100svh;
+}
+
+/* Pin homepage behind modal so backdrop blur samples a stable layer */
+.auth-route:has(.auth-modal__scrim) .auth-route__page {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Freeze ambient hero motion at the frame auth opened on */
+.auth-route:has(.auth-modal__scrim) .hero-find__cloud-drift,
+.hero-find-scroll--frozen .hero-find__cloud-drift {
+  animation-play-state: paused !important;
+}
+
+.auth-route:has(.auth-modal__scrim) .find-why {
+  animation-play-state: paused;
+}
+
+.auth-route__page {
+  min-height: 100svh;
+}
+
+.auth-modal__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(16px, 4vw, 32px);
+  background: transparent;
+  animation: apply-fade 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.auth-modal__scrim::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: rgba(255, 255, 255, 0.22);
+  backdrop-filter: blur(28px) saturate(115%);
+  -webkit-backdrop-filter: blur(28px) saturate(115%);
+}
+
+.auth-modal {
+  position: relative;
+  width: min(100%, 440px);
+  max-height: min(92vh, 820px);
+  overflow: auto;
+  padding: clamp(24px, 4vw, 32px);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.18),
+    0 4px 16px rgba(0, 0, 0, 0.08);
+  animation: apply-rise 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.auth-modal__close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.05);
+  color: #000;
+  font-size: 22px;
+  line-height: 1;
+  font-weight: 400;
+  cursor: pointer;
+  transition: background 160ms ease;
+}
+
+.auth-modal__close:hover {
+  background: rgba(0, 0, 0, 0.1);
+}
+
+.auth-modal__head {
+  margin-bottom: 20px;
+  padding-right: 36px;
+}
+
+.auth-modal__brand {
+  display: inline-block;
+  margin-bottom: 20px;
+}
+
+.auth-modal__logo {
+  display: block;
+  width: auto;
+  height: 22px;
+  max-width: min(118px, 40vw);
+}
+
+.auth-modal__title {
+  margin: 0 0 10px;
+  font-size: clamp(1.5rem, 4vw, 1.85rem);
+  font-weight: 500;
+  line-height: 1.08;
+  letter-spacing: -0.035em;
+  color: #000;
+}
+
+.auth-modal__lede {
+  margin: 0;
+  max-width: 34ch;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+}
+
+.auth-modal__lede-strong {
+  color: #000;
+  font-weight: 500;
+}
+
+.auth-modal__lede-soft {
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.auth-modal__clerk {
+  width: 100%;
+}
+
+.auth-modal__clerk .auth-find-clerk__card {
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: 12px !important;
+  box-shadow: none !important;
+  padding: clamp(20px, 3vw, 24px) !important;
+}
+
+.auth-modal__swap {
+  margin: 16px 0 0;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+.auth-modal__swap-link {
+  font-weight: 500;
+  color: #000;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.25);
+  transition: border-color 160ms ease;
+}
+
+.auth-modal__swap-link:hover {
+  border-color: #000;
+}
+
+.auth-find-clerk__footer {
+  background: transparent !important;
+}
+
+/* Auth modal — mobile-only: bottom sheet, safe areas, touch-friendly Clerk */
+@media (max-width: 640px) {
+  .auth-modal__scrim {
+    align-items: flex-end;
+    justify-content: stretch;
+    padding: 0;
+  }
+
+  .auth-modal__scrim::before {
+    background: rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(20px) saturate(110%);
+    -webkit-backdrop-filter: blur(20px) saturate(110%);
+  }
+
+  .auth-modal {
+    width: 100%;
+    max-width: none;
+    max-height: min(92dvh, calc(100svh - env(safe-area-inset-top, 0px)));
+    margin: 0;
+    padding:
+      calc(12px + env(safe-area-inset-top, 0px))
+      18px
+      calc(18px + env(safe-area-inset-bottom, 0px));
+    border-radius: 20px 20px 0 0;
+    box-shadow:
+      0 -8px 40px rgba(0, 0, 0, 0.12),
+      0 24px 48px rgba(0, 0, 0, 0.14);
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+    animation: auth-sheet-rise 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  @keyframes auth-sheet-rise {
+    from {
+      opacity: 0;
+      transform: translateY(100%);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Sheet affordance */
+  .auth-modal::before {
+    content: "";
+    display: block;
+    width: 36px;
+    height: 4px;
+    margin: 0 auto 14px;
+    border-radius: 999px;
+    background: rgba(0, 0, 0, 0.12);
+  }
+
+  .auth-modal__close {
+    top: calc(10px + env(safe-area-inset-top, 0px));
+    right: 12px;
+    width: 44px;
+    height: 44px;
+    font-size: 24px;
+    touch-action: manipulation;
+  }
+
+  .auth-modal__head {
+    margin-bottom: 14px;
+    padding-right: 48px;
+  }
+
+  .auth-modal__brand {
+    margin-bottom: 12px;
+  }
+
+  .auth-modal__logo {
+    height: 20px;
+  }
+
+  .auth-modal__title {
+    margin-bottom: 8px;
+    font-size: 1.35rem;
+    letter-spacing: -0.03em;
+  }
+
+  .auth-modal__lede {
+    max-width: none;
+    font-size: 13px;
+    line-height: 1.4;
+  }
+
+  .auth-modal__clerk {
+    margin: 0 -2px;
+  }
+
+  .auth-modal__clerk .auth-find-clerk__card {
+    padding: 16px !important;
+    border-radius: 12px !important;
+  }
+
+  /* 16px inputs stop iOS auto-zoom on focus */
+  .auth-modal__clerk .auth-find-clerk__input {
+    min-height: 48px !important;
+    padding: 12px 14px !important;
+    font-size: 16px !important;
+  }
+
+  .auth-modal__clerk .auth-find-clerk__label {
+    font-size: 12px !important;
+  }
+
+  .auth-modal__clerk .auth-find-clerk__social-btn,
+  .auth-modal__clerk .auth-find-clerk__primary-btn {
+    min-height: 48px !important;
+    padding: 14px 20px !important;
+    font-size: 15px !important;
+    touch-action: manipulation;
+  }
+
+  .auth-modal__clerk .auth-find-clerk__footer-link {
+    font-size: 13px !important;
+  }
+
+  .auth-modal__swap {
+    margin-top: 12px;
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .auth-modal__swap-link {
+    display: inline-block;
+    padding: 4px 0;
+    touch-action: manipulation;
+  }
+}
+
+@media (max-width: 380px) {
+  .auth-modal {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .auth-modal__title {
+    font-size: 1.25rem;
+  }
+}
+
+/* ============================================
+   APPLY MODAL — Satoshi, white card, MATCH pill CTA
+   ============================================ */
+
+.apply-modal__scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: clamp(16px, 4vw, 40px);
+  background: rgba(10, 18, 30, 0.55);
+  backdrop-filter: blur(10px) saturate(115%);
+  -webkit-backdrop-filter: blur(10px) saturate(115%);
+  animation: apply-fade 220ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (min-width: 640px) {
+  .apply-modal__scrim {
+    align-items: center;
+  }
+}
+
+.apply-modal {
+  position: relative;
+  width: 100%;
+  max-width: 520px;
+  max-height: calc(100svh - 32px);
+  overflow: auto;
+  padding: clamp(28px, 4vw, 40px) clamp(24px, 4vw, 40px);
+  border-radius: 20px;
+  background: #fff;
+  color: #000;
+  box-shadow:
+    0 32px 64px -16px rgba(10, 18, 30, 0.45),
+    0 0 0 1px rgba(0, 0, 0, 0.04);
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  animation: apply-rise 280ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes apply-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes apply-rise {
+  from { opacity: 0; transform: translateY(16px) scale(0.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.apply-modal__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 999px;
+  background: #fff;
+  color: rgba(0, 0, 0, 0.55);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color 160ms ease, color 160ms ease, background 160ms ease;
+}
+
+.apply-modal__close:hover {
+  border-color: rgba(0, 0, 0, 0.2);
+  color: #000;
+  background: #fafafa;
+}
+
+.apply-modal__head {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 0 0 24px;
+}
+
+.apply-modal__eyebrow {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.apply-modal__title {
+  margin: 0;
+  font-size: clamp(1.6rem, 3.2vw, 2rem);
+  font-weight: 700;
+  line-height: 1.05;
+  letter-spacing: -0.035em;
+  color: #000;
+}
+
+.apply-modal__lede {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.55);
+}
+
+.apply-modal__form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.apply-modal__row {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.apply-modal__row--split {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 480px) {
+  .apply-modal__row--split {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.apply-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.apply-modal__label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.apply-modal__hint {
+  color: rgba(0, 0, 0, 0.4);
+  font-weight: 500;
+}
+
+.apply-modal__hint--block {
+  display: block;
+  margin-top: 6px;
+  font-size: 12px;
+  line-height: 1.4;
+  letter-spacing: 0;
+}
+
+.apply-modal__input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  background: #fff;
+  color: #000;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.apply-modal__input::placeholder {
+  color: rgba(0, 0, 0, 0.32);
+}
+
+.apply-modal__input:focus {
+  outline: none;
+  border-color: rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+}
+
+.apply-modal__textarea {
+  resize: vertical;
+  min-height: 84px;
+  line-height: 1.45;
+  font-weight: 400;
+}
+
+.apply-modal__error {
+  margin: 0;
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  color: #b91c1c;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+.apply-modal__fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+}
+
+.apply-modal__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.apply-modal__chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  padding: 8px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+  background: #fff;
+  color: rgba(0, 0, 0, 0.7);
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.apply-modal__chip:hover {
+  border-color: rgba(0, 0, 0, 0.32);
+  color: #000;
+}
+
+.apply-modal__chip.is-active {
+  background: #000;
+  border-color: #000;
+  color: #fff;
+}
+
+.apply-modal__chip input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.apply-modal__submit {
+  margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px 22px;
+  border: 0;
+  border-radius: 999px;
+  background: #000;
+  color: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  cursor: pointer;
+  transition: background 160ms ease, transform 160ms ease, box-shadow 160ms ease;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.apply-modal__submit:hover:not(:disabled) {
+  background: #1a1a1a;
+  transform: translateY(-1px);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+}
+
+/* Submit-with-flip — reuses the hero pill's text-slide micro-interaction
+ * The base button already paints the pill; this just turns on the same
+ * label flip + arrow nudge on hover. */
+.apply-modal__submit--anim {
+  position: relative;
+  overflow: hidden;
+}
+
+.apply-modal__submit--anim .btn-pill__label {
+  position: relative;
+  display: inline-block;
+  overflow: hidden;
+  line-height: 1.1;
+  vertical-align: middle;
+}
+
+.apply-modal__submit--anim .btn-pill__label-text {
+  display: block;
+  transition: transform 380ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.apply-modal__submit--anim .btn-pill__label-text--clone {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+}
+
+.apply-modal__submit--anim:hover:not(:disabled) .btn-pill__label-text {
+  transform: translateY(-100%);
+}
+
+.apply-modal__submit--anim .btn-pill-arrow {
+  display: inline-block;
+  font-size: 18px;
+  line-height: 1;
+  transition: transform 380ms cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.apply-modal__submit--anim:hover:not(:disabled) .btn-pill-arrow {
+  transform: translateX(4px);
+}
+
+/* ============================================
+   Suburb multi-select — modern combobox
+   Matches the modal's input styling, opens a
+   searchable list with chip-style selections.
+   ============================================ */
+.suburb-select {
+  position: relative;
+  width: 100%;
+}
+
+.suburb-select__trigger {
+  width: 100%;
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px 8px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 12px;
+  background: #fff;
+  color: #000;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.suburb-select.is-open .suburb-select__trigger,
+.suburb-select__trigger:focus-visible {
+  outline: none;
+  border-color: rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.06);
+}
+
+.suburb-select__placeholder {
+  flex: 1;
+  color: rgba(0, 0, 0, 0.32);
+}
+
+.suburb-select__tags {
+  flex: 1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 2px 0;
+}
+
+.suburb-select__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 10px;
+  border-radius: 999px;
+  background: #000;
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1;
+}
+
+.suburb-select__tag-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 12px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.suburb-select__tag-x:hover {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.suburb-select__chev {
+  margin-left: auto;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.5);
+  transition: transform 200ms ease;
+}
+
+.suburb-select.is-open .suburb-select__chev {
+  transform: rotate(180deg);
+}
+
+.suburb-select__menu {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 280px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.18),
+    0 2px 6px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  animation: suburb-select-pop 140ms ease-out;
+}
+
+@keyframes suburb-select-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.suburb-select__search {
+  width: 100%;
+  padding: 10px 14px;
+  border: 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fff;
+  color: #000;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  outline: none;
+}
+
+.suburb-select__search::placeholder {
+  color: rgba(0, 0, 0, 0.32);
+}
+
+.suburb-select__list {
+  list-style: none;
+  margin: 0;
+  padding: 6px 0;
+  overflow-y: auto;
+  flex: 1 1 auto;
+}
+
+.suburb-select__option {
+  display: grid;
+  grid-template-columns: 20px 1fr auto;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+  transition: background 120ms ease;
+}
+
+.suburb-select__option:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.suburb-select__option.is-checked {
+  background: rgba(0, 0, 0, 0.035);
+}
+
+.suburb-select__check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid rgba(0, 0, 0, 0.25);
+  border-radius: 5px;
+  font-size: 12px;
+  line-height: 1;
+  color: #fff;
+  background: #fff;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.suburb-select__option.is-checked .suburb-select__check {
+  background: #000;
+  border-color: #000;
+}
+
+.suburb-select__option-state {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: rgba(0, 0, 0, 0.4);
+}
+
+.suburb-select__empty {
+  padding: 14px;
+  font-size: 13px;
+  color: rgba(0, 0, 0, 0.45);
+  text-align: center;
+}
+
+.apply-modal__submit:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
+.apply-modal__foot {
+  margin: 4px 0 0;
+  text-align: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.apply-modal__foot-link {
+  color: #000;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.3);
+  transition: border-color 160ms ease;
+}
+
+.apply-modal__foot-link:hover {
+  border-color: #000;
+}
+
+.apply-modal__success {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+.apply-modal__success .apply-modal__submit {
+  align-self: flex-start;
+  margin-top: 12px;
+}
+
+/* ============================================
+   FIND-style scroll wordmark + whiteout
+   ============================================ */
+
+/* Dedicated cloud halo behind the wordmark — fills sky around the letters
+ * z-index 6, below wordmark (7), above the headline/building layers
+ * Mask + blur each PNG so edges fade out smoothly under screen-blend */
+.hero-find__clouds--wordmark {
+  position: absolute;
+  /* Starts above the viewport so the halo sticks to the top during the MATCH
+   * reveal instead of exposing a horizontal layer edge under the nav. */
+  top: -22vh;
+  left: -8vw;
+  right: -8vw;
+  bottom: 8%;
+  height: auto;
+  z-index: 6;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+}
+
+.hero-find__clouds--wordmark .hero-find__clouds-img {
+  filter: blur(2px);
+  -webkit-mask-image: radial-gradient(
+    ellipse 60% 55% at 50% 55%,
+    #000 20%,
+    rgba(0, 0, 0, 0.55) 55%,
+    rgba(0, 0, 0, 0.15) 80%,
+    transparent 92%
+  );
+  mask-image: radial-gradient(
+    ellipse 60% 55% at 50% 55%,
+    #000 20%,
+    rgba(0, 0, 0, 0.55) 55%,
+    rgba(0, 0, 0, 0.15) 80%,
+    transparent 92%
+  );
+}
+
+.hero-find__clouds-img.hero-find__clouds-img--wordmark-left {
+  position: absolute;
+  top: 0;
+  left: -8%;
+  bottom: auto;
+  width: min(900px, 65vw);
+  opacity: 0.92;
+  transform: scaleX(-1);
+}
+
+.hero-find__clouds-img.hero-find__clouds-img--wordmark-right {
+  position: absolute;
+  top: 2%;
+  right: -8%;
+  left: auto;
+  bottom: auto;
+  width: min(900px, 65vw);
+  opacity: 0.92;
+  transform: none;
+}
+
+.hero-find__clouds-img.hero-find__clouds-img--wordmark-center {
+  position: absolute;
+  bottom: -15%;
+  left: 50%;
+  top: auto;
+  width: min(1600px, 120vw);
+  opacity: 0.85;
+  transform: translateX(-50%);
+}
+
+/* Giant MATCH wordmark — gradually appears over the landing as you scroll
+ * Filled with the penthouse image via background-clip: text (FIND-style)
+ * z-index sits ABOVE the cloud halo so clouds drift behind the letters
+ * Anchored at 50% so scale grows symmetrically without chopping the top edge */
+.hero-find__wordmark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 7;
+  white-space: nowrap;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  transform-origin: center center;
+  will-change: transform, opacity;
+}
+
+/* Font size capped so even at peak scale (1.05x) the wordmark fits the viewport
+ * Was clamp(6rem, 24vw, 24rem) — cut to clamp(5rem, 19vw, 17rem) for safe headroom
+ *
+ * background-size: 200% — image is twice the wordmark width so even outer
+ * letters (M and H) have building texture to clip from. Otherwise they render
+ * partially transparent because the image doesn't reach them. */
+.hero-find__wordmark-text {
+  display: block;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(5rem, 19vw, 17rem);
+  font-weight: 700;
+  line-height: 0.88;
+  letter-spacing: -0.06em;
+  background-image: url("/hero/penthouse.png?v=5");
+  background-size: 200% auto;
+  background-position: center 60%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: saturate(1.1) contrast(1.05);
+}
+
+/* Whiteout — a soft cloudy haze that emerges from the bloomed cloud bank.
+ * It must already cover the top of the viewport when the Why MATCH frame
+ * appears; starting transparent at 0% creates the visible horizontal chop. */
+.hero-find__whiteout {
+  position: absolute;
+  inset: -36vh 0 0;
+  z-index: 8;
+  pointer-events: none;
+  will-change: opacity;
+  /* Keep a light haze from the very top so the transition has no exposed edge. */
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 0.92) 18%,
+    rgba(255, 255, 255, 0.94) 34%,
+    rgba(255, 255, 255, 0.96) 50%,
+    rgba(255, 255, 255, 0.98) 68%,
+    #ffffff 100%
+  );
+  filter: blur(4px);
+}
+
+/* Diffuse cloud puff feathering the top edge of the whiteout */
+.hero-find__whiteout-veil {
+  position: absolute;
+  top: -34vh;
+  left: -12vw;
+  right: -12vw;
+  height: 120vh;
+  background:
+    radial-gradient(
+      ellipse 90% 70% at 50% 38%,
+      rgba(255, 255, 255, 0.38) 0%,
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 60% 80% at 20% 100%,
+      rgba(255, 255, 255, 0.85) 0%,
+      transparent 75%
+    ),
+    radial-gradient(
+      ellipse 70% 95% at 55% 100%,
+      rgba(255, 255, 255, 0.95) 0%,
+      transparent 78%
+    ),
+    radial-gradient(
+      ellipse 55% 85% at 88% 100%,
+      rgba(255, 255, 255, 0.85) 0%,
+      transparent 75%
+    );
+  filter: blur(14px);
+  opacity: 0.95;
+}
+
+.hero-find__whiteout-fill {
+  display: none;
+}
+
+/* "Why MATCH" reveal — emerges in the dissolving cloud bank
+ * Sits above whiteout (z-index 9) so it's readable through the haze.
+ * Centered in the hero so the eye stays anchored where the wordmark just was. */
+.hero-find__why-reveal {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  z-index: 9;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(18px, 2.6vh, 28px);
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 0 clamp(24px, 5vw, 56px);
+  text-align: center;
+  pointer-events: none;
+  transform: translateY(-50%);
+  will-change: transform, opacity;
+}
+
+.hero-find__why-eyebrow {
+  margin: 0 0 clamp(4px, 0.6vh, 8px);
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.45);
+}
+
+/* Confident, large, tight — matches the hero's "Search before it's listed" weight */
+.hero-find__why-headline {
+  margin: 0;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(2rem, 5vw, 4rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: #000;
+  text-wrap: balance;
+  max-width: 18ch;
+}
+
+.hero-find__why-sub {
+  margin: 0;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(15px, 1.5vw, 19px);
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.012em;
+  color: rgba(0, 0, 0, 0.5);
+  text-wrap: balance;
+  max-width: 48ch;
+}
+
+/* ============================================
+   HERO BRIDGE — giant MATCH wordmark between hero & "Why MATCH"
+   FIND-style: clouds top + bottom, wordmark filled with building image
+   ============================================ */
+
+.hero-bridge {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 70vh;
+  padding: clamp(48px, 8vh, 96px) clamp(20px, 4vw, 40px);
+  background: #ffffff;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+/* Cloud wisp top — bleeds in from the hero whiteout above */
+.hero-bridge__clouds-top {
+  position: absolute;
+  top: -16vh;
+  left: -10vw;
+  right: -10vw;
+  height: 36vh;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 55% 80% at 25% 100%,
+      rgba(220, 230, 240, 0.55) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 65% 90% at 65% 100%,
+      rgba(220, 230, 240, 0.65) 0%,
+      transparent 75%
+    ),
+    radial-gradient(
+      ellipse 50% 75% at 90% 100%,
+      rgba(220, 230, 240, 0.5) 0%,
+      transparent 70%
+    );
+  filter: blur(12px);
+  z-index: 0;
+}
+
+/* Cloud wisp bottom — leads into "Why MATCH" */
+.hero-bridge__clouds-bottom {
+  position: absolute;
+  bottom: -12vh;
+  left: -10vw;
+  right: -10vw;
+  height: 30vh;
+  pointer-events: none;
+  background:
+    radial-gradient(
+      ellipse 60% 80% at 30% 0%,
+      rgba(220, 230, 240, 0.45) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 75% at 75% 0%,
+      rgba(220, 230, 240, 0.55) 0%,
+      transparent 75%
+    );
+  filter: blur(14px);
+  z-index: 0;
+}
+
+.hero-bridge__inner {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.hero-bridge__eyebrow {
+  margin: 0 0 clamp(20px, 3vh, 36px);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.4);
+  opacity: 0;
+  transform: translateY(20px);
+  animation: hero-bridge-eyebrow both linear;
+  animation-timeline: view();
+  animation-range: entry 0% entry 40%;
+}
+
+/* Giant MATCH — filled with the penthouse image (background-clip: text) */
+.hero-bridge__wordmark {
+  margin: 0;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-size: clamp(5.5rem, 22vw, 22rem);
+  font-weight: 700;
+  line-height: 0.88;
+  letter-spacing: -0.06em;
+  background-image: url("/hero/penthouse.png?v=5");
+  background-size: 110% auto;
+  background-position: center 65%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  filter: saturate(1.1) contrast(1.05);
+  /* Scroll reveal: scale + opacity in */
+  opacity: 0;
+  transform: scale(0.9);
+  animation: hero-bridge-wordmark both linear;
+  animation-timeline: view();
+  animation-range: entry 0% entry 70%;
+}
+
+.hero-bridge__tag {
+  margin: clamp(20px, 3vh, 36px) 0 0;
+  font-size: clamp(14px, 1.4vw, 18px);
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: rgba(0, 0, 0, 0.55);
+  opacity: 0;
+  transform: translateY(20px);
+  animation: hero-bridge-tag both linear;
+  animation-timeline: view();
+  animation-range: entry 20% entry 60%;
+}
+
+@keyframes hero-bridge-eyebrow {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes hero-bridge-wordmark {
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes hero-bridge-tag {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Safari fallback — no view-timeline yet */
+@supports not (animation-timeline: view()) {
+  .hero-bridge__eyebrow,
+  .hero-bridge__wordmark,
+  .hero-bridge__tag {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+}
+
+/* ----- Member pages — FIND premium shell (listings, suburbs, briefs, …) ----- */
+
+.find-page {
+  background: #fff;
+  color: #000;
+}
+
+.find-page__inner {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: clamp(88px, 12vh, 112px) clamp(28px, 5.5vw, 80px)
+    clamp(64px, 8vh, 96px);
+}
+
+.find-page__head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: clamp(28px, 4vw, 48px);
+  margin-bottom: clamp(36px, 5vh, 52px);
+  padding-bottom: clamp(28px, 4vh, 40px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.find-page__kicker {
+  margin: 0 0 12px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.find-page h1.find-page__title {
+  margin: 0;
+  font-size: clamp(2.25rem, 4.5vw, 3.75rem);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.038em;
+}
+
+.find-page__title-strong {
+  display: block;
+  color: #000;
+}
+
+.find-page__title-soft {
+  display: block;
+  color: rgba(0, 0, 0, 0.34);
+}
+
+.find-page__lede {
+  max-width: 52ch;
+  margin-top: 16px;
+  font-size: clamp(15px, 1.35vw, 17px);
+  font-weight: 400;
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.find-page__stats {
+  display: flex;
+  gap: clamp(20px, 3vw, 36px);
+  margin: 0;
+  padding-left: clamp(20px, 3vw, 32px);
+  border-left: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.find-page__stats > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.find-page__stats dt {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  color: rgba(0, 0, 0, 0.38);
+}
+
+.find-page__stats dd {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  color: #000;
+}
+
+/* Pill filters */
+.find-page__filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: clamp(28px, 4vh, 36px);
+}
+
+.find-page__filter {
+  padding: 10px 18px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 999px;
+  background: #fff;
+  color: #000;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: pointer;
+  transition: border-color 160ms ease, background 160ms ease;
+}
+
+.find-page__filter:hover {
+  border-color: rgba(0, 0, 0, 0.28);
+}
+
+.find-page__filter.is-active {
+  border-color: #000;
+  background: #000;
+  color: #fff;
+}
+
+/* Portfolio listing cards */
+.find-page__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 20px);
+}
+
+.find-portfolio-card {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 180ms ease;
+}
+
+.find-portfolio-card:hover {
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+.find-portfolio-card__media {
+  aspect-ratio: 4 / 3;
+  background-size: cover;
+  background-position: center;
+  background-color: #f5f5f5;
+}
+
+.find-portfolio-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: clamp(16px, 2vw, 20px);
+}
+
+.find-portfolio-card__tag {
+  margin: 0;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.38);
+}
+
+.find-portfolio-card__body h2 {
+  margin: 0;
+  font-size: clamp(1.05rem, 1.25vw, 1.2rem);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+.find-portfolio-card__meta {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.find-portfolio-card__details {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 16px;
+  margin: 8px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.find-portfolio-card__details div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.find-portfolio-card__details dt {
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.38);
+}
+
+.find-portfolio-card__details dd {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 500;
+  color: #000;
+}
+
+.find-portfolio-card__cta {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  text-decoration-color: rgba(0, 0, 0, 0.32);
+}
+
+.find-portfolio-card:hover .find-portfolio-card__cta {
+  text-decoration-color: #000;
+}
+
+/* Suburbs table */
+.find-page__table-wrap {
+  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+}
+
+.find-page__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.find-page__table thead th {
+  padding: 14px 18px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  text-align: left;
+  color: rgba(0, 0, 0, 0.38);
+  background: #fafafa;
+}
+
+.find-page__table tbody td,
+.find-page__table tbody th {
+  padding: 16px 18px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  font-weight: 400;
+  vertical-align: middle;
+}
+
+.find-page__table tbody tr:last-child td,
+.find-page__table tbody tr:last-child th {
+  border-bottom: 0;
+}
+
+.find-page__table tbody tr:hover {
+  background: rgba(0, 0, 0, 0.02);
+}
+
+.find-page__table .find-page__suburb-name {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.find-page__table .find-page__suburb-name small {
+  display: block;
+  margin-top: 2px;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.38);
+}
+
+.find-page__table-link {
+  font-size: 14px;
+  font-weight: 500;
+  color: #000;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: rgba(0, 0, 0, 0.32);
+}
+
+.find-page__table-link:hover {
+  text-decoration-color: #000;
+}
+
+.trend-up {
+  color: rgba(0, 0, 0, 0.72);
+}
+
+.trend-flat {
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.trend-down {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+/* Briefs layout */
+.find-page__split {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: clamp(32px, 5vw, 56px);
+  align-items: start;
+}
+
+.find-page__panel {
+  padding: clamp(24px, 3vw, 32px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  background: #fff;
+}
+
+.find-page__panel h2 {
+  margin: 0 0 20px;
+  font-size: 1.25rem;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.find-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.find-page__field label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgba(0, 0, 0, 0.48);
+}
+
+.find-page__field input,
+.find-page__field select,
+.find-page__field textarea {
+  padding: 12px 14px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 8px;
+  background: #fff;
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  color: #000;
+}
+
+.find-page__field textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.find-page__submit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  margin-top: 8px;
+  padding: 13px 24px;
+  border: 0;
+  border-radius: 999px;
+  background: #000;
+  color: #fff;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.find-page__fineprint {
+  margin: 14px 0 0;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.find-page__brief-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.find-page__brief-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 16px;
+  align-items: start;
+  padding: 18px 20px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  background: #fff;
+}
+
+.find-page__brief-id {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: rgba(0, 0, 0, 0.38);
+}
+
+.find-page__brief-row h3 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.find-page__brief-row p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.find-page__brief-matches {
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.find-page__brief-matches span {
+  display: block;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+/* Blog */
+.find-page__blog-feature {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+  gap: clamp(24px, 4vw, 40px);
+  margin-bottom: clamp(36px, 5vh, 48px);
+  padding-bottom: clamp(36px, 5vh, 48px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.find-page__blog-feature-image {
+  display: block;
+  aspect-ratio: 16 / 10;
+  border-radius: 12px;
+  background-size: cover;
+  background-position: center;
+}
+
+.find-page__blog-feature h2 {
+  margin: 0 0 12px;
+  font-size: clamp(1.25rem, 2vw, 1.5rem);
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.03em;
+}
+
+.find-page__blog-feature h2 a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.find-page__blog-feature-desc {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.find-page__blog-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 20px);
+}
+
+.find-page__blog-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  text-decoration: none;
+  color: inherit;
+}
+
+.find-page__blog-card-image {
+  aspect-ratio: 4 / 3;
+  border-radius: 10px;
+  background-size: cover;
+  background-position: center;
+}
+
+.find-page__blog-card h3 {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 500;
+  line-height: 1.3;
+  letter-spacing: -0.02em;
+}
+
+.find-page__blog-card p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.45;
+  color: rgba(0, 0, 0, 0.42);
+}
+
+/* About — public marketing page, full-viewport snap panels */
+.about-panel {
+  position: relative;
+  box-sizing: border-box;
+  flex-shrink: 0;
+  height: 100dvh;
+  height: 100svh;
+  min-height: 100dvh;
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  scroll-snap-align: start;
+  scroll-snap-stop: normal;
+  padding: clamp(80px, 11vh, 108px) clamp(28px, 5.5vw, 80px)
+    clamp(48px, 6vh, 72px);
+}
+
+.about-panel--tall {
+  height: auto;
+  min-height: 100dvh;
+  min-height: 100svh;
+}
+
+.about-panel__inner {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+}
+
+.about-panel--intro {
+  padding: 0;
+  overflow: hidden;
+  background: #5fa8de;
+}
+
+/* About intro — reuses home hero sky, clouds, and building */
+.about-hero {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: inherit;
+  overflow: hidden;
+  text-align: center;
+}
+
+.about-hero__scene {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.about-hero .hero-find__clouds--text.about-hero__clouds--text {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: clamp(260px, 38vh, 440px);
+  z-index: 2;
+  transform: translateY(-58%);
+}
+
+/* Keep mist in the lower band — don't wash over the stats row */
+.about-hero .hero-find__clouds--front.about-hero__clouds--front {
+  top: auto;
+  bottom: 0;
+  height: min(42vh, 360px);
+  z-index: 3;
+}
+
+.about-hero__content {
+  position: relative;
+  z-index: 10;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: 56rem;
+  min-height: inherit;
+  margin: 0 auto;
+  padding: clamp(88px, 12vh, 112px) clamp(28px, 5.5vw, 80px)
+    clamp(40px, 6vh, 64px);
+  box-sizing: border-box;
+}
+
+.about-hero__kicker {
+  margin-bottom: 14px;
+  text-shadow: 0 1px 18px rgba(255, 255, 255, 0.75);
+}
+
+.about-hero__title {
+  margin: 0;
+  font-size: clamp(2.85rem, 7.8vw, 6.25rem);
+  font-weight: 700;
+  line-height: 0.94;
+  letter-spacing: -0.052em;
+  text-wrap: balance;
+  text-shadow: 0 2px 28px rgba(255, 255, 255, 0.8);
+}
+
+.about-hero__title-strong {
+  display: block;
+  color: #000;
+}
+
+.about-hero__title-soft {
+  display: block;
+  color: rgba(0, 0, 0, 0.34);
+}
+
+.about-hero__lede {
+  max-width: 36ch;
+  margin: clamp(16px, 2.5vh, 22px) auto 0;
+  font-size: clamp(15px, 1.55vw, 18px);
+  font-weight: 400;
+  line-height: 1.45;
+  letter-spacing: -0.01em;
+  color: rgba(0, 0, 0, 0.5);
+  text-shadow: 0 1px 20px rgba(255, 255, 255, 0.75);
+}
+
+.about-hero__stats {
+  position: relative;
+  z-index: 2;
+  justify-content: center;
+  margin-top: clamp(28px, 4vh, 40px);
+  padding-left: 0;
+  padding-top: clamp(24px, 3.5vh, 32px);
+  border-left: none;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.about-hero__stats dt,
+.about-hero__stats dd {
+  position: relative;
+  z-index: 1;
+}
+
+.about-hero__stats dd {
+  color: #000;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .about-hero--loaded {
+    animation: hero-enter-fade 1.1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+}
+
+@media (max-width: 720px) {
+  .about-hero__title {
+    font-size: clamp(2.35rem, 11vw, 3.4rem);
+    letter-spacing: -0.045em;
+  }
+
+  .about-hero .hero-find__clouds-img--text-left {
+    left: -32vw;
+    width: min(640px, 130vw);
+  }
+
+  .about-hero .hero-find__clouds-img--text-right {
+    right: -32vw;
+    width: min(640px, 130vw);
+  }
+}
+
+@media (min-width: 1280px) {
+  .about-hero__title {
+    font-size: clamp(4.5rem, 6.8vw, 6.75rem);
+  }
+}
+
+/* About detail sections — reuse home find-product / find-steps layout */
+.about-detail .find-product__inner {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr);
+  align-items: start;
+  gap: clamp(48px, 8vw, 112px);
+  width: 100%;
+}
+
+.about-detail .find-product__intro {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(28px, 4vh, 40px);
+  padding-top: clamp(4px, 1vh, 12px);
+}
+
+.about-detail .find-page__kicker {
+  margin: 0;
+}
+
+.about-detail h2.find-product__title {
+  margin: 0;
+  font-size: clamp(2.85rem, 5.2vw, 5.25rem);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.038em;
+}
+
+.about-detail .find-product__steps-wrap {
+  min-width: 0;
+  padding-top: clamp(4px, 1vh, 12px);
+}
+
+.about-panel--thesis {
+  background: #fff;
+}
+
+.about-panel--founder {
+  background: #fafafa;
+}
+
+.find-page__about-founder {
+  display: grid;
+  grid-template-columns: minmax(0, 0.38fr) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(40px, 6vw, 88px);
+  width: 100%;
+}
+
+.find-page__about-founder-copy {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  min-width: 0;
+  padding-top: clamp(4px, 1vh, 12px);
+}
+
+.find-page__about-founder-copy .find-page__kicker {
+  margin: 0 0 14px;
+}
+
+.find-page__about-founder-copy h2.find-product__title {
+  margin: 0;
+  font-size: clamp(2.35rem, 4.5vw, 4.25rem);
+  font-weight: 500;
+  line-height: 1.04;
+  letter-spacing: -0.038em;
+}
+
+.find-page__about-founder-steps {
+  width: 100%;
+  margin-top: clamp(36px, 5vh, 52px);
+  padding-top: clamp(36px, 5vh, 52px);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+.find-page__about-founder-steps .find-steps__heading {
+  margin: 0 0 20px;
+}
+
+.find-page__about-founder-media {
+  margin: 0;
+  min-height: 0;
+}
+
+.find-page__about-founder-photo {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: min(78vh, 720px);
+  object-fit: contain;
+  object-position: center center;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  background: #f4f4f4;
+}
+
+.find-page__about-founder-role {
+  margin: clamp(18px, 2.5vh, 24px) 0 0;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  letter-spacing: -0.01em;
+  color: rgba(0, 0, 0, 0.42);
+}
+
+.about-panel--principles {
+  background: #fff;
+}
+
+.find-page__section-title {
+  margin: 12px 0 clamp(24px, 4vh, 32px);
+  font-size: clamp(1.5rem, 2.5vw, 2rem);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+}
+
+@media (max-width: 1024px) {
+  .find-page__grid,
+  .find-page__blog-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .find-page__split {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .find-page__head {
+    grid-template-columns: 1fr;
+  }
+
+  .find-page__stats {
+    padding-left: 0;
+    border-left: 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+    padding-top: 20px;
+  }
+
+  .find-page__grid,
+  .find-page__blog-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .about-detail .find-product__inner {
+    grid-template-columns: 1fr;
+    gap: 44px;
+  }
+
+  .about-detail .find-product__intro,
+  .about-detail .find-product__steps-wrap {
+    padding-top: 0;
+  }
+
+  .find-page__blog-feature {
+    grid-template-columns: 1fr;
+  }
+
+  .find-page__about-founder {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+
+  .find-page__about-founder-copy {
+    padding-top: 0;
+  }
+
+  .find-page__about-founder-steps {
+    margin-top: 28px;
+    padding-top: 28px;
+  }
+
+  .find-page__about-founder-photo {
+    max-height: min(58vh, 520px);
+  }
+
+  html:has(.find-page--about) {
+    scroll-snap-type: none;
+  }
+
+  .about-panel--tall {
+    justify-content: flex-start;
+    padding-top: clamp(72px, 10vh, 96px);
+  }
+}

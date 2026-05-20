@@ -111,11 +111,11 @@ export default async function ListingDetailPage({ params }: { params: Params }) 
           />
           <KpiTile
             kicker="v"
-            label={authorityWarn ? "Authority — renew" : "Authority"}
+            label={authorityWarn ? "Authority - renew" : "Authority"}
             value={
               listing.authorityDaysLeft !== null
                 ? listing.authorityDaysLeft + "d"
-                : "—"
+                : "-"
             }
             delta={
               authorityWarn

@@ -3,7 +3,7 @@
  * ---------------------
  * Every function here is async and returns typed data. Today they fall back
  * to curated mock data. Tomorrow they swap to a real API with a single edit
- * per function — the calling pages never need to change.
+ * per function - the calling pages never need to change.
  */
 
 export type Listing = {
@@ -289,7 +289,7 @@ const MOCK_POSTS: Post[] = [
     slug: "approach-private-campaign",
     category: "Field Notes",
     title: "How to approach a private property campaign",
-    dek: "The opening move matters more than the offer. Eight agents on the etiquette of approaching a quiet listing — what lands, what doesn't, and the phrases that close the door before you've walked through it.",
+    dek: "The opening move matters more than the offer. Eight agents on the etiquette of approaching a quiet listing - what lands, what doesn't, and the phrases that close the door before you've walked through it.",
     author: "Harriet Rowe",
     date: "19 April 2026",
     readTime: "4 min",
@@ -323,7 +323,7 @@ const MOCK_POSTS: Post[] = [
     slug: "the-private-market-explained",
     category: "Primer",
     title: "The private market, explained in under 1,000 words",
-    dek: "Off-market, pre-market, quiet listing — the vocabulary is deliberately opaque. Here's a plain-English primer.",
+    dek: "Off-market, pre-market, quiet listing - the vocabulary is deliberately opaque. Here's a plain-English primer.",
     author: "Tom Asprey",
     date: "29 March 2026",
     readTime: "5 min",
@@ -367,6 +367,20 @@ async function swrOrMock<T>(endpoint: string, mock: T): Promise<T> {
 
 export async function fetchListings(): Promise<Listing[]> {
   return swrOrMock("/listings", MOCK_LISTINGS);
+}
+
+/** Home strip: prefer suburb matches, then fill from catalogue */
+export async function fetchFeaturedListingsForSuburb(
+  suburb: string,
+  limit = 3,
+): Promise<Listing[]> {
+  const all = await fetchListings();
+  const key = suburb.trim().toLowerCase();
+  const matched = all.filter((l) => l.suburb.toLowerCase() === key);
+  if (matched.length >= limit) return matched.slice(0, limit);
+
+  const rest = all.filter((l) => l.suburb.toLowerCase() !== key);
+  return [...matched, ...rest].slice(0, limit);
 }
 
 export async function fetchSuburbs(): Promise<Suburb[]> {

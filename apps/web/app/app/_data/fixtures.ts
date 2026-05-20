@@ -317,13 +317,13 @@ export const listingDetails: Record<string, ListingDetail> = {
       "Cellar (240 bottles)",
     ],
     images: [
-      { src: "", caption: "Plate I — Façade, Glenferrie Rd" },
-      { src: "", caption: "Plate II — Principal salon" },
-      { src: "", caption: "Plate III — Kitchen, Studio Tate" },
-      { src: "", caption: "Plate IV — Garden, P. Bangay" },
+      { src: "", caption: "Plate I - Façade, Glenferrie Rd" },
+      { src: "", caption: "Plate II - Principal salon" },
+      { src: "", caption: "Plate III - Kitchen, Studio Tate" },
+      { src: "", caption: "Plate IV - Garden, P. Bangay" },
     ],
     agentName: "John Lockheart",
-    agentFirm: "OMM — Boroondara",
+    agentFirm: "OMM - Boroondara",
     campaignStartedDays: 9,
     inspections: [
       { day: "Sat 26 Apr", time: "11:00–11:30", rsvps: 14 },
@@ -350,12 +350,12 @@ export const listingDetails: Record<string, ListingDetail> = {
       "Heated marble bathrooms",
     ],
     images: [
-      { src: "", caption: "Plate I — Park Street elevation" },
-      { src: "", caption: "Plate II — Principal salon, north light" },
-      { src: "", caption: "Plate III — Kitchen & breakfast room" },
+      { src: "", caption: "Plate I - Park Street elevation" },
+      { src: "", caption: "Plate II - Principal salon, north light" },
+      { src: "", caption: "Plate III - Kitchen & breakfast room" },
     ],
     agentName: "John Lockheart",
-    agentFirm: "OMM — Bayside",
+    agentFirm: "OMM - Bayside",
     campaignStartedDays: 21,
     inspections: [{ day: "By appointment", time: "Private", rsvps: 0 }],
     privateInspections: 8,
@@ -469,7 +469,7 @@ export const myPostedBriefs: Brief[] = [
         agentFirm: "Jellis Craig",
         hoursAgo: 3,
         snippet:
-          "Yes — 12 Denham coming to off-market next week. Period Edwardian, north-facing rear, walking to Auburn South PS. Happy to show you privately.",
+          "Yes - 12 Denham coming to off-market next week. Period Edwardian, north-facing rear, walking to Auburn South PS. Happy to show you privately.",
         matchId: "bm-12-denham",
       },
       {
@@ -487,7 +487,7 @@ export const myPostedBriefs: Brief[] = [
         agentFirm: "Kay & Burton",
         hoursAgo: 30,
         snippet:
-          "Off-market on Wattle Pde. Vendor is testing the water — call me.",
+          "Off-market on Wattle Pde. Vendor is testing the water - call me.",
         matchId: "bm-7-wattle",
       },
       {
@@ -496,7 +496,7 @@ export const myPostedBriefs: Brief[] = [
         agentFirm: "Kay & Burton",
         hoursAgo: 50,
         snippet:
-          "One more option in Kew East — slightly above your range but worth a look.",
+          "One more option in Kew East - slightly above your range but worth a look.",
       },
     ],
   },
@@ -655,20 +655,20 @@ export const threads: MessageThread[] = [
     context: "1240 Park Ave",
     category: "BUYER",
     unread: true,
-    preview: "Floorplan v2 received — loading into data room now.",
+    preview: "Floorplan v2 received - loading into data room now.",
     lastTime: "2M",
     messages: [
       {
         id: "m-1",
         direction: "IN",
-        body: "Floorplan v2 received — loading into data room now.",
+        body: "Floorplan v2 received - loading into data room now.",
         time: "10:42 AM",
         dateGroup: "TODAY",
       },
       {
         id: "m-2",
         direction: "OUT",
-        body: "Legend — thanks, pinging vendor for sign-off.",
+        body: "Legend - thanks, pinging vendor for sign-off.",
         time: "10:45 AM",
       },
       {
@@ -681,7 +681,7 @@ export const threads: MessageThread[] = [
             id: "att-floorplan",
             filename: "FLOOR_PLAN_V2.PDF",
             kind: "PLAN",
-            caption: "Hawthorn City Center — North wing, level 1",
+            caption: "Hawthorn City Center - North wing, level 1",
           },
         ],
       },
@@ -704,13 +704,13 @@ export const threads: MessageThread[] = [
     context: "12 Park St, Brighton",
     category: "LISTING",
     unread: true,
-    preview: "SOI + floorplan sent — review by 5pm?",
+    preview: "SOI + floorplan sent - review by 5pm?",
     lastTime: "2M",
     messages: [
       {
         id: "az-1",
         direction: "IN",
-        body: "SOI + floorplan sent — review by 5pm?",
+        body: "SOI + floorplan sent - review by 5pm?",
         time: "9:24 AM",
         dateGroup: "TODAY",
       },
@@ -730,18 +730,18 @@ export const threads: MessageThread[] = [
       firm: "Jellis Craig",
       isOnline: false,
     },
-    context: "12 Denham St — re. Hawthorn / Kew brief",
+    context: "12 Denham St - re. Hawthorn / Kew brief",
     category: "BRIEF",
     unread: true,
     preview:
-      "Yes — 12 Denham coming to off-market next week. Period Edwardian, north-facing rear…",
+      "Yes - 12 Denham coming to off-market next week. Period Edwardian, north-facing rear…",
     lastTime: "3H",
     messages: [
       {
         id: "sl-1",
         direction: "IN",
         body:
-          "Yes — 12 Denham coming to off-market next week. Period Edwardian, north-facing rear, walking to Auburn South PS. Happy to show you privately.",
+          "Yes - 12 Denham coming to off-market next week. Period Edwardian, north-facing rear, walking to Auburn South PS. Happy to show you privately.",
         time: "11:42 AM",
         dateGroup: "TODAY",
       },
@@ -761,7 +761,7 @@ export const threads: MessageThread[] = [
       firm: "Marshall White",
       isOnline: false,
     },
-    context: "Hawthorn / Kew brief — pre-market matches",
+    context: "Hawthorn / Kew brief - pre-market matches",
     category: "BRIEF",
     unread: false,
     preview: "I have two pre-market matches for your brief…",
@@ -777,7 +777,7 @@ export const threads: MessageThread[] = [
       {
         id: "tr-2",
         direction: "OUT",
-        body: "Send them through — keen to see both.",
+        body: "Send them through - keen to see both.",
         time: "Yesterday",
       },
     ],
@@ -806,7 +806,7 @@ export const threads: MessageThread[] = [
       {
         id: "jd-2",
         direction: "OUT",
-        body: "Yes — 4pm or 5pm both available. Which suits?",
+        body: "Yes - 4pm or 5pm both available. Which suits?",
         time: "Wed 23 Apr",
       },
     ],
@@ -819,17 +819,17 @@ export const threads: MessageThread[] = [
       firm: "Kay & Burton",
       isOnline: false,
     },
-    context: "Wattle Pde, Kew — re. Hawthorn / Kew brief",
+    context: "Wattle Pde, Kew - re. Hawthorn / Kew brief",
     category: "BRIEF",
     unread: false,
-    preview: "Off-market on Wattle Pde. Vendor is testing the water — call me.",
+    preview: "Off-market on Wattle Pde. Vendor is testing the water - call me.",
     lastTime: "3D",
     messages: [
       {
         id: "pm-1",
         direction: "IN",
         body:
-          "Off-market on Wattle Pde. Vendor is testing the water — call me.",
+          "Off-market on Wattle Pde. Vendor is testing the water - call me.",
         time: "Tue 22 Apr",
         dateGroup: "TUE 22 APR",
       },
@@ -843,7 +843,7 @@ export const threads: MessageThread[] = [
       firm: "Buxton",
       isOnline: false,
     },
-    context: "Park St, Brighton — re. Bayside coastal brief",
+    context: "Park St, Brighton - re. Bayside coastal brief",
     category: "BRIEF",
     unread: false,
     preview:
@@ -871,14 +871,14 @@ export const threads: MessageThread[] = [
     context: "Re. Brighton Terrace · 14 Park St",
     category: "LISTING",
     unread: false,
-    preview: "Following up on the Saturday inspection — could we book a private?",
+    preview: "Following up on the Saturday inspection - could we book a private?",
     lastTime: "5D",
     messages: [
       {
         id: "aw-1",
         direction: "IN",
         body:
-          "Following up on the Saturday inspection — could we book a private?",
+          "Following up on the Saturday inspection - could we book a private?",
         time: "Sun 20 Apr",
         dateGroup: "SUN 20 APR",
       },
@@ -960,7 +960,7 @@ export const agentReviews: AgentReview[] = [
     rating: 5,
     posted: "2 weeks ago",
     body:
-      "John ran a quiet, considered campaign — he protected the vendor's privacy from day one and brought us three pre-market matches before the listing went live.",
+      "John ran a quiet, considered campaign - he protected the vendor's privacy from day one and brought us three pre-market matches before the listing went live.",
     listing: "1240 Park Ave, Brighton",
   },
   {
@@ -1001,7 +1001,7 @@ export const disputes: Dispute[] = [
     status: "UNDER REVIEW",
     raised: "Raised 5 days ago",
     summary:
-      "Disagreement over the introduction date for 1240 Park Ave — co-agency fee allocation pending resolution.",
+      "Disagreement over the introduction date for 1240 Park Ave - co-agency fee allocation pending resolution.",
   },
   {
     id: "dis-02",
@@ -1010,7 +1010,7 @@ export const disputes: Dispute[] = [
     status: "RESOLVED",
     raised: "Resolved 3 weeks ago",
     summary:
-      "Vendor introduction overlap on 12 Denham St — resolved by mutual agreement, fees split 60/40.",
+      "Vendor introduction overlap on 12 Denham St - resolved by mutual agreement, fees split 60/40.",
   },
 ];
 
@@ -1087,7 +1087,7 @@ export const listingPerformance: ListingEnquiryRow[] = [
 ];
 
 /* ============================================
-   PROFILE — extended fixtures
+   PROFILE - extended fixtures
    ============================================ */
 
 export type DisputeMessage = {
@@ -1113,7 +1113,7 @@ export const disputeDetails: Record<string, DisputeDetail> = {
     status: "UNDER REVIEW",
     raised: "Raised 5 days ago",
     summary:
-      "Disagreement over the introduction date for 1240 Park Ave — co-agency fee allocation pending resolution.",
+      "Disagreement over the introduction date for 1240 Park Ave - co-agency fee allocation pending resolution.",
     listing: "1240 Park Ave, Brighton",
     amountAtStake: "$18,400.00",
     openedOn: "20 Apr 2026",
@@ -1124,7 +1124,7 @@ export const disputeDetails: Record<string, DisputeDetail> = {
         authorName: "John Lim",
         posted: "20 Apr 2026 · 9:14am",
         body:
-          "Raising this formally. Buyer Sarah Jenkins was first introduced via my pre-market preview on 14 Mar — we have email and SMS records. Anton's listing went live on 18 Mar.",
+          "Raising this formally. Buyer Sarah Jenkins was first introduced via my pre-market preview on 14 Mar - we have email and SMS records. Anton's listing went live on 18 Mar.",
       },
       {
         id: "dm-02",
@@ -1140,7 +1140,7 @@ export const disputeDetails: Record<string, DisputeDetail> = {
         authorName: "OMM Trust & Safety",
         posted: "23 Apr 2026 · 10:02am",
         body:
-          "Both parties — please upload supporting evidence by Fri 25 Apr. We'll review and propose a fair allocation by Mon 28 Apr.",
+          "Both parties - please upload supporting evidence by Fri 25 Apr. We'll review and propose a fair allocation by Mon 28 Apr.",
       },
     ],
   },
@@ -1151,7 +1151,7 @@ export const disputeDetails: Record<string, DisputeDetail> = {
     status: "RESOLVED",
     raised: "Resolved 3 weeks ago",
     summary:
-      "Vendor introduction overlap on 12 Denham St — resolved by mutual agreement, fees split 60/40.",
+      "Vendor introduction overlap on 12 Denham St - resolved by mutual agreement, fees split 60/40.",
     listing: "12 Denham St, Hawthorn",
     amountAtStake: "$12,000.00",
     openedOn: "29 Mar 2026",
@@ -1162,7 +1162,7 @@ export const disputeDetails: Record<string, DisputeDetail> = {
         authorName: "John Lim",
         posted: "29 Mar 2026 · 11:00am",
         body:
-          "Vendor introduction overlap — both parties spoke to the vendor in the same week.",
+          "Vendor introduction overlap - both parties spoke to the vendor in the same week.",
       },
       {
         id: "dm-05",
@@ -1235,7 +1235,7 @@ export const legalDocs: Record<string, LegalDoc> = {
         body: [
           "You may close your account at any time from the Account settings page.",
           "We may suspend or terminate accounts that breach these terms or the Community guidelines.",
-          "Outstanding obligations — including settled fees and dispute resolutions — survive termination.",
+          "Outstanding obligations - including settled fees and dispute resolutions - survive termination.",
         ],
       },
     ],
@@ -1253,7 +1253,7 @@ export const legalDocs: Record<string, LegalDoc> = {
         body: [
           "Speak plainly. Disagree with the work, not the person.",
           "Avoid personal attacks, slurs, or harassment of any kind.",
-          "If a conversation isn't productive, step away — you can always reply tomorrow.",
+          "If a conversation isn't productive, step away - you can always reply tomorrow.",
         ],
       },
       {
@@ -1291,17 +1291,17 @@ export const legalDocs: Record<string, LegalDoc> = {
       {
         title: "What we collect",
         body: [
-          "Account information you provide — name, email, phone, licence number, ABN.",
-          "Content you create — listings, briefs, messages, and reviews.",
-          "Usage information — pages viewed, features used, devices and approximate location.",
+          "Account information you provide - name, email, phone, licence number, ABN.",
+          "Content you create - listings, briefs, messages, and reviews.",
+          "Usage information - pages viewed, features used, devices and approximate location.",
         ],
       },
       {
         title: "How we use it",
         body: [
-          "To run the product — sign you in, render your listings, deliver your messages.",
-          "To improve the product — understand which features matter and which don't.",
-          "To keep the community safe — detect fraud, abuse, and breach of our guidelines.",
+          "To run the product - sign you in, render your listings, deliver your messages.",
+          "To improve the product - understand which features matter and which don't.",
+          "To keep the community safe - detect fraud, abuse, and breach of our guidelines.",
         ],
       },
       {
@@ -1316,7 +1316,7 @@ export const legalDocs: Record<string, LegalDoc> = {
         title: "Your choices",
         body: [
           "You can export your data, correct it, or delete your account from settings at any time.",
-          "You can opt out of marketing emails — operational emails (billing, security) will still send.",
+          "You can opt out of marketing emails - operational emails (billing, security) will still send.",
         ],
       },
     ],

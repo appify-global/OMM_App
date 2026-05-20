@@ -234,7 +234,7 @@ function SellingDash({ s }: { s: HomePageLoaderData["selling"] }) {
                     {l.authorityDaysLeft !== null ? (
                       <em>{l.authorityDaysLeft}d</em>
                     ) : (
-                      "—"
+                      "-"
                     )}
                   </td>
                 </tr>
@@ -409,7 +409,7 @@ function BuyingDash({ b }: { b: HomePageLoaderData["buying"] }) {
               Post a <em>brief</em>.
             </h2>
             <p>
-              Suburbs, budget, timing. Broadcast in private to listing agents —
+              Suburbs, budget, timing. Broadcast in private to listing agents -
               matches return within twenty-four hours.
             </p>
           </div>

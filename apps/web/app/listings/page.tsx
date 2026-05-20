@@ -1,82 +1,122 @@
+import Link from "next/link";
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
+import FindPageMasthead from "../components/FindPageMasthead";
 import { fetchListings } from "../lib/api";
 
 export const metadata = {
-  title: "Listings — OMM",
-  description: "Private campaigns, quiet listings and off-market property, curated for OMM members.",
+  title: "Listings - MATCH",
+  description:
+    "Private campaigns, quiet listings and off-market property for MATCH members.",
 };
 
-export default async function ListingsPage() {
-  const listings = await fetchListings();
-  const filters = ["All", "Private campaign", "Quiet listing", "Matched buyers", "Coming soon", "Open for inspection"];
+type ListingsPageProps = {
+  searchParams: Promise<{ q?: string }>;
+};
+
+function matchesQuery(
+  listing: Awaited<ReturnType<typeof fetchListings>>[number],
+  q: string,
+) {
+  const needle = q.trim().toLowerCase();
+  if (!needle) return true;
+  const haystack = [
+    listing.address,
+    listing.suburb,
+    listing.state,
+    listing.postcode,
+    listing.agent,
+    listing.agency,
+  ]
+    .join(" ")
+    .toLowerCase();
+  return haystack.includes(needle);
+}
+
+const filters = [
+  "All",
+  "Private campaign",
+  "Quiet listing",
+  "Matched buyers",
+  "Coming soon",
+  "Open for inspection",
+] as const;
+
+export default async function ListingsPage({ searchParams }: ListingsPageProps) {
+  const { q } = await searchParams;
+  const allListings = await fetchListings();
+  const listings = q ? allListings.filter((l) => matchesQuery(l, q)) : allListings;
 
   return (
     <>
       <SiteHeader />
-      <main>
-        <div className="page-shell">
-          <header className="page-masthead">
-            <div>
-              <p className="section-kicker">
-                <span className="sq sq--filled sq--sm" aria-hidden="true" />
-                <span>The Portfolio</span>
-              </p>
-              <h1>
-                <em>Listings</em>, before<br />they reach the market.
-              </h1>
-              <p className="page-lede">
-                Every property below is being offered off-market or in quiet
-                campaign. Access is member-gated: request an introduction and
-                we&rsquo;ll bridge you to the agent or vendor directly.
-              </p>
-            </div>
-            <dl className="page-stats">
-              <div>
-                <dt>Live campaigns</dt>
-                <dd>{listings.length}</dd>
-              </div>
-              <div>
-                <dt>New this week</dt>
-                <dd>4</dd>
-              </div>
-              <div>
-                <dt>Matched buyers</dt>
-                <dd>4.8k</dd>
-              </div>
-            </dl>
-          </header>
+      <main className="home-find find-page">
+        <div className="find-page__inner">
+          <FindPageMasthead
+            kicker="Private listings"
+            title={
+              <>
+                <span className="find-page__title-strong">Listings</span>
+                <span className="find-page__title-soft">
+                  {" "}
+                  before they reach the market.
+                </span>
+              </>
+            }
+            lede={
+              <>
+                Every property below is off-market or in quiet campaign. As a
+                member you can request an introduction and we&rsquo;ll connect
+                you with the listing agent.
+                {q ? (
+                  <>
+                    {" "}
+                    Showing results for{" "}
+                    <span className="find-page__title-strong">{q}</span>.
+                  </>
+                ) : null}
+              </>
+            }
+            stats={[
+              { label: "Live campaigns", value: listings.length },
+              { label: "New this week", value: 4 },
+              { label: "Matched buyers", value: "4.8k" },
+            ]}
+          />
 
-          <div className="listings-filters" role="group" aria-label="Filter listings">
+          <div className="find-page__filters" role="group" aria-label="Filter listings">
             {filters.map((f, i) => (
               <button
                 type="button"
                 key={f}
-                className={`listings-filter${i === 0 ? " is-active" : ""}`}
+                className={`find-page__filter${i === 0 ? " is-active" : ""}`}
               >
                 {f}
               </button>
             ))}
           </div>
 
-          <div className="listings-grid-full">
+          <div className="find-page__grid">
             {listings.map((l) => (
-              <article className="listing-card" key={l.id}>
+              <Link
+                key={l.id}
+                href={`/app/listings/${l.id}`}
+                className="find-portfolio-card"
+              >
                 <div
-                  className="listing-image"
+                  className="find-portfolio-card__media"
                   style={{ backgroundImage: `url(${l.image})` }}
                   aria-hidden="true"
                 />
-                <div className="listing-body">
-                  <p className="listing-folio">
-                    <span className="sq sq--filled sq--sm" aria-hidden="true" />
-                    <span>No. {l.folio}</span>
-                    <span aria-hidden="true">·</span>
-                    <span>{l.tag}</span>
+                <div className="find-portfolio-card__body">
+                  <p className="find-portfolio-card__tag">
+                    No. {l.folio} · {l.tag}
                   </p>
-                  <h3>{l.address}</h3>
-                  <p className="listing-suburb">{l.suburb}, {l.state} {l.postcode}</p>
-                  <dl className="listing-meta">
+                  <h2>{l.address}</h2>
+                  <p className="find-portfolio-card__meta">
+                    {l.suburb}, {l.state} {l.postcode}
+                  </p>
+                  <dl className="find-portfolio-card__details">
                     <div>
                       <dt>Guide</dt>
                       <dd>{l.priceGuide}</dd>
@@ -94,11 +134,11 @@ export default async function ListingsPage() {
                       <dd>{l.agent}</dd>
                     </div>
                   </dl>
-                  <a className="listing-cta" href="#">
-                    Request access <span aria-hidden="true">→</span>
-                  </a>
+                  <span className="find-portfolio-card__cta">
+                    View listing <span aria-hidden="true">→</span>
+                  </span>
                 </div>
-              </article>
+              </Link>
             ))}
           </div>
         </div>

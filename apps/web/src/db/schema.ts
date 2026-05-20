@@ -1,23 +1,23 @@
 /**
- * OMM — Drizzle schema
+ * OMM - Drizzle schema
  *
  * Top-level domain map:
- *   users           — synced from Clerk via webhook
- *   listings        — agent-owned property campaigns
- *   listing_media   — photos / floor plans / videos / SOI files
- *   briefs          — buyer briefs (off-market wishlists)
- *   brief_matches   — listings/agents matched to a brief
- *   threads         — message threads
- *   messages        — messages in a thread
+ *   users           - synced from Clerk via webhook
+ *   listings        - agent-owned property campaigns
+ *   listing_media   - photos / floor plans / videos / SOI files
+ *   briefs          - buyer briefs (off-market wishlists)
+ *   brief_matches   - listings/agents matched to a brief
+ *   threads         - message threads
+ *   messages        - messages in a thread
  *   message_attachments
- *   reviews         — reviews left on agents
- *   disputes        — formal disagreements between agents
- *   dispute_events  — timeline entries on a dispute
- *   invoices        — billing invoices
- *   payouts         — outgoing payouts to agent's bank
- *   searches        — saved search filter sets
- *   saved_listings  — buyers' saved/favourited listings
- *   notifications   — in-app notifications
+ *   reviews         - reviews left on agents
+ *   disputes        - formal disagreements between agents
+ *   dispute_events  - timeline entries on a dispute
+ *   invoices        - billing invoices
+ *   payouts         - outgoing payouts to agent's bank
+ *   searches        - saved search filter sets
+ *   saved_listings  - buyers' saved/favourited listings
+ *   notifications   - in-app notifications
  *
  * Conventions:
  *   - cuid-style text IDs (so we can keep fixture-style ids: "lst-hawthorn-...")
@@ -104,6 +104,12 @@ export const payoutStatusEnum = pgEnum("payout_status", [
   "SETTLED",
   "IN_TRANSIT",
   "SCHEDULED",
+]);
+export const waitlistStatusEnum = pgEnum("waitlist_status", [
+  "PENDING",
+  "REVIEWED",
+  "INVITED",
+  "REJECTED",
 ]);
 export const notificationKindEnum = pgEnum("notification_kind", [
   "NEW_MATCH",
@@ -665,6 +671,38 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
     references: [threads.id],
   }),
 }));
+
+/* ────────────────────────────────────────────────────────────
+   WAITLIST APPLICATIONS  (pre-launch agent signups)
+   ──────────────────────────────────────────────────────────── */
+
+export const waitlistApplications = pgTable(
+  "waitlist_applications",
+  {
+    id: text("id").primaryKey(),
+    name: text("name").notNull(),
+    email: text("email").notNull(),
+    phone: text("phone"),
+    agency: text("agency"),
+    role: text("role"),
+    licence: text("licence"),
+    suburbs: jsonb("suburbs").$type<string[]>().default([]).notNull(),
+    yearsExperience: integer("years_experience"),
+    notes: text("notes"),
+    source: text("source"),
+    status: waitlistStatusEnum("status").notNull().default("PENDING"),
+    ipAddress: text("ip_address"),
+    userAgent: text("user_agent"),
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+    updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  },
+  (t) => ({
+    emailIdx: uniqueIndex("waitlist_applications_email_idx").on(t.email),
+  }),
+);
+
+export type WaitlistApplication = typeof waitlistApplications.$inferSelect;
+export type NewWaitlistApplication = typeof waitlistApplications.$inferInsert;
 
 /* ────────────────────────────────────────────────────────────
    TYPE EXPORTS  (for use in app code)

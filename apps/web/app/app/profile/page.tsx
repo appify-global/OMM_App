@@ -172,7 +172,7 @@ export default function AppProfilePage() {
           </ul>
         </section>
 
-        {/* Three section index — General / Dealings / Privacy */}
+        {/* Three section index - General / Dealings / Privacy */}
         <section className="profile-index" aria-label="Profile sections">
           <ProfileSection
             kicker="I"

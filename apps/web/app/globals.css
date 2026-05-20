@@ -1,25 +1,49 @@
 :root {
   color-scheme: light;
-  --ink: #111111;
+  --ink: #000000;
   --ink-soft: #1a1a1a;
-  --muted: #6b6b6b;
+  --muted: rgba(0, 0, 0, 0.55);
   --cream: #f5f1ed;
   --paper: #ffffff;
-  --forest: #0f2918;
-  --forest-pressed: #0a1f12;
-  --sage: #8a9b8e;
-  --surface-muted: #f3f3f5;
-  --input-surface: #f7f3f0;
+  --surface: #f8fafc;
+  --accent: #38bdf8;
+  --accent-pressed: #0ea5e9;
+  --forest: var(--accent);
+  --forest-pressed: var(--accent-pressed);
+  --sage: #94a3b8;
+  --surface-muted: #f2f2f7;
+  --input-surface: #f2f2f7;
   --line: #e5e5ea;
   --card-line: #e0e0e0;
-  --shadow: 0 12px 32px rgba(17, 17, 17, 0.08);
+  --shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
   --radius-control: 7px;
   --radius-control-tight: 6px;
   --radius-control-soft: 8px;
+  --font-sans: var(--font-satoshi), ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Pointer cursor on every interactive element across the site.
+ * Covers anchors, buttons, role=button, and label[for] (form proxies).
+ * :disabled override prevents a misleading pointer on disabled controls. */
+a,
+button,
+[role="button"],
+[role="link"],
+label[for],
+summary,
+select {
+  cursor: pointer;
+}
+
+button:disabled,
+[role="button"][aria-disabled="true"],
+a[aria-disabled="true"] {
+  cursor: not-allowed;
 }
 
 /* ============================================
@@ -108,11 +132,11 @@ body {
 }
 
 body {
-  background: var(--paper);
+  background: var(--surface);
   color: var(--ink);
-  font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    sans-serif;
+  font-family: var(--font-sans);
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
@@ -125,13 +149,37 @@ input {
   font: inherit;
 }
 
+/* Satoshi ships regular + medium only (same as native app). */
+h1,
+h2,
+h3,
+h4,
+strong,
+b {
+  font-weight: 500;
+}
+
+h1 em,
+h2 em,
+h3 em,
+.section-heading em,
+.page-masthead h1 em,
+.agent-panel h2 em {
+  font-style: normal;
+}
+
 .site-header {
   position: sticky;
   top: 0;
   z-index: 20;
+}
+
+/* App shell header (signed-in views) — keeps the blurred backdrop. */
+.site-header:not(.site-header--find) {
   border-bottom: 1px solid var(--line);
   background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
 }
 
 .masthead-rule {
@@ -142,7 +190,7 @@ input {
   padding: 8px clamp(20px, 4vw, 56px);
   border-bottom: 1px solid var(--line);
   color: var(--muted);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.22em;
@@ -221,11 +269,10 @@ input {
 }
 
 .brand-name {
-  font-family: "Fraunces", "GT Sectra", Georgia, serif;
+  font-family: var(--font-sans);
   font-weight: 500;
-  font-variation-settings: "opsz" 144, "SOFT" 0;
-  letter-spacing: 0.08em;
-  color: var(--forest);
+  letter-spacing: -0.02em;
+  color: var(--ink);
 }
 
 .primary-nav {
@@ -241,7 +288,7 @@ input {
   gap: 6px;
   padding: 18px 0;
   color: var(--ink);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0;
@@ -254,11 +301,13 @@ input {
 }
 
 .nav-section {
-  font-family: "Fraunces", Georgia, serif;
-  font-size: 11px;
-  font-style: italic;
-  font-weight: 400;
-  color: rgba(17, 17, 17, 0.4);
+  font-family: var(--font-sans);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(0, 0, 0, 0.4);
 }
 
 .nav-label {
@@ -320,7 +369,7 @@ input {
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(60% 50% at 80% 0%, rgba(15, 41, 24, 0.04), transparent 70%),
+    radial-gradient(60% 50% at 80% 0%, rgba(56, 189, 248, 0.04), transparent 70%),
     linear-gradient(180deg, #fbf9f6 0%, #ffffff 60%);
   content: "";
 }
@@ -354,7 +403,7 @@ input {
   padding-bottom: 14px;
   border-bottom: 1px solid var(--line);
   color: var(--muted);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.22em;
@@ -364,21 +413,18 @@ input {
 
 .hero-headline {
   margin: 0;
-  font-family: "Fraunces", "GT Sectra", Georgia, "Times New Roman", serif;
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 144, "SOFT" 0;
-  font-size: clamp(40px, min(4.9vw, 10vh), 76px);
-  font-weight: 360;
-  line-height: 1;
-  letter-spacing: -0.025em;
+  font-family: var(--font-sans);
+  font-size: clamp(32px, min(4.2vw, 9vh), 56px);
+  font-weight: 500;
+  line-height: 1.05;
+  letter-spacing: -0.03em;
   color: var(--ink);
   text-wrap: balance;
 }
 
 .hero-headline em {
-  font-style: italic;
-  font-weight: 320;
-  font-variation-settings: "opsz" 144, "SOFT" 100;
+  font-style: normal;
+  font-weight: 500;
   color: var(--forest);
 }
 
@@ -467,7 +513,7 @@ input {
   max-width: 46ch;
   margin: 0;
   color: rgba(17, 17, 17, 0.66);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   font-weight: 400;
   line-height: 1.55;
@@ -513,7 +559,7 @@ input {
   background: transparent;
   padding: 11px 0;
   color: var(--ink);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 15px;
   font-weight: 400;
   letter-spacing: -0.005em;
@@ -528,7 +574,7 @@ input {
   border: 0;
   background: transparent;
   color: rgba(17, 17, 17, 0.55);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   font-weight: 400;
   letter-spacing: 0;
@@ -592,7 +638,7 @@ input {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-weight: 400;
   font-size: 13px;
@@ -602,7 +648,7 @@ input {
 
 .hero-meta dd {
   margin: 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: -0.005em;
@@ -664,7 +710,7 @@ input {
   align-items: center;
   gap: 16px;
   color: rgba(255, 255, 255, 0.92);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.18em;
@@ -884,7 +930,7 @@ input {
   padding-bottom: 18px;
   border-bottom: 1px solid var(--line);
   color: var(--muted);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.22em;
@@ -957,7 +1003,7 @@ input {
   border-radius: 0;
   background: transparent;
   color: rgba(17, 17, 17, 0.4);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   font-style: italic;
   font-weight: 400;
@@ -973,7 +1019,7 @@ input {
 
 .quick-eyebrow {
   color: var(--muted);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.18em;
@@ -987,10 +1033,9 @@ input {
 .quick-link-card strong {
   display: block;
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(22px, 2vw, 28px);
-  font-weight: 360;
-  font-variation-settings: "opsz" 144;
+  font-weight: 500;
   letter-spacing: -0.018em;
   line-height: 1.05;
   color: var(--ink);
@@ -1000,7 +1045,7 @@ input {
   margin: 0;
   max-width: 28ch;
   color: rgba(17, 17, 17, 0.62);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   font-weight: 400;
   line-height: 1.5;
@@ -1014,7 +1059,7 @@ input {
   padding-top: 12px;
   border-top: 1px solid var(--line);
   color: var(--ink);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -1035,10 +1080,9 @@ input {
 
 h2 {
   margin: 0;
-  font-family: "Fraunces", Georgia, "Times New Roman", serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(28px, 3.4vw, 44px);
-  font-weight: 360;
-  font-variation-settings: "opsz" 144;
+  font-weight: 500;
   line-height: 1.04;
   letter-spacing: -0.022em;
   color: var(--ink);
@@ -1047,7 +1091,6 @@ h2 {
 h2 em {
   font-style: italic;
   color: var(--forest);
-  font-variation-settings: "opsz" 144;
 }
 
 .section-kicker {
@@ -1056,7 +1099,7 @@ h2 em {
   gap: 10px;
   margin: 0 0 14px;
   color: var(--muted);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.22em;
@@ -1095,10 +1138,10 @@ h2 em {
   margin: 8px 0 0;
   max-width: 48ch;
   color: rgba(17, 17, 17, 0.62);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(15px, 1.3vw, 17px);
   font-style: italic;
-  font-weight: 380;
+  font-weight: 500;
   line-height: 1.4;
 }
 
@@ -1109,7 +1152,7 @@ h2 em {
   align-items: center;
   gap: 8px;
   color: var(--ink);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -1195,7 +1238,7 @@ h2 em {
   gap: 10px;
   margin: 0 0 12px;
   color: var(--muted);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.16em;
@@ -1208,7 +1251,7 @@ h2 em {
 }
 
 .listing-folio > .sq + span {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-style: italic;
   font-weight: 400;
@@ -1224,10 +1267,9 @@ h2 em {
 
 .listing-body h3 {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(22px, 2vw, 28px);
-  font-weight: 360;
-  font-variation-settings: "opsz" 144;
+  font-weight: 500;
   letter-spacing: -0.018em;
   line-height: 1.05;
   color: var(--ink);
@@ -1236,10 +1278,10 @@ h2 em {
 .listing-suburb {
   margin: 6px 0 0;
   color: rgba(17, 17, 17, 0.62);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 15px;
   font-style: italic;
-  font-weight: 380;
+  font-weight: 500;
 }
 
 .listing-meta {
@@ -1260,7 +1302,7 @@ h2 em {
 .listing-meta dt {
   margin: 0 0 4px;
   color: var(--muted);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.18em;
@@ -1270,7 +1312,7 @@ h2 em {
 .listing-meta dd {
   margin: 0;
   color: var(--ink);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   font-weight: 500;
 }
@@ -1281,7 +1323,7 @@ h2 em {
   align-items: center;
   gap: 8px;
   color: var(--ink);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -1316,7 +1358,7 @@ h2 em {
 .suburb-table {
   width: 100%;
   border-collapse: collapse;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
 }
 
 .suburb-table thead th {
@@ -1354,10 +1396,9 @@ h2 em {
 
 .suburb-table tbody th {
   text-align: left;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(18px, 1.6vw, 22px);
-  font-weight: 360;
-  font-variation-settings: "opsz" 144;
+  font-weight: 500;
   letter-spacing: -0.012em;
 }
 
@@ -1414,10 +1455,10 @@ h2 em {
   margin: 22px 0 0;
   max-width: 36ch;
   color: rgba(255, 255, 255, 0.68);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(15px, 1.3vw, 17px);
   font-style: italic;
-  font-weight: 380;
+  font-weight: 500;
   line-height: 1.5;
 }
 
@@ -1428,7 +1469,7 @@ h2 em {
   align-items: center;
   gap: 8px;
   color: white;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -1472,10 +1513,10 @@ h2 em {
   margin: 0;
   max-width: 44ch;
   color: rgba(17, 17, 17, 0.62);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(15px, 1.3vw, 17px);
   font-style: italic;
-  font-weight: 380;
+  font-weight: 500;
   line-height: 1.5;
 }
 
@@ -1486,7 +1527,7 @@ h2 em {
   align-items: center;
   gap: 8px;
   color: var(--ink);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -1571,7 +1612,7 @@ h2 em {
   gap: 8px;
   margin: 0 0 10px;
   color: var(--muted);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.18em;
@@ -1579,7 +1620,7 @@ h2 em {
 }
 
 .news-meta span:first-child {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-style: italic;
   font-weight: 400;
@@ -1597,10 +1638,9 @@ h2 em {
   display: -webkit-box;
   margin: 0 0 12px;
   overflow: hidden;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(17px, 1.5vw, 21px);
-  font-weight: 360;
-  font-variation-settings: "opsz" 144;
+  font-weight: 500;
   letter-spacing: -0.014em;
   line-height: 1.18;
   color: var(--ink);
@@ -1613,7 +1653,7 @@ h2 em {
   padding-top: 12px;
   border-top: 1px solid var(--line);
   color: var(--muted);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -1631,68 +1671,6 @@ h2 em {
   color: var(--ink);
 }
 
-.footer-directory {
-  width: min(1280px, 100%);
-  margin: 0 auto;
-  padding: clamp(56px, 8vh, 96px) clamp(20px, 5vw, 72px) clamp(40px, 6vh, 64px);
-}
-
-.footer-masthead {
-  margin-bottom: clamp(32px, 5vh, 56px);
-  padding-bottom: 20px;
-  border-bottom: 1px solid var(--line);
-}
-
-.footer-masthead h2 {
-  margin-top: 6px;
-  max-width: 18ch;
-}
-
-.footer-link-columns {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0;
-  border-top: 1px solid var(--line);
-}
-
-.footer-link-columns > div {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: clamp(24px, 3vw, 36px) clamp(20px, 2.4vw, 32px);
-  border-right: 1px solid var(--line);
-}
-
-.footer-link-columns > div:last-child {
-  border-right: 0;
-}
-
-.footer-column-label {
-  margin: 0 0 10px;
-  color: var(--muted);
-  font-family: "Inter", system-ui, sans-serif;
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-}
-
-.footer-link-columns a {
-  width: fit-content;
-  color: var(--ink);
-  font-family: "Fraunces", Georgia, serif;
-  font-size: 16px;
-  font-weight: 380;
-  letter-spacing: -0.008em;
-  border-bottom: 1px solid transparent;
-  padding-bottom: 1px;
-  transition: border-color 200ms ease;
-}
-
-.footer-link-columns a:hover {
-  border-color: var(--ink);
-}
-
 .footer-base {
   display: flex;
   align-items: center;
@@ -1707,7 +1685,7 @@ h2 em {
 .footer-imprint {
   margin: 0;
   color: var(--muted);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.16em;
@@ -1724,7 +1702,7 @@ h2 em {
 
 .footer-base nav a {
   color: var(--ink);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.16em;
@@ -1884,18 +1862,6 @@ h2 em {
     grid-column: 1;
   }
 
-  .footer-link-columns {
-    grid-template-columns: 1fr;
-  }
-
-  .footer-link-columns > div {
-    border-right: 0;
-    border-bottom: 1px solid var(--line);
-  }
-
-  .footer-link-columns > div:last-child {
-    border-bottom: 0;
-  }
 }
 
 @media (max-width: 680px) {
@@ -2142,7 +2108,7 @@ h2 em {
   gap: 10px;
   margin: 0 0 16px;
   color: var(--muted);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.22em;
@@ -2151,8 +2117,8 @@ h2 em {
 
 .modal-title {
   margin: 0 0 14px;
-  font-family: "Fraunces", "GT Sectra", Georgia, serif;
-  font-weight: 360;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
   font-size: 30px;
   line-height: 1.1;
   letter-spacing: -0.02em;
@@ -2161,7 +2127,7 @@ h2 em {
 
 .modal-lede {
   margin: 0 0 24px;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.55;
   color: rgba(17, 17, 17, 0.66);
@@ -2174,7 +2140,7 @@ h2 em {
 }
 
 .modal-label {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.22em;
@@ -2194,7 +2160,7 @@ h2 em {
   padding: 14px 14px;
   border: 1px solid var(--line);
   background: var(--paper);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   color: var(--ink);
   outline: none;
@@ -2210,7 +2176,7 @@ h2 em {
   border: 0;
   background: var(--ink);
   color: var(--paper);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -2229,7 +2195,7 @@ h2 em {
 
 .modal-fineprint {
   margin: 6px 0 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   line-height: 1.5;
   color: rgba(17, 17, 17, 0.45);
@@ -2239,7 +2205,7 @@ h2 em {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   color: rgba(17, 17, 17, 0.7);
   line-height: 1.5;
@@ -2250,7 +2216,7 @@ h2 em {
   align-items: center;
   gap: 10px;
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 20px;
   color: var(--forest);
@@ -2284,9 +2250,8 @@ h2 em {
 
 .page-masthead h1 {
   margin: 10px 0 0;
-  font-family: "Fraunces", "GT Sectra", Georgia, serif;
-  font-weight: 360;
-  font-variation-settings: "opsz" 144, "SOFT" 0;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
   font-size: clamp(36px, 5vw, 68px);
   line-height: 1;
   letter-spacing: -0.025em;
@@ -2295,8 +2260,7 @@ h2 em {
 
 .page-masthead h1 em {
   font-style: italic;
-  font-weight: 320;
-  font-variation-settings: "opsz" 144, "SOFT" 100;
+  font-weight: 400;
   color: var(--forest);
 }
 
@@ -2304,7 +2268,7 @@ h2 em {
   grid-column: 1 / 2;
   max-width: 56ch;
   margin: 18px 0 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.55;
   color: rgba(17, 17, 17, 0.66);
@@ -2325,7 +2289,7 @@ h2 em {
 }
 
 .page-masthead .page-stats dt {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 12px;
   color: rgba(17, 17, 17, 0.45);
@@ -2333,7 +2297,7 @@ h2 em {
 
 .page-masthead .page-stats dd {
   margin: 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 18px;
   font-weight: 500;
   color: var(--ink);
@@ -2367,7 +2331,7 @@ h2 em {
   border: 1px solid var(--line);
   background: var(--paper);
   color: var(--ink);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -2411,7 +2375,7 @@ h2 em {
 .suburbs-table {
   width: 100%;
   border-collapse: collapse;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
 }
 
 .suburbs-table thead th {
@@ -2437,20 +2401,20 @@ h2 em {
 }
 
 .suburbs-table tbody tr:hover {
-  background: rgba(15, 41, 24, 0.02);
+  background: rgba(56, 189, 248, 0.02);
 }
 
 .suburbs-table .suburb-name {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 18px;
-  font-weight: 360;
+  font-weight: 500;
   letter-spacing: -0.01em;
 }
 
 .suburbs-table .suburb-name small {
   display: block;
   margin-top: 2px;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   color: var(--muted);
   letter-spacing: 0.12em;
@@ -2486,8 +2450,8 @@ h2 em {
 
 .brief-form h2 {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 360;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
   font-size: 28px;
   letter-spacing: -0.02em;
 }
@@ -2499,7 +2463,7 @@ h2 em {
 }
 
 .brief-form-field label {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 500;
   letter-spacing: 0.22em;
@@ -2513,7 +2477,7 @@ h2 em {
   padding: 12px 14px;
   border: 1px solid var(--line);
   background: var(--paper);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   color: var(--ink);
   outline: none;
@@ -2539,7 +2503,7 @@ h2 em {
   background: var(--ink);
   color: var(--paper);
   border: 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -2565,7 +2529,7 @@ h2 em {
 }
 
 .brief-row-folio {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 14px;
   color: rgba(17, 17, 17, 0.4);
@@ -2574,15 +2538,15 @@ h2 em {
 
 .brief-row-body h3 {
   margin: 0 0 4px;
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 360;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
   font-size: 20px;
   letter-spacing: -0.01em;
 }
 
 .brief-row-body p {
   margin: 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   color: rgba(17, 17, 17, 0.6);
   line-height: 1.5;
@@ -2590,7 +2554,7 @@ h2 em {
 
 .brief-row-meta {
   text-align: right;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   color: var(--muted);
   letter-spacing: 0.12em;
@@ -2600,7 +2564,7 @@ h2 em {
 
 .brief-row-meta strong {
   display: block;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 18px;
   font-weight: 400;
@@ -2639,7 +2603,7 @@ h2 em {
   gap: 10px;
   align-items: center;
   margin: 0 0 18px;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -2648,8 +2612,8 @@ h2 em {
 
 .blog-feature-body h2 {
   margin: 0 0 18px;
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 360;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
   font-size: clamp(32px, 3.4vw, 48px);
   line-height: 1.05;
   letter-spacing: -0.02em;
@@ -2658,7 +2622,7 @@ h2 em {
 
 .blog-feature-body p {
   margin: 0 0 22px;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.55;
   color: rgba(17, 17, 17, 0.66);
@@ -2666,7 +2630,7 @@ h2 em {
 }
 
 .blog-feature-body .blog-feature-byline {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 14px;
   color: rgba(17, 17, 17, 0.55);
@@ -2700,7 +2664,7 @@ h2 em {
   display: flex;
   gap: 10px;
   align-items: center;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -2710,8 +2674,8 @@ h2 em {
 
 .blog-card h3 {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 360;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
   font-size: 22px;
   line-height: 1.15;
   letter-spacing: -0.015em;
@@ -2719,7 +2683,7 @@ h2 em {
 }
 
 .blog-card small {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 12px;
   color: rgba(17, 17, 17, 0.45);
@@ -2743,8 +2707,8 @@ h2 em {
 
 .about-narrative h2 {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 360;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
   font-size: clamp(32px, 3.4vw, 44px);
   line-height: 1.05;
   letter-spacing: -0.02em;
@@ -2757,14 +2721,14 @@ h2 em {
 
 .about-narrative-body p {
   margin: 0 0 18px;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.65;
   color: rgba(17, 17, 17, 0.74);
 }
 
 .about-narrative-body p:first-child::first-letter {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 3.2em;
   float: left;
@@ -2784,8 +2748,8 @@ h2 em {
 
 .about-principle h3 {
   margin: 0 0 10px;
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 360;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
   font-style: italic;
   font-size: 22px;
   color: var(--forest);
@@ -2794,7 +2758,7 @@ h2 em {
 
 .about-principle p {
   margin: 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.6;
   color: rgba(17, 17, 17, 0.66);
@@ -2854,7 +2818,7 @@ h2 em {
     margin: 0 6px;
     color: var(--ink);
     text-decoration: none;
-    font-family: "Inter", system-ui, sans-serif;
+    font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
     font-size: 12.5px;
     font-weight: 500;
     letter-spacing: 0;
@@ -2865,7 +2829,7 @@ h2 em {
   }
 
   .mobile-bottom-nav-section {
-    font-family: "Fraunces", Georgia, serif;
+    font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
     font-size: 10.5px;
     font-style: italic;
     font-weight: 400;
@@ -2927,12 +2891,10 @@ h2 em {
 }
 .dash-masthead-text h1 {
   margin: 10px 0 0;
-  font-family: "Fraunces", "GT Sectra", Georgia, "Times New Roman", serif;
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 72, "SOFT" 50;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-feature-settings: "ss01" on, "ss02" on, "ss03" on;
   font-size: clamp(36px, 4.4vw, 60px);
-  font-weight: 360;
+  font-weight: 500;
   line-height: 1;
   letter-spacing: -0.025em;
   color: var(--ink);
@@ -2944,16 +2906,14 @@ h2 em {
 }
 .dash-masthead-text h1 em {
   font-style: italic;
-  font-weight: 320;
-  font-variation-settings: "opsz" 144, "SOFT" 100;
+  font-weight: 400;
   color: var(--forest);
 }
 .dash-name {
-  font-family: "GT Sectra", "Tiempos Headline", "Garamond Premier Pro", "EB Garamond", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: normal;
   font-weight: 400;
   font-feature-settings: normal;
-  font-variation-settings: normal;
 }
 
 /* ----- Mode toggle ----- */
@@ -2971,7 +2931,7 @@ h2 em {
   background: transparent;
   border: 0;
   cursor: pointer;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: rgba(17, 17, 17, 0.45);
@@ -2981,7 +2941,7 @@ h2 em {
 .mode-toggle-segment.is-active { color: var(--ink); }
 .mode-toggle-segment.is-active .mode-toggle-section { color: var(--forest); }
 .mode-toggle-section {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-weight: 400;
   font-size: 11px;
@@ -3010,13 +2970,13 @@ h2 em {
   transition: background 180ms ease;
 }
 .kpi-tile + .kpi-tile { border-left: 1px solid var(--line); }
-.kpi-tile.is-linked:hover { background: rgba(15, 41, 24, 0.04); }
+.kpi-tile.is-linked:hover { background: rgba(56, 189, 248, 0.04); }
 .kpi-tile.is-forest {
   background: var(--forest);
   color: #f5f1ed;
 }
 .kpi-kicker {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-weight: 400;
   font-size: 12px;
@@ -3025,9 +2985,8 @@ h2 em {
 }
 .kpi-tile.is-forest .kpi-kicker { color: rgba(245, 241, 237, 0.55); }
 .kpi-value {
-  font-family: "Fraunces", "GT Sectra", Georgia, serif;
-  font-weight: 360;
-  font-variation-settings: "opsz" 144, "SOFT" 0;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
   font-size: clamp(36px, 3.6vw, 52px);
   line-height: 1;
   letter-spacing: -0.025em;
@@ -3036,7 +2995,7 @@ h2 em {
 }
 .kpi-tile.is-forest .kpi-value { color: #f5f1ed; }
 .kpi-label {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -3044,7 +3003,7 @@ h2 em {
 }
 .kpi-tile.is-forest .kpi-label { color: rgba(245, 241, 237, 0.7); }
 .kpi-delta {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.02em;
@@ -3062,7 +3021,7 @@ h2 em {
   position: absolute;
   top: 18px;
   right: 18px;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   color: rgba(17, 17, 17, 0.3);
   transition: transform 180ms ease, color 180ms ease;
@@ -3105,9 +3064,8 @@ h2 em {
 }
 .dash-panel-head h2 {
   margin: 0;
-  font-family: "Fraunces", "GT Sectra", Georgia, serif;
-  font-weight: 360;
-  font-variation-settings: "opsz" 144, "SOFT" 0;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
   font-size: 22px;
   line-height: 1.1;
   letter-spacing: -0.015em;
@@ -3115,12 +3073,11 @@ h2 em {
 }
 .dash-panel-head h2 em {
   font-style: italic;
-  font-weight: 320;
-  font-variation-settings: "opsz" 144, "SOFT" 100;
+  font-weight: 400;
   color: var(--forest);
 }
 .section-see-all {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -3152,12 +3109,12 @@ h2 em {
   transition: background 180ms ease;
 }
 .dispatch-list--tight .dispatch-row { padding: 14px 22px; }
-.dispatch-row:hover { background: rgba(15, 41, 24, 0.035); }
+.dispatch-row:hover { background: rgba(56, 189, 248, 0.035); }
 .dispatch-row--ledger {
   grid-template-columns: 56px 1fr auto auto;
 }
 .dispatch-folio {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 12px;
   color: rgba(17, 17, 17, 0.45);
@@ -3171,7 +3128,7 @@ h2 em {
   min-width: 0;
 }
 .dispatch-body strong {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-weight: 600;
   font-size: 14px;
   letter-spacing: -0.005em;
@@ -3182,7 +3139,7 @@ h2 em {
   color: var(--muted);
 }
 .dispatch-sub {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   color: var(--muted);
   line-height: 1.4;
@@ -3191,7 +3148,7 @@ h2 em {
   white-space: nowrap;
 }
 .dispatch-sub--quote {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 13px;
   color: var(--ink);
@@ -3199,7 +3156,7 @@ h2 em {
   max-width: 56ch;
 }
 .dispatch-time {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.16em;
@@ -3209,22 +3166,22 @@ h2 em {
 }
 .dispatch-time--warn { color: #a1442d; }
 .dispatch-num {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--ink);
   white-space: nowrap;
 }
 .dispatch-num em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
-  font-weight: 360;
+  font-weight: 500;
   font-size: 22px;
   color: var(--forest);
   margin-right: 1px;
 }
 .dispatch-arrow {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   color: rgba(17, 17, 17, 0.4);
   transition: transform 180ms ease, color 180ms ease;
@@ -3253,9 +3210,8 @@ h2 em {
 }
 .studio-card-text h2 {
   margin: 0;
-  font-family: "Fraunces", "GT Sectra", Georgia, serif;
-  font-weight: 360;
-  font-variation-settings: "opsz" 144, "SOFT" 0;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
   font-size: clamp(28px, 3vw, 38px);
   line-height: 1.05;
   letter-spacing: -0.025em;
@@ -3263,13 +3219,12 @@ h2 em {
 }
 .studio-card-text h2 em {
   font-style: italic;
-  font-weight: 320;
-  font-variation-settings: "opsz" 144, "SOFT" 100;
+  font-weight: 400;
   color: #d8c9a3;
 }
 .studio-card-text p {
   margin: 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   line-height: 1.55;
   color: rgba(245, 241, 237, 0.78);
@@ -3287,7 +3242,7 @@ h2 em {
   background: transparent;
   border: 1px solid rgba(245, 241, 237, 0.45);
   color: #f5f1ed;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -3306,14 +3261,14 @@ h2 em {
 .ledger-table {
   width: 100%;
   border-collapse: collapse;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   color: var(--ink);
 }
 .ledger-table thead th {
   text-align: left;
   padding: 10px 14px;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.16em;
@@ -3328,9 +3283,9 @@ h2 em {
   vertical-align: middle;
 }
 .ledger-table tbody tr:last-child td { border-bottom: 0; }
-.ledger-table tbody tr:hover td { background: rgba(15, 41, 24, 0.035); }
+.ledger-table tbody tr:hover td { background: rgba(56, 189, 248, 0.035); }
 .ledger-folio {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 12px;
   color: rgba(17, 17, 17, 0.5);
@@ -3361,10 +3316,10 @@ h2 em {
   white-space: nowrap;
 }
 .ledger-num em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 18px;
-  font-weight: 360;
+  font-weight: 500;
   color: var(--forest);
   margin-right: 1px;
 }
@@ -3380,7 +3335,7 @@ h2 em {
   border-radius: 999px;
   background: var(--forest);
   color: #fff;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -3473,7 +3428,7 @@ h2 em {
   background: var(--ink);
   color: #f5f1ed;
   border: 1px solid var(--ink);
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 500;
   letter-spacing: 0.06em;
@@ -3487,7 +3442,7 @@ h2 em {
   border-color: var(--forest);
 }
 .dash-cta-mark {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   line-height: 1;
   margin-top: -2px;
@@ -3511,7 +3466,7 @@ h2 em {
   border: 0;
   border-right: 1px solid rgba(17, 17, 17, 0.12);
   cursor: pointer;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: rgba(17, 17, 17, 0.5);
@@ -3521,18 +3476,18 @@ h2 em {
 .ledger-tab:hover { color: var(--ink); }
 .ledger-tab.is-active {
   color: var(--ink);
-  background: rgba(15, 41, 24, 0.04);
+  background: rgba(56, 189, 248, 0.04);
 }
 .ledger-tab.is-active .ledger-tab-section { color: var(--forest); }
 .ledger-tab-section {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-weight: 400;
   font-size: 11px;
   color: rgba(17, 17, 17, 0.4);
 }
 .ledger-tab-count {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 12px;
   color: rgba(17, 17, 17, 0.45);
@@ -3545,7 +3500,7 @@ h2 em {
   display: inline-flex;
   align-items: center;
   padding: 4px 10px;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -3572,7 +3527,7 @@ h2 em {
 .ledger-table--wide { min-width: 880px; }
 .ledger-table--wide thead th { white-space: nowrap; }
 .ledger-action {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.04em;
@@ -3617,7 +3572,7 @@ h2 em {
   gap: 16px;
 }
 .barometer-title {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-weight: 600;
   font-size: 14px;
   color: var(--ink);
@@ -3625,15 +3580,15 @@ h2 em {
 }
 .barometer-title:hover { text-decoration: underline; text-decoration-thickness: 1px; }
 .barometer-stats {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   color: var(--muted);
   white-space: nowrap;
 }
 .barometer-stats em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
-  font-weight: 360;
+  font-weight: 500;
   font-size: 16px;
   color: var(--forest);
   margin: 0 1px;
@@ -3653,17 +3608,17 @@ h2 em {
 .barometer-foot {
   display: flex;
   justify-content: space-between;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--muted);
 }
 .barometer-foot em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 13px;
   color: var(--forest);
-  font-weight: 360;
+  font-weight: 500;
 }
 
 /* ----- Draft progress bar inside dispatch-row ----- */
@@ -3688,14 +3643,14 @@ h2 em {
   background: var(--forest);
 }
 .draft-progress-label {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 10px;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--muted);
 }
 .draft-progress-label em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 12px;
   color: var(--forest);
@@ -3726,7 +3681,7 @@ h2 em {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.06em;
@@ -3757,7 +3712,7 @@ h2 em {
 }
 .listing-address {
   margin: 14px 0 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   color: var(--muted);
 }
@@ -3810,10 +3765,10 @@ h2 em {
   background:
     repeating-linear-gradient(
       45deg,
-      rgba(15, 41, 24, 0.04),
-      rgba(15, 41, 24, 0.04) 8px,
-      rgba(15, 41, 24, 0.06) 8px,
-      rgba(15, 41, 24, 0.06) 16px
+      rgba(56, 189, 248, 0.04),
+      rgba(56, 189, 248, 0.04) 8px,
+      rgba(56, 189, 248, 0.06) 8px,
+      rgba(56, 189, 248, 0.06) 16px
     ),
     var(--cream);
   display: flex;
@@ -3823,15 +3778,15 @@ h2 em {
 }
 .plate--lead .plate-frame { min-height: 380px; }
 .plate-folio {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 13px;
-  color: rgba(15, 41, 24, 0.55);
+  color: rgba(56, 189, 248, 0.55);
   letter-spacing: 0.04em;
 }
 .listing-gallery .plate figcaption {
   padding: 12px 18px;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.06em;
@@ -3850,7 +3805,7 @@ h2 em {
 }
 .listing-lede {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 17px;
   line-height: 1.55;
   color: var(--ink);
@@ -3872,7 +3827,7 @@ h2 em {
   padding-left: 18px;
 }
 .listing-meta-grid dt {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -3882,16 +3837,16 @@ h2 em {
 }
 .listing-meta-grid dd {
   margin: 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   font-weight: 500;
   color: var(--ink);
   font-feature-settings: "lnum", "tnum";
 }
 .listing-meta-grid dd em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
-  font-weight: 360;
+  font-weight: 500;
   font-size: 22px;
   color: var(--forest);
   margin-right: 1px;
@@ -3902,7 +3857,7 @@ h2 em {
 .soi-pricecard .features-kicker,
 .soi-comps-mini .features-kicker,
 .soi-review-block .features-kicker {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.16em;
@@ -3919,7 +3874,7 @@ h2 em {
   gap: 6px 18px;
 }
 .listing-features li {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   color: var(--ink);
   padding-left: 14px;
@@ -3950,32 +3905,32 @@ h2 em {
 }
 .vendor-name {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 17px;
-  font-weight: 360;
+  font-weight: 500;
   color: var(--ink);
 }
 .vendor-mail {
   margin: 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   color: var(--muted);
 }
 .vendor-auth {
   margin: 6px 0 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   color: var(--ink);
 }
 .vendor-auth em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   color: var(--forest);
 }
 
 .dash-empty {
   padding: 28px 22px;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 15px;
   color: var(--muted);
@@ -4027,22 +3982,22 @@ h2 em {
   border: 0;
   cursor: pointer;
   text-align: left;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   color: rgba(17, 17, 17, 0.5);
   transition: background 180ms ease, color 180ms ease;
 }
 .soi-step-btn:disabled { cursor: not-allowed; }
 .soi-step.is-current .soi-step-btn {
-  background: rgba(15, 41, 24, 0.06);
+  background: rgba(56, 189, 248, 0.06);
   color: var(--ink);
 }
 .soi-step.is-done .soi-step-btn { color: var(--ink); }
-.soi-step.is-done .soi-step-btn:hover { background: rgba(15, 41, 24, 0.04); }
+.soi-step.is-done .soi-step-btn:hover { background: rgba(56, 189, 248, 0.04); }
 .soi-step-section {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 18px;
-  font-weight: 360;
+  font-weight: 500;
   color: rgba(17, 17, 17, 0.4);
   min-width: 28px;
 }
@@ -4068,7 +4023,7 @@ h2 em {
   text-overflow: ellipsis;
 }
 .soi-step-mark {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   color: var(--forest);
   min-width: 14px;
@@ -4082,7 +4037,7 @@ h2 em {
 }
 .soi-help {
   margin: 0 0 22px;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 15px;
   line-height: 1.5;
@@ -4106,14 +4061,14 @@ h2 em {
   gap: 10px;
 }
 .soi-field-kicker {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-weight: 400;
   font-size: 12px;
   color: rgba(17, 17, 17, 0.45);
 }
 .soi-field-label {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -4121,7 +4076,7 @@ h2 em {
   color: var(--ink);
 }
 .soi-field-hint {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 12px;
   color: var(--muted);
@@ -4132,7 +4087,7 @@ h2 em {
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   color: var(--ink);
   transition: border-color 180ms ease;
@@ -4146,10 +4101,10 @@ h2 em {
 }
 .soi-textarea { resize: vertical; min-height: 90px; line-height: 1.5; }
 .soi-signature {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 22px;
-  font-weight: 360;
+  font-weight: 500;
   color: var(--forest);
 }
 
@@ -4169,7 +4124,7 @@ h2 em {
   background: transparent;
   border: 1px dashed var(--ink);
   cursor: pointer;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.08em;
@@ -4189,7 +4144,7 @@ h2 em {
   display: flex;
   flex-direction: column;
   gap: 14px;
-  background: rgba(15, 41, 24, 0.015);
+  background: rgba(56, 189, 248, 0.015);
 }
 .soi-comp-head {
   display: flex;
@@ -4199,7 +4154,7 @@ h2 em {
   padding-bottom: 10px;
 }
 .soi-comp-label {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.12em;
@@ -4216,27 +4171,27 @@ h2 em {
 .soi-pricecard .features-kicker { color: rgba(245, 241, 237, 0.6); }
 .soi-pricecard-value {
   margin: 6px 0 0;
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 360;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
   font-size: clamp(28px, 3vw, 38px);
   line-height: 1.1;
   color: #f5f1ed;
 }
 .soi-pricecard-value em {
   font-style: normal;
-  font-weight: 360;
+  font-weight: 500;
   color: #d8c9a3;
 }
 .soi-pricecard-median {
   margin: 8px 0 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: rgba(245, 241, 237, 0.7);
 }
 .soi-pricecard-median em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 16px;
   color: #f5f1ed;
@@ -4255,12 +4210,12 @@ h2 em {
   gap: 14px;
   align-items: baseline;
   padding: 10px 16px;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
 }
 .soi-comps-mini li + li { border-top: 1px solid var(--line); }
 .soi-comps-mini li em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   color: var(--forest);
   font-size: 14px;
@@ -4271,7 +4226,7 @@ h2 em {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   border: 1px solid var(--line);
-  background: rgba(15, 41, 24, 0.02);
+  background: rgba(56, 189, 248, 0.02);
 }
 .soi-review-block {
   padding: 18px;
@@ -4279,22 +4234,22 @@ h2 em {
 .soi-review-block + .soi-review-block { border-left: 1px solid var(--line); }
 .soi-review-line {
   margin: 0 0 6px;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   color: var(--ink);
 }
 .soi-review-line strong {
-  font-family: "Fraunces", Georgia, serif;
-  font-weight: 360;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
+  font-weight: 500;
   font-size: 16px;
 }
 .soi-review-line em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 16px;
   color: var(--forest);
   margin: 0 1px;
-  font-weight: 360;
+  font-weight: 500;
 }
 .soi-review-list {
   list-style: none;
@@ -4309,7 +4264,7 @@ h2 em {
   font-size: 12px;
 }
 .soi-review-list em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   color: var(--forest);
 }
@@ -4327,14 +4282,14 @@ h2 em {
 .soi-footer-meta {
   margin: 0;
   text-align: center;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--muted);
 }
 .soi-footer-meta em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 14px;
   color: var(--forest);
@@ -4357,12 +4312,10 @@ h2 em {
 }
 .soi-success-h1 {
   margin: 0;
-  font-family: "Fraunces", "GT Sectra", Georgia, "Times New Roman", serif;
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 72, "SOFT" 50;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-feature-settings: "ss01" on, "ss02" on, "ss03" on;
   font-size: clamp(36px, 4.4vw, 60px);
-  font-weight: 360;
+  font-weight: 500;
   line-height: 1;
   letter-spacing: -0.025em;
   color: var(--ink);
@@ -4370,14 +4323,13 @@ h2 em {
 }
 .soi-success-h1 em {
   font-style: italic;
-  font-weight: 320;
-  font-variation-settings: "opsz" 144, "SOFT" 100;
+  font-weight: 400;
   color: var(--forest);
 }
 .soi-success-lede {
   margin: 0;
   max-width: 56ch;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 17px;
   line-height: 1.5;
   color: var(--muted);
@@ -4433,9 +4385,9 @@ h2 em {
   color: var(--ink);
   transition: background 180ms ease;
 }
-.brief-row:hover { background: rgba(15, 41, 24, 0.035); }
+.brief-row:hover { background: rgba(56, 189, 248, 0.035); }
 .brief-folio {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 14px;
   color: rgba(17, 17, 17, 0.45);
@@ -4457,11 +4409,9 @@ h2 em {
 }
 .brief-row-title {
   margin: 0;
-  font-family: "Fraunces", "GT Sectra", Georgia, serif;
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 72, "SOFT" 50;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-feature-settings: "ss01" on, "ss02" on, "ss03" on;
-  font-weight: 360;
+  font-weight: 500;
   font-size: 22px;
   line-height: 1.1;
   letter-spacing: -0.015em;
@@ -4470,8 +4420,7 @@ h2 em {
 }
 .brief-row-title em {
   font-style: italic;
-  font-weight: 320;
-  font-variation-settings: "opsz" 144, "SOFT" 100;
+  font-weight: 400;
   color: var(--forest);
 }
 .brief-row-meta {
@@ -4482,7 +4431,7 @@ h2 em {
 }
 .brief-row-meta > div { min-width: 0; }
 .brief-row-meta dt {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -4492,7 +4441,7 @@ h2 em {
 }
 .brief-row-meta dd {
   margin: 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   color: var(--ink);
   line-height: 1.4;
@@ -4519,15 +4468,15 @@ h2 em {
   min-width: 56px;
 }
 .brief-stat-value {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--ink);
 }
 .brief-stat-value em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
-  font-weight: 360;
+  font-weight: 500;
   font-size: 26px;
   color: var(--forest);
   margin-right: 1px;
@@ -4535,7 +4484,7 @@ h2 em {
 }
 .brief-stat.is-warn .brief-stat-value em { color: #a1442d; }
 .brief-stat-label {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -4563,7 +4512,7 @@ h2 em {
   border-top: 1px solid var(--line);
 }
 .brief-particulars dt {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 9.5px;
   font-weight: 600;
   letter-spacing: 0.14em;
@@ -4573,14 +4522,14 @@ h2 em {
 }
 .brief-particulars dd {
   margin: 0;
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   color: var(--ink);
   line-height: 1.4;
 }
 .brief-body {
   margin: 6px 0 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.55;
   color: var(--ink);
@@ -4613,13 +4562,13 @@ h2 em {
   gap: 2px;
 }
 .reply-agent-name {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 18px;
-  font-weight: 360;
+  font-weight: 500;
   color: var(--ink);
 }
 .reply-agent-firm {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.08em;
@@ -4627,7 +4576,7 @@ h2 em {
   color: var(--muted);
 }
 .reply-time {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.16em;
@@ -4638,7 +4587,7 @@ h2 em {
 .reply-body {
   margin: 0;
   padding-left: 72px;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.55;
   color: var(--ink);
@@ -4647,7 +4596,7 @@ h2 em {
 }
 .reply-body::before {
   content: "“";
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 28px;
   color: var(--forest);
   margin-right: 4px;
@@ -4656,7 +4605,7 @@ h2 em {
 }
 .reply-body::after {
   content: "”";
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 28px;
   color: var(--forest);
   margin-left: 4px;
@@ -4669,7 +4618,7 @@ h2 em {
   padding-left: 72px;
 }
 .reply-action {
-  font-family: "Inter", system-ui, sans-serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-weight: 500;
   letter-spacing: 0.06em;
@@ -4810,7 +4759,7 @@ h2 em {
 }
 
 .messages-chip-section {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 11px;
   opacity: 0.7;
@@ -4893,7 +4842,7 @@ h2 em {
 .messages-shortcut-arrow {
   font-size: 18px;
   color: var(--ink-soft, #888);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Thread list ------------------------------- */
@@ -4941,7 +4890,7 @@ h2 em {
 }
 
 .thread-folio {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 11px;
   color: var(--ink-soft, #888);
@@ -4960,7 +4909,7 @@ h2 em {
   background: transparent;
   color: var(--ink, #1c1c1c);
   border: 1px solid var(--rule, rgba(28, 28, 28, 0.2));
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 12px;
   font-weight: 400;
   letter-spacing: 0.04em;
@@ -5012,7 +4961,7 @@ h2 em {
 }
 
 .thread-time {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 11px;
   font-style: italic;
   letter-spacing: 0.04em;
@@ -5055,7 +5004,7 @@ h2 em {
 }
 
 .category-tag {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 10px;
   font-weight: 400;
@@ -5094,22 +5043,19 @@ h2 em {
 }
 
 .messages-canvas-h2 {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(28px, 3vw, 44px);
-  font-weight: 360;
+  font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.05;
   margin: 14px 0 12px;
   color: var(--ink, #1c1c1c);
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 72;
 }
 
 .messages-canvas-h2 em {
   font-style: italic;
-  font-weight: 320;
+  font-weight: 400;
   color: var(--forest, #1f3b2e);
-  font-variation-settings: "opsz" 144;
 }
 
 .messages-canvas-lede {
@@ -5143,7 +5089,7 @@ h2 em {
 }
 
 .messages-canvas-tips em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   color: var(--forest, #1f3b2e);
   font-weight: 500;
@@ -5199,14 +5145,13 @@ h2 em {
 }
 
 .thread-title {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(26px, 3vw, 38px);
-  font-weight: 360;
+  font-weight: 500;
   letter-spacing: -0.02em;
   line-height: 1.05;
   margin: 6px 0 0;
   color: var(--ink, #1c1c1c);
-  font-optical-sizing: auto;
 }
 
 .thread-title-firm {
@@ -5228,13 +5173,13 @@ h2 em {
 }
 
 .thread-context-label {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   color: var(--ink, #1c1c1c);
 }
 
 .thread-presence {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 11px;
   letter-spacing: 0.04em;
@@ -5359,7 +5304,7 @@ h2 em {
 }
 
 .thread-date-label {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 12px;
   letter-spacing: 0.2em;
@@ -5436,7 +5381,7 @@ h2 em {
 }
 
 .thread-entry-name {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 13px;
   font-weight: 500;
   font-style: italic;
@@ -5453,7 +5398,7 @@ h2 em {
 }
 
 .thread-entry-time {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 10px;
   letter-spacing: 0.16em;
@@ -5521,7 +5466,7 @@ h2 em {
   justify-content: center;
   background: var(--ink, #1c1c1c);
   color: var(--cream, #faf6ef);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 10px;
   font-weight: 400;
@@ -5636,7 +5581,7 @@ h2 em {
 .thread-composer-input::placeholder {
   font-style: italic;
   color: var(--ink-soft, #999);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
 }
 
 .thread-composer-send {
@@ -5668,7 +5613,7 @@ h2 em {
   font-size: 11px;
   color: var(--ink-soft, #888);
   letter-spacing: 0.01em;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
 }
 
@@ -5726,7 +5671,7 @@ h2 em {
   background: transparent;
   border: 1px solid var(--rule, rgba(28, 28, 28, 0.18));
   color: var(--ink, #1c1c1c);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 11px;
   font-weight: 500;
@@ -5765,7 +5710,7 @@ h2 em {
   background: transparent;
   border: 1px solid var(--rule, rgba(28, 28, 28, 0.2));
   color: var(--ink, #1c1c1c);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 10px;
   font-weight: 400;
@@ -5797,7 +5742,7 @@ h2 em {
 }
 
 .thread-mini-time {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 10px;
   font-style: italic;
   letter-spacing: 0.04em;
@@ -5848,15 +5793,13 @@ h2 em {
 }
 
 .profile-name {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(34px, 4.2vw, 56px);
-  font-weight: 360;
+  font-weight: 500;
   letter-spacing: -0.025em;
   line-height: 1;
   margin: 14px 0 12px;
   color: var(--ink, #1c1c1c);
-  font-optical-sizing: auto;
-  font-variation-settings: "opsz" 72;
   display: flex;
   align-items: center;
   gap: 18px;
@@ -5873,13 +5816,12 @@ h2 em {
 }
 
 .profile-name-meta {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 0.36em;
   font-weight: 400;
   letter-spacing: 0.005em;
   color: var(--ink-soft, #777);
-  font-variation-settings: "opsz" 144;
 }
 
 .profile-firm-line {
@@ -5900,7 +5842,7 @@ h2 em {
 
 .profile-licence,
 .profile-verified {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 12px;
   color: var(--ink-soft, #888);
@@ -5924,7 +5866,7 @@ h2 em {
   background: transparent;
   border: 1px solid var(--rule, rgba(28, 28, 28, 0.2));
   color: var(--ink, #1c1c1c);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 28px;
   font-weight: 400;
@@ -5952,7 +5894,7 @@ h2 em {
 }
 
 .profile-rating-text strong {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
   font-weight: 500;
   color: var(--ink, #1c1c1c);
@@ -5993,9 +5935,9 @@ h2 em {
 
 .profile-bio-body {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: clamp(18px, 1.6vw, 22px);
-  font-weight: 360;
+  font-weight: 500;
   font-style: italic;
   line-height: 1.5;
   letter-spacing: -0.005em;
@@ -6003,11 +5945,10 @@ h2 em {
   text-wrap: balance;
   position: relative;
   padding-left: 20px;
-  font-variation-settings: "opsz" 72;
 }
 
 .profile-pullquote {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 60px;
   font-style: italic;
   color: var(--ink, #1c1c1c);
@@ -6015,7 +5956,6 @@ h2 em {
   left: -8px;
   top: -10px;
   line-height: 1;
-  font-variation-settings: "opsz" 144;
   margin-right: 8px;
 }
 
@@ -6153,7 +6093,7 @@ h2 em {
 }
 
 .profile-section-kicker {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 13px;
   letter-spacing: 0.04em;
@@ -6163,17 +6103,16 @@ h2 em {
 
 .profile-section-title {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 24px;
-  font-weight: 360;
+  font-weight: 500;
   letter-spacing: -0.015em;
   color: var(--ink, #1c1c1c);
-  font-variation-settings: "opsz" 72;
 }
 
 .profile-section-lede {
   margin: 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 13px;
   color: var(--ink-soft, #777);
@@ -6262,7 +6201,7 @@ h2 em {
 
 .profile-review-tag {
   margin: 8px 0 0;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 12px;
   color: var(--ink-soft, #888);
@@ -6292,12 +6231,11 @@ h2 em {
 }
 
 .payout-amount {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 20px;
-  font-weight: 360;
+  font-weight: 500;
   letter-spacing: -0.01em;
   color: var(--ink, #1c1c1c);
-  font-variation-settings: "opsz" 72;
 }
 
 .payout-dest {
@@ -6314,7 +6252,7 @@ h2 em {
 }
 
 .payout-date {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 12px;
   letter-spacing: 0.04em;
@@ -6396,7 +6334,7 @@ h2 em {
   margin-bottom: 32px;
 }
 .subpage-title {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-size: 56px;
   font-weight: 400;
   line-height: 1.05;
@@ -6413,7 +6351,7 @@ h2 em {
   color: rgba(28, 28, 28, 0.7);
 }
 .subpage-aside-kicker {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 12px;
   color: rgba(28, 28, 28, 0.5);
@@ -6458,14 +6396,14 @@ h2 em {
   float: none;
 }
 .subpage-fieldset-kicker {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 13px;
   color: rgba(28, 28, 28, 0.5);
   letter-spacing: 0.04em;
 }
 .subpage-fieldset-title {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-size: 22px;
   color: var(--ink);
   letter-spacing: -0.01em;
@@ -6492,7 +6430,7 @@ h2 em {
   gap: 6px;
 }
 .subpage-field-label {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 13px;
   color: rgba(28, 28, 28, 0.7);
@@ -6651,7 +6589,7 @@ h2 em {
   color: rgba(28, 28, 28, 0.55);
 }
 .settings-row-badge {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 12px;
   color: rgba(28, 28, 28, 0.6);
@@ -6688,7 +6626,7 @@ h2 em {
 .subpage-form-saved {
   font-size: 13px;
   color: rgba(28, 28, 28, 0.7);
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
 }
 
@@ -6698,14 +6636,14 @@ h2 em {
   padding: 48px 0;
 }
 .subpage-success-kicker {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 13px;
   color: rgba(28, 28, 28, 0.5);
   letter-spacing: 0.04em;
 }
 .subpage-success-title {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-size: 36px;
   font-weight: 400;
   margin: 12px 0 16px;
@@ -6730,7 +6668,7 @@ h2 em {
   margin-bottom: 32px;
 }
 .reviews-score-num {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-size: 72px;
   line-height: 1;
   margin: 0;
@@ -6748,7 +6686,7 @@ h2 em {
 .reviews-score-meta {
   font-size: 12px;
   color: rgba(28, 28, 28, 0.55);
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
 }
 .reviews-bars {
@@ -6769,7 +6707,7 @@ h2 em {
   color: rgba(28, 28, 28, 0.7);
 }
 .reviews-bar-label {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
 }
 .reviews-bar-track {
@@ -6801,7 +6739,7 @@ h2 em {
   min-width: 240px;
 }
 .reviews-empty {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 18px;
   color: rgba(28, 28, 28, 0.55);
@@ -6813,7 +6751,7 @@ h2 em {
 .reply-row-meta {
   font-size: 12px;
   color: rgba(28, 28, 28, 0.55);
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   margin: 4px 0 0;
 }
@@ -6842,7 +6780,7 @@ h2 em {
   margin-bottom: 16px;
 }
 .dispute-section-title {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-size: 22px;
   font-weight: 400;
   margin: 0;
@@ -6850,7 +6788,7 @@ h2 em {
 .dispute-section-meta {
   font-size: 12px;
   color: rgba(28, 28, 28, 0.55);
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
 }
 .dispute-list {
@@ -6880,7 +6818,7 @@ h2 em {
   margin-bottom: 6px;
 }
 .dispute-row-ref {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 13px;
   color: rgba(28, 28, 28, 0.6);
@@ -6913,7 +6851,7 @@ h2 em {
   margin: 0 0 6px;
 }
 .dispute-row-counterparty em {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
 }
 .dispute-row-summary {
@@ -6938,7 +6876,7 @@ h2 em {
   margin-bottom: 32px;
 }
 .dispute-meta-label {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 12px;
   color: rgba(28, 28, 28, 0.55);
@@ -7000,7 +6938,7 @@ h2 em {
   color: var(--ink);
 }
 .dispute-entry.is-mediator .dispute-entry-name {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
 }
 .dispute-entry-rule {
@@ -7011,7 +6949,7 @@ h2 em {
 .dispute-entry-time {
   font-size: 12px;
   color: rgba(28, 28, 28, 0.5);
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
 }
 .dispute-entry-body {
@@ -7075,14 +7013,14 @@ h2 em {
   border-bottom: none;
 }
 .payout-amount {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-size: 18px;
   margin: 0;
 }
 .payout-meta {
   font-size: 12px;
   color: rgba(28, 28, 28, 0.55);
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   margin: 2px 0 0;
 }
@@ -7099,7 +7037,7 @@ h2 em {
   border-bottom: 1px solid rgba(28, 28, 28, 0.08);
 }
 .ledger th {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-weight: 400;
   font-size: 12px;
@@ -7141,7 +7079,7 @@ h2 em {
   align-items: start;
 }
 .legal-updated {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 13px;
   color: rgba(28, 28, 28, 0.5);
@@ -7166,13 +7104,13 @@ h2 em {
   border-bottom: 1px solid rgba(28, 28, 28, 0.1);
 }
 .legal-section-num {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 14px;
   color: rgba(28, 28, 28, 0.4);
 }
 .legal-section-title {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-size: 24px;
   font-weight: 400;
   margin: 0;
@@ -7200,7 +7138,7 @@ h2 em {
   background: rgba(28, 28, 28, 0.02);
 }
 .legal-rail-kicker {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 12px;
   color: rgba(28, 28, 28, 0.55);
@@ -7244,7 +7182,7 @@ h2 em {
   max-width: 760px;
 }
 .danger-callout-title {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-size: 22px;
   font-weight: 400;
   margin: 0 0 16px;
@@ -7283,7 +7221,7 @@ h2 em {
   padding: 24px 0;
 }
 .danger-pause-title {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-size: 28px;
   font-weight: 400;
   font-style: italic;
@@ -7401,7 +7339,7 @@ h2 em {
   margin: 4px 0 8px;
 }
 .profile-completion-num {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-size: 36px;
   letter-spacing: -0.02em;
   color: var(--ink);
@@ -7441,7 +7379,7 @@ h2 em {
   background: rgba(28, 28, 28, 0.02);
 }
 .avatar-upload-initials {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-size: 32px;
   letter-spacing: -0.01em;
   color: var(--ink);
@@ -7452,7 +7390,7 @@ h2 em {
   gap: 8px;
 }
 .avatar-upload-label {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 13px;
   color: rgba(28, 28, 28, 0.7);
@@ -7534,7 +7472,7 @@ h2 em {
 .credentials-note {
   font-size: 12px;
   color: rgba(28, 28, 28, 0.5);
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   margin: 0;
 }
 .credentials-note em {
@@ -7557,7 +7495,7 @@ h2 em {
   gap: 12px;
 }
 .profile-preview-kicker {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 12px;
   color: rgba(28, 28, 28, 0.55);
@@ -7587,12 +7525,12 @@ h2 em {
   background: rgba(28, 28, 28, 0.02);
 }
 .profile-preview-portrait span {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-size: 22px;
   color: var(--ink);
 }
 .profile-preview-name {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-size: 22px;
   letter-spacing: -0.01em;
   margin: 0;
@@ -7604,7 +7542,7 @@ h2 em {
   margin: 4px 0 0;
 }
 .profile-preview-headline {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 15px;
   line-height: 1.5;
@@ -7629,7 +7567,7 @@ h2 em {
   gap: 2px;
 }
 .profile-preview-meta dt {
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   font-size: 11px;
   color: rgba(28, 28, 28, 0.5);
@@ -7652,7 +7590,7 @@ h2 em {
 }
 .profile-preview-foot {
   font-size: 12px;
-  font-family: var(--font-fraunces, "Fraunces"), Georgia, serif;
+  font-family: var(--font-sans);
   font-style: italic;
   margin: 0;
 }
@@ -7716,7 +7654,7 @@ h2 em {
 }
 
 .auth-wordmark {
-  font-family: "Fraunces", "GT Sectra", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-weight: 600;
   font-size: 28px;
   letter-spacing: 0.01em;
@@ -7744,7 +7682,7 @@ h2 em {
 }
 
 .auth-side-title {
-  font-family: "Fraunces", "GT Sectra", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-weight: 400;
   font-size: clamp(40px, 5vw, 64px);
   line-height: 1.05;
@@ -7798,7 +7736,7 @@ h2 em {
 
 .auth-stepper li::before {
   content: counter(stp, upper-roman);
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 14px;
   color: rgba(28, 28, 28, 0.35);
@@ -7840,7 +7778,7 @@ h2 em {
 }
 
 .auth-legend {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 18px;
   font-weight: 500;
   margin-bottom: 12px;
@@ -7924,7 +7862,7 @@ h2 em {
   flex: 1;
   height: 56px;
   text-align: center;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 24px;
   font-weight: 500;
   border: 1px solid rgba(28, 28, 28, 0.18);
@@ -7950,7 +7888,7 @@ h2 em {
 }
 
 .auth-hero-title {
-  font-family: "Fraunces", "GT Sectra", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-weight: 300;
   font-size: clamp(48px, 7vw, 88px);
   line-height: 1.02;
@@ -7988,7 +7926,7 @@ h2 em {
 }
 
 .auth-pitch-num {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 32px;
   color: rgba(28, 28, 28, 0.4);
@@ -7996,7 +7934,7 @@ h2 em {
 }
 
 .auth-pitch-title {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 20px;
   font-weight: 500;
   margin-bottom: 6px;
@@ -8057,14 +7995,14 @@ h2 em {
 }
 
 .splash-wordmark {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 40px;
   font-weight: 500;
   letter-spacing: 0.01em;
 }
 
 .splash-tagline {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   color: rgba(28, 28, 28, 0.7);
 }
@@ -8157,7 +8095,7 @@ h2 em {
   height: 52px;
   padding: 0 20px;
   font-size: 15px;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   border: 1px solid rgba(28, 28, 28, 0.16);
   background: #fff;
   border-radius: 2px;
@@ -8200,7 +8138,7 @@ h2 em {
 }
 
 .search-filters-title {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 18px;
   font-weight: 500;
   margin: 0;
@@ -8254,14 +8192,14 @@ h2 em {
   height: 24px;
   background: none;
   border: none;
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   cursor: pointer;
   color: var(--ink, #1c1c1c);
 }
 
 .search-stepper-controls span {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 14px;
 }
 
@@ -8297,7 +8235,7 @@ h2 em {
 }
 
 .search-range-meta em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   color: var(--ink, #1c1c1c);
   font-size: 16px;
@@ -8325,7 +8263,7 @@ h2 em {
 }
 
 .search-results-count em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 18px;
   color: var(--ink, #1c1c1c);
@@ -8383,7 +8321,7 @@ h2 em {
 }
 
 .search-card-title {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 18px;
   font-weight: 500;
   margin: 4px 0 0;
@@ -8395,7 +8333,7 @@ h2 em {
 }
 
 .search-card-price {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   font-style: italic;
   color: var(--ink, #1c1c1c);
@@ -8423,7 +8361,7 @@ h2 em {
 }
 
 .search-card-stats dd {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   margin: 0;
 }
@@ -8485,7 +8423,7 @@ h2 em {
 }
 
 .search-cta-rail-kicker em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   text-transform: none;
   letter-spacing: normal;
@@ -8494,7 +8432,7 @@ h2 em {
 }
 
 .search-cta-rail-line {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 18px;
   margin: 4px 0 12px;
   max-width: 50ch;
@@ -8531,7 +8469,7 @@ h2 em {
 }
 
 .search-recent-row-name {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
 }
 
@@ -8589,7 +8527,7 @@ h2 em {
 }
 
 .saved-tab {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 16px;
   text-decoration: none;
   color: rgba(28, 28, 28, 0.5);
@@ -8610,7 +8548,7 @@ h2 em {
 }
 
 .saved-tab-meta em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 16px;
   color: var(--ink, #1c1c1c);
@@ -8641,7 +8579,7 @@ h2 em {
 }
 
 .saved-search-name {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 20px;
   font-weight: 500;
   margin-bottom: 4px;
@@ -8672,7 +8610,7 @@ h2 em {
 }
 
 .saved-search-badge em {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-style: italic;
   font-size: 16px;
 }
@@ -8763,7 +8701,7 @@ h2 em {
 }
 
 .notif-row-title {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 18px;
   font-weight: 500;
 }
@@ -8788,7 +8726,7 @@ h2 em {
 }
 
 .subpage-success-title {
-  font-family: "Fraunces", Georgia, serif;
+  font-family: var(--font-satoshi), ui-sans-serif, system-ui, sans-serif;
   font-size: 36px;
   font-weight: 400;
   margin: 0 0 12px;

@@ -337,7 +337,7 @@ export default function SearchPage() {
 
             {results.length === 0 ? (
               <p className="reviews-empty">
-                <em>Nothing matches</em> &mdash; try widening your filters.
+                <em>Nothing matches</em>, try widening your filters.
               </p>
             ) : (
               <ul className="search-grid" role="list">

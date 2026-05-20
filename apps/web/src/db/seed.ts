@@ -1,5 +1,5 @@
 /**
- * OMM — DB seed
+ * OMM - DB seed
  *
  * Ports the editorial fixtures into Postgres, in dependency order.
  * Idempotent: clears the DB first, then inserts.
@@ -109,7 +109,7 @@ function parseAud(s: string | null | undefined): string | null {
 
 async function clearAll() {
   console.log("⌫  Clearing existing rows…");
-  // order matters — children first
+  // order matters - children first
   await db.delete(schema.notifications);
   await db.delete(schema.savedListings);
   await db.delete(schema.searches);
@@ -496,7 +496,7 @@ async function seedNotifications() {
       id: "ntf-05",
       userId: DEMO_AGENT_ID,
       kind: "DISPUTE",
-      title: "DR-1042 — mediator update",
+      title: "DR-1042 - mediator update",
       body: "Please upload supporting evidence by Fri 25 Apr",
       href: "/app/profile/disputes/dis-01",
       read: true,
@@ -519,7 +519,7 @@ async function seedNotifications() {
       userId: DEMO_BUYER_ID,
       kind: "NEW_MATCH",
       title: "New match for 'Bayside family home'",
-      body: "1240 Park Ave, Brighton — 96% match",
+      body: "1240 Park Ave, Brighton - 96% match",
       href: "/app/saved/searches/srch-bayside-family",
       read: false,
       occurredAt: daysAgo(0),
@@ -529,7 +529,7 @@ async function seedNotifications() {
       userId: DEMO_BUYER_ID,
       kind: "MESSAGE",
       title: "John Lim replied to your enquiry",
-      body: "Thanks for reaching out — shall we book a private inspection…",
+      body: "Thanks for reaching out - shall we book a private inspection…",
       href: "/app/messages",
       read: false,
       occurredAt: daysAgo(0),

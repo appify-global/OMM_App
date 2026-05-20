@@ -326,7 +326,7 @@ function Step1({
       <Field
         label="PriceFinder reference"
         kicker="ii"
-        hint="Optional — populates automatically once matched."
+        hint="Optional - populates automatically once matched."
       >
         <input
           type="text"
@@ -520,7 +520,7 @@ function Step4({
         <p className="soi-pricecard-value">
           {low && high ? (
             <>
-              <em>${low}M</em> &mdash; <em>${high}M</em>
+              <em>${low}M</em>, <em>${high}M</em>
             </>
           ) : (
             <span className="ledger-muted">Awaiting input</span>
@@ -541,10 +541,10 @@ function Step4({
                 No. {String(i + 1).padStart(2, "0")}
               </span>
               <span>
-                {c.address || <span className="ledger-muted">—</span>}
+                {c.address || <span className="ledger-muted">-</span>}
               </span>
               <span className="ledger-num">
-                {c.price ? <em>{c.price}</em> : <span className="ledger-muted">—</span>}
+                {c.price ? <em>{c.price}</em> : <span className="ledger-muted">-</span>}
               </span>
             </li>
           ))}
@@ -569,19 +569,19 @@ function Step5({
         <div className="soi-review-block">
           <p className="features-kicker">Property</p>
           <p className="soi-review-line">
-            <strong>{form.title || "—"}</strong>
-            <span className="ledger-muted"> · {form.address || "—"}</span>
+            <strong>{form.title || "-"}</strong>
+            <span className="ledger-muted"> · {form.address || "-"}</span>
           </p>
           <p className="soi-review-line">
-            <em>{form.beds || "—"}</em> bed · <em>{form.baths || "—"}</em>{" "}
-            bath · <em>{form.landSqm || "—"}</em> m²
+            <em>{form.beds || "-"}</em> bed · <em>{form.baths || "-"}</em>{" "}
+            bath · <em>{form.landSqm || "-"}</em> m²
           </p>
         </div>
         <div className="soi-review-block">
           <p className="features-kicker">Indicative range</p>
           <p className="soi-review-line">
-            <em>${form.priceLow || "—"}M</em> &mdash;{" "}
-            <em>${form.priceHigh || "—"}M</em>
+            <em>${form.priceLow || "-"}M</em>,{" "}
+            <em>${form.priceHigh || "-"}M</em>
             {median ? (
               <span className="ledger-muted"> · median ${median}M</span>
             ) : null}
@@ -595,9 +595,9 @@ function Step5({
                 <span className="dispatch-folio">
                   No. {String(i + 1).padStart(2, "0")}
                 </span>
-                <span>{c.address || "—"}</span>
+                <span>{c.address || "-"}</span>
                 <span className="ledger-num">
-                  <em>{c.price || "—"}</em>
+                  <em>{c.price || "-"}</em>
                 </span>
               </li>
             ))}

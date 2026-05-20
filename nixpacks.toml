@@ -1,0 +1,14 @@
+# Railway/Nixpacks — deploy the Next.js marketing site at repo root `/`.
+# Matches railway.json: build:website → start:website (apps/web serves `/`).
+
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm install"]
+
+[phases.build]
+cmds = ["npm run build:website"]
+
+[start]
+cmd = "npm run start:website"

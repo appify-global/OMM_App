@@ -165,7 +165,7 @@ export default function EditProfilePage() {
             </h1>
             <p className="page-lede">
               The face you wear in the marketplace. Keep it accurate, keep it
-              human &mdash; buyers and co-agents read this carefully.
+              human, buyers and co-agents read this carefully.
             </p>
           </div>
           <aside className="subpage-aside">
@@ -200,7 +200,7 @@ export default function EditProfilePage() {
               );
             }}
           >
-            {/* I — Photo & headline */}
+            {/* I - Photo & headline */}
             <fieldset className="subpage-fieldset">
               <legend className="subpage-fieldset-legend">
                 <span className="subpage-fieldset-kicker">i</span>
@@ -248,7 +248,7 @@ export default function EditProfilePage() {
               </div>
             </fieldset>
 
-            {/* II — Identity */}
+            {/* II - Identity */}
             <fieldset className="subpage-fieldset">
               <legend className="subpage-fieldset-legend">
                 <span className="subpage-fieldset-kicker">ii</span>
@@ -290,13 +290,13 @@ export default function EditProfilePage() {
                     value={String(agentProfile.joinedYear)}
                     onChange={() => undefined}
                     readOnly
-                    hint="Set when you joined &mdash; cannot change"
+                    hint="Set when you joined, cannot change"
                   />
                 </div>
               </div>
             </fieldset>
 
-            {/* III — Contact */}
+            {/* III - Contact */}
             <fieldset className="subpage-fieldset">
               <legend className="subpage-fieldset-legend">
                 <span className="subpage-fieldset-kicker">iii</span>
@@ -328,7 +328,7 @@ export default function EditProfilePage() {
                   />
                   <Toggle
                     label="Show email on my listings"
-                    hint="Recommended &mdash; most enquiries come by email."
+                    hint="Recommended, most enquiries come by email."
                     value={form.showEmailOnListings}
                     onChange={(v) => update("showEmailOnListings", v)}
                   />
@@ -336,7 +336,7 @@ export default function EditProfilePage() {
               </div>
             </fieldset>
 
-            {/* IV — Bio */}
+            {/* IV - Bio */}
             <fieldset className="subpage-fieldset">
               <legend className="subpage-fieldset-legend">
                 <span className="subpage-fieldset-kicker">iv</span>
@@ -367,7 +367,7 @@ export default function EditProfilePage() {
               </div>
             </fieldset>
 
-            {/* V — Areas of practice */}
+            {/* V - Areas of practice */}
             <fieldset className="subpage-fieldset">
               <legend className="subpage-fieldset-legend">
                 <span className="subpage-fieldset-kicker">v</span>
@@ -442,7 +442,7 @@ export default function EditProfilePage() {
                     ))}
                   </ul>
                   <span className="subpage-field-hint">
-                    Choose up to five &mdash; precision beats range.
+                    Choose up to five, precision beats range.
                   </span>
                 </div>
 
@@ -468,14 +468,14 @@ export default function EditProfilePage() {
               </div>
             </fieldset>
 
-            {/* VI — Credentials */}
+            {/* VI - Credentials */}
             <fieldset className="subpage-fieldset">
               <legend className="subpage-fieldset-legend">
                 <span className="subpage-fieldset-kicker">vi</span>
                 <span className="subpage-fieldset-title">Credentials</span>
               </legend>
               <p className="subpage-fieldset-lede">
-                Verified information &mdash; please keep these up to date.
+                Verified information, please keep these up to date.
               </p>
               <div className="subpage-fieldset-body">
                 <Field
@@ -495,7 +495,7 @@ export default function EditProfilePage() {
               </div>
             </fieldset>
 
-            {/* VII — Web presence */}
+            {/* VII - Web presence */}
             <fieldset className="subpage-fieldset">
               <legend className="subpage-fieldset-legend">
                 <span className="subpage-fieldset-kicker">vii</span>
@@ -528,7 +528,7 @@ export default function EditProfilePage() {
               </div>
             </fieldset>
 
-            {/* VIII — Visibility */}
+            {/* VIII - Visibility */}
             <fieldset className="subpage-fieldset">
               <legend className="subpage-fieldset-legend">
                 <span className="subpage-fieldset-kicker">viii</span>
@@ -598,7 +598,7 @@ export default function EditProfilePage() {
                         (form.suburbs.length > 4
                           ? ` +${form.suburbs.length - 4}`
                           : "")
-                      : "—"}
+                      : "-"}
                   </dd>
                 </div>
                 <div>
@@ -606,7 +606,7 @@ export default function EditProfilePage() {
                   <dd>
                     {form.specialties.length > 0
                       ? form.specialties.join(" · ")
-                      : "—"}
+                      : "-"}
                   </dd>
                 </div>
                 <div>
@@ -614,7 +614,7 @@ export default function EditProfilePage() {
                   <dd>
                     {form.languages.length > 0
                       ? form.languages.join(", ")
-                      : "—"}
+                      : "-"}
                   </dd>
                 </div>
                 <div>
