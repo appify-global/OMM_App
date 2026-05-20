@@ -6,6 +6,7 @@ import { Fragment, useEffect, useRef, useState } from "react";
 import {
   Image,
   ImageBackground,
+  Platform,
   Pressable,
   TextInput as RNTextInput,
   ScrollView,
@@ -628,6 +629,10 @@ export default function HomeScreen() {
     <View style={[styles.screen, mode === "buying" && styles.screenBuying]}>
       <ScrollView
         showsVerticalScrollIndicator={false}
+        {...(Platform.OS !== "web" && {
+          decelerationRate: "normal",
+          scrollEventThrottle: 16,
+        })}
         contentContainerStyle={[
           styles.scrollContent,
           {
