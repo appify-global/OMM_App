@@ -26,8 +26,8 @@ jobs:
           set -euo pipefail
 
           if [ -z "${RAILWAY_TOKEN:-}" ]; then
-            echo "::error::RAILWAY_TOKEN secret is not set. Add it in repo Settings → Secrets and variables → Actions."
-            exit 1
+            echo "::notice::RAILWAY_TOKEN secret is not set. Skipping Railway deploy watch. Add the secret in repo Settings → Secrets and variables → Actions to activate."
+            exit 0
           fi
 
           SHORT_SHA="${COMMIT_SHA:0:7}"
