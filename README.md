@@ -22,11 +22,12 @@ Production deploy (Railway) uses `build:website` and `start:website` — see [`r
 ### Mobile dev (root Expo app)
 
 1. Copy [`.env.example`](.env.example) to `.env` at repo root **or** set the same vars in EAS/build.
-2. Use the **same** Clerk publishable key as web: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (web) = `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` (Expo).
-3. Point `EXPO_PUBLIC_API_URL` at your Next **origin**. Local default: **`http://127.0.0.1:3101`** (see `apps/web/package.json`).
-4. Run `npm run dev` (web) and `npm run dev:mobile` (Expo). For a phone on the network use `npm run dev:mobile:lan` and set `EXPO_PUBLIC_API_URL` to your machine’s LAN IP.
+2. **Web Clerk env lives only under [`apps/web/`](apps/web)** — copy [`apps/web/.env.example`](apps/web/.env.example) to **`apps/web/.env.local`**. Next does not read the repo-root `.env`.
+3. Use the **same** Clerk publishable key in both places: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (in `apps/web/.env.local`) **must equal** `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` (repo root `.env`). If they differ, web shows errors like **“Couldn't find your account”** for users that exist in the other Clerk instance.
+4. Point `EXPO_PUBLIC_API_URL` at your Next **origin**. Local default: **`http://127.0.0.1:3101`** (see `apps/web/package.json`).
+5. Run `npm run dev` (web) and `npm run dev:mobile` (Expo). For a phone on the network use `npm run dev:mobile:lan` and set `EXPO_PUBLIC_API_URL` to your machine’s LAN IP.
 
-Native calls **`GET/POST`** routes under **`/api/mobile/*`** on that origin (Bearer token auth). **`CLERK_SECRET_KEY`** in `apps/web/.env` is required so those handlers can verify JWTs.
+Native calls **`GET/POST`** routes under **`/api/mobile/*`** on that origin (Bearer token auth). **`CLERK_SECRET_KEY`** in `apps/web/.env.local` is required so those handlers can verify JWTs.
 
 **Railway:** use the same publishable key and set `EXPO_PUBLIC_API_URL` to your Railway site origin (no trailing slash). Configure `expo.extra.eas.projectId` in [`app.json`](app.json) and use [`eas.json`](eas.json) for builds.
 

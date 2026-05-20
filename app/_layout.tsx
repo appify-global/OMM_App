@@ -1,3 +1,5 @@
+import 'react-native-url-polyfill/auto';
+
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, DefaultTheme, ThemeProvider, type Theme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
@@ -8,6 +10,7 @@ import 'react-native-reanimated';
 
 import { frost } from '@/constants/theme';
 import { useColorScheme } from '@/components/useColorScheme';
+import { OmmClerkProvider } from '@/lib/omm-clerk-provider';
 import { SavedListingsProvider } from '@/lib/saved-listings-context';
 
 export {
@@ -51,7 +54,11 @@ export default function RootLayout() {
     return null;
   }
 
-  return <RootLayoutNav />;
+  return (
+    <OmmClerkProvider>
+      <RootLayoutNav />
+    </OmmClerkProvider>
+  );
 }
 
 function RootLayoutNav() {

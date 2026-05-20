@@ -35,9 +35,9 @@ export default function SiteFooter() {
           &copy; Off the Market Match Pty Ltd, Melbourne. All rights reserved.
         </p>
         <nav aria-label="Footer navigation">
-          {footerLinks.map((link) => (
-            <Link href="#" key={link}>
-              {link}
+          {footerLinks.map((item) => (
+            <Link href={item.href} key={item.label}>
+              {item.label}
             </Link>
           ))}
         </nav>

@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import SiteHeader from "../components/SiteHeader";
 import SiteFooter from "../components/SiteFooter";
 import { fetchListings } from "../lib/api";
@@ -24,6 +26,9 @@ function matchesQuery(
     listing.postcode,
     listing.agent,
     listing.agency,
+    listing.tag,
+    listing.priceGuide,
+    listing.plan,
   ]
     .join(" ")
     .toLowerCase();
@@ -77,6 +82,35 @@ export default async function ListingsPage({ searchParams }: ListingsPageProps) 
               </div>
             </dl>
           </header>
+
+          <form className="listings-search" action="/listings" method="get" role="search">
+            <label className="listings-search__label" htmlFor="listings-search-q">
+              Search listings
+            </label>
+            <div className="listings-search__row">
+              <input
+                id="listings-search-q"
+                className="listings-search__input"
+                type="search"
+                name="q"
+                placeholder="Suburb, street, postcode, agent, price…"
+                defaultValue={q ?? ""}
+                autoComplete="off"
+                aria-describedby="listings-search-hint"
+              />
+              <button type="submit" className="listings-search__submit">
+                Search
+              </button>
+              {q ? (
+                <Link href="/listings" className="listings-search__clear">
+                  Clear
+                </Link>
+              ) : null}
+            </div>
+            <p id="listings-search-hint" className="listings-search__hint">
+              Matches addresses, suburbs, campaigns and agent names across the portfolio.
+            </p>
+          </form>
 
           <div className="listings-filters" role="group" aria-label="Filter listings">
             {filters.map((f, i) => (

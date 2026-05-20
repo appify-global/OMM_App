@@ -1,6 +1,8 @@
 import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
 
+import { clerkAuthAppearance } from "../../../lib/clerk-appearance";
+
 export default function SignUpPage() {
   return (
     <main className="auth-page">
@@ -43,6 +45,7 @@ export default function SignUpPage() {
             path="/sign-up"
             signInUrl="/sign-in"
             forceRedirectUrl="/sign-up/step-2"
+            appearance={clerkAuthAppearance}
           />
         </div>
       </section>

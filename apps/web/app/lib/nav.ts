@@ -62,14 +62,20 @@ export const footerDirectoryLinks: string[][] = [
 
 export const footerDirectoryHeadings = ["By state", "By suburb", "By tool"];
 
-export const footerLinks = [
-  "About",
-  "Contact",
-  "Agent access",
-  "Legal",
-  "Privacy",
-  "Site map",
-  "Careers",
+export type FooterQuickLink = {
+  label: string;
+  href: string;
+};
+
+/** Footer base row — `href` is relative to the site origin (e.g. /about). */
+export const footerLinks: FooterQuickLink[] = [
+  { label: "About", href: "/about" },
+  { label: "Contact", href: "#" },
+  { label: "Agent access", href: "#" },
+  { label: "Legal", href: "/legal" },
+  { label: "Privacy", href: "/privacy" },
+  { label: "Site map", href: "#" },
+  { label: "Careers", href: "#" },
 ];
 
 export const todayDateline = (): string => {

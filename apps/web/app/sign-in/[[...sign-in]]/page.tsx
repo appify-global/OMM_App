@@ -15,6 +15,7 @@ export default function SignInPage() {
             height={22}
             priority
             className="auth-find__logo"
+            style={{ width: 'auto' }}
           />
         </Link>
         <Link href="/" className="auth-find__back">

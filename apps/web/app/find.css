@@ -31,13 +31,26 @@ body {
 
 .site-header--find .site-header-inner {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  gap: 24px;
+  column-gap: clamp(16px, 2.5vw, 28px);
   max-width: 1280px;
   margin: 0 auto;
   min-height: 64px;
   padding: 0 clamp(20px, 4vw, 40px);
+}
+
+/* True center nav: equal side columns so logo vs auth width doesn’t shift the links */
+.site-header--find .site-header-inner .brand {
+  justify-self: start;
+}
+
+.site-header--find .site-header-inner .site-header-nav {
+  justify-self: center;
+}
+
+.site-header--find .site-header-inner > :last-child {
+  justify-self: end;
 }
 
 .brand-logo {
@@ -155,7 +168,7 @@ body:has(.home-find) .site-header--find {
   isolation: isolate;
   background: #6eb8e8;
   /* Bottom edge of headline + lede + CTA — property fills below this */
-  --hero-property-top: clamp(360px, 51vh, 520px);
+  --hero-property-top: clamp(388px, 53vh, 536px);
 }
 
 /* Flat painted-blue sky — top is deeper, fades to soft horizon */
@@ -257,10 +270,10 @@ body:has(.home-find) .site-header--find {
   transform: translateX(-50%) translateY(75%) scale(1.15);
 }
 
-/* Text-level cloud layer — sits at headline height, above the title */
+/* Text-level cloud layer — aligns with headline band after layout tweak */
 .hero-find__clouds--text {
   position: absolute;
-  top: clamp(80px, 16vh, 200px);
+  top: clamp(64px, 13vh, 168px);
   right: 0;
   left: 0;
   height: clamp(220px, 32vh, 380px);
@@ -294,10 +307,10 @@ body:has(.home-find) .site-header--find {
   transform: scaleX(-1);
 }
 
-/* Headline cluster — sits high in the upper third, tight stack */
+/* Headline cluster — pulled up slightly vs old layout; type + actions spaced below */
 .hero-find__headline {
   position: absolute;
-  top: clamp(170px, 28vh, 300px);
+  top: clamp(112px, 21vh, 228px);
   right: 0;
   left: 0;
   z-index: 3;
@@ -311,15 +324,15 @@ body:has(.home-find) .site-header--find {
 
 .hero-find__actions {
   position: absolute;
-  top: clamp(170px, 28vh, 300px);
+  top: clamp(112px, 21vh, 228px);
   right: 0;
   left: 0;
   z-index: 5;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(16px, 2vh, 24px);
-  padding: clamp(72px, 9.5vw, 152px) clamp(20px, 4vw, 40px) 0;
+  gap: clamp(28px, 3.5vh, 44px);
+  padding: clamp(100px, 12.5vw, 192px) clamp(20px, 4vw, 40px) clamp(28px, 4vh, 48px);
   text-align: center;
   will-change: transform;
 }
@@ -332,8 +345,8 @@ body:has(.home-find) .site-header--find {
   margin: 0;
   font-size: clamp(2.4rem, 9.6vw, 10.5rem);
   font-weight: 700;
-  line-height: 0.92;
-  letter-spacing: -0.055em;
+  line-height: 0.96;
+  letter-spacing: -0.028em;
   white-space: nowrap;
   color: #000;
   transition: opacity 80ms linear;
@@ -341,11 +354,12 @@ body:has(.home-find) .site-header--find {
 
 .hero-find__lede {
   margin: 0;
+  max-width: 38rem;
   font-size: clamp(16px, 1.7vw, 22px);
   font-weight: 500;
-  line-height: 1.4;
-  letter-spacing: -0.012em;
-  white-space: nowrap;
+  line-height: 1.45;
+  letter-spacing: -0.008em;
+  white-space: normal;
 }
 
 .hero-find__lede-strong {
@@ -616,6 +630,10 @@ body:has(.home-find) .site-header--find {
     grid-template-columns: 1fr auto;
   }
 
+  .site-header--find .site-header-inner > :last-child {
+    justify-self: end;
+  }
+
   .find-why__grid {
     grid-template-columns: 1fr;
     gap: 16px;
@@ -629,15 +647,23 @@ body:has(.home-find) .site-header--find {
 @media (max-width: 640px) {
   .hero-find__title {
     font-size: clamp(2rem, 10vw, 3.2rem);
-    letter-spacing: -0.045em;
+    letter-spacing: -0.02em;
+    white-space: normal;
+    max-width: 14ch;
   }
 
   .hero-find__lede {
     font-size: clamp(11px, 3.1vw, 14px);
+    padding: 0 4px;
   }
 
   .hero-find {
-    --hero-property-top: clamp(300px, 54vh, 440px);
+    --hero-property-top: clamp(318px, 56vh, 458px);
+  }
+
+  .hero-find__actions {
+    gap: clamp(22px, 4vh, 32px);
+    padding: clamp(88px, 22vw, 140px) clamp(16px, 5vw, 28px) clamp(20px, 5vh, 36px);
   }
 
 

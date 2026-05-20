@@ -21,6 +21,7 @@ export default function SiteHeader() {
             height={22}
             priority
             className="brand-logo"
+            style={{ width: "auto" }}
           />
         </Link>
         <nav className="site-header-nav" aria-label="Primary">
