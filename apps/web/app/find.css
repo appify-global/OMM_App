@@ -107,20 +107,19 @@ html:has(.find-page--about) .site-footer {
   padding: 0 clamp(20px, 4vw, 40px);
 }
 
+.brand {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 0;
+  text-decoration: none;
+}
+
 .brand-logo {
   display: block;
   width: auto;
-  height: 22px;
-  max-width: min(118px, 32vw);
-}
-
-.brand--hidden {
-  width: 0;
-  min-width: 0;
-  overflow: hidden;
-  padding: 0;
-  opacity: 0;
-  pointer-events: none;
+  height: clamp(20px, 2.8vw, 28px);
+  max-width: min(140px, 36vw);
 }
 
 .site-header-nav {

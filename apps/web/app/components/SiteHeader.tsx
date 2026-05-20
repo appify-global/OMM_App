@@ -1,6 +1,7 @@
 "use client";
 
 import { useAuth, UserButton } from "@clerk/nextjs";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -18,8 +19,15 @@ export default function SiteHeader() {
   return (
     <header className="site-header site-header--find">
       <div className="site-header-inner">
-        <Link className="brand brand--hidden" href="/">
-          <span className="sr-only">Home</span>
+        <Link href="/" className="brand" aria-label="MATCH home">
+          <Image
+            src="/match-logo.png"
+            alt=""
+            width={132}
+            height={32}
+            className="brand-logo"
+            priority
+          />
         </Link>
         <nav className="site-header-nav" aria-label="Primary">
           {headerNavItems.map((item) => {
