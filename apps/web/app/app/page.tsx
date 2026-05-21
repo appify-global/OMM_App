@@ -1,10 +1,10 @@
-import { getAppUserId } from "@/lib/auth-user";
+import { loadHomePageDataFromBackend } from "@/lib/backend-web-loaders";
 
-import { loadHomePageData } from "./_data/rsc-loaders";
 import AppHomeClient from "./AppHomeClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function AppHomePage() {
-  const userId = await getAppUserId();
-  const data = await loadHomePageData(userId);
+  const data = await loadHomePageDataFromBackend();
   return <AppHomeClient data={data} />;
 }

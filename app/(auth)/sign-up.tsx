@@ -17,7 +17,13 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import { AppButton } from "@/components/AppButton";
 import { LegalDocModal } from "@/components/LegalDocModal";
-import { clerkFieldError, clerkFinalizeNavigate } from "@/lib/clerk-auth";
+import {
+  clerkFieldError,
+  clerkFinalizeNavigate,
+  clerkIncompleteAuthMessage,
+  clerkSignUpProfileParams,
+  syncClerkSignUpProfile,
+} from "@/lib/clerk-auth";
 import { setUserRole, type StoredUserRole } from "@/lib/auth-session";
 import {
   LEGAL_PRIVACY_BODY,
@@ -485,19 +491,30 @@ export default function SignUpScreen() {
     }
     if (step !== 2 || !canStep2) return;
 
+    const profile = clerkSignUpProfileParams(firstName, lastName, phone);
     const { error } = await signUp.password({
       emailAddress: email.trim(),
       password,
+      ...profile,
     });
     if (error) {
       setSubmitError(error.message ?? "Could not create your account. Try again.");
       return;
     }
 
+    if (signUp.status === "missing_requirements" && signUp.missingFields.length > 0) {
+      const syncErr = await syncClerkSignUpProfile(signUp, firstName, lastName, phone, {
+        legalAccepted: agreeLegal,
+      });
+      if (syncErr) {
+        setSubmitError(syncErr);
+        return;
+      }
+    }
+
     const needsEmailVerify =
       signUp.status === "missing_requirements" &&
-      signUp.unverifiedFields.includes("email_address") &&
-      signUp.missingFields.length === 0;
+      signUp.unverifiedFields.includes("email_address");
 
     if (needsEmailVerify) {
       await signUp.verifications.sendEmailCode();
@@ -510,7 +527,21 @@ export default function SignUpScreen() {
       return;
     }
 
-    setSubmitError("Sign up could not be completed. Try again or contact support.");
+    if (__DEV__) {
+      console.warn("[sign-up] incomplete", {
+        status: signUp.status,
+        missingFields: signUp.missingFields,
+        unverifiedFields: signUp.unverifiedFields,
+      });
+    }
+    setSubmitError(
+      clerkIncompleteAuthMessage(
+        "sign-up",
+        signUp.status,
+        signUp.missingFields,
+        signUp.unverifiedFields,
+      ),
+    );
   };
 
   const onVerifyEmail = async () => {

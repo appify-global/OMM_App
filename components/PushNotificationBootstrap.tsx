@@ -53,7 +53,7 @@ export function PushNotificationBootstrap() {
 
       if (__DEV__ && !posted) {
         console.warn(
-          '[push] Token obtained but backend registration failed (check EXPO_PUBLIC_API_URL and /api/mobile/push-token).',
+          '[push] Token obtained but backend registration failed — check EXPO_PUBLIC_WEB_ORIGIN / EXPO_PUBLIC_API_URL and /api/mobile/push-token.',
         );
       }
     })();

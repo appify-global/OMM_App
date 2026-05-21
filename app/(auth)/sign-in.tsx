@@ -19,7 +19,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AppButton } from '@/components/AppButton';
 import { OAuthProviderCircles } from '@/components/oauth/OAuthProviderCircles';
 import { layout } from '@/constants/theme';
-import { clerkFieldError, clerkFinalizeNavigate, completeSSOFlow } from '@/lib/clerk-auth';
+import {
+  clerkFieldError,
+  clerkFinalizeNavigate,
+  clerkIncompleteAuthMessage,
+  completeSSOFlow,
+} from '@/lib/clerk-auth';
 import { FIELD_OUTLINE_COLOR } from '@/lib/field-outline';
 import { isPermittedWorkEmail, workEmailValidationMessage } from '@/lib/work-email';
 
@@ -66,7 +71,11 @@ export default function SignInScreen() {
       return;
     }
 
-    if (signIn.status === 'needs_client_trust') {
+    if (
+      signIn.status === 'needs_client_trust' ||
+      signIn.status === 'needs_second_factor' ||
+      signIn.status === 'needs_first_factor'
+    ) {
       const emailCodeFactor = signIn.supportedSecondFactors?.find(
         (factor) => factor.strategy === 'email_code',
       );
@@ -74,12 +83,17 @@ export default function SignInScreen() {
         await signIn.mfa.sendEmailCode();
         setMode('verify-email');
       } else {
-        setSubmitError('Additional verification is required. Try again or contact support.');
+        setSubmitError(
+          clerkIncompleteAuthMessage('sign-in', signIn.status, [], signIn.unverifiedFields ?? []),
+        );
       }
       return;
     }
 
-    setSubmitError('Sign in could not be completed. Try again or contact support.');
+    if (__DEV__) {
+      console.warn('[sign-in] incomplete', { status: signIn.status });
+    }
+    setSubmitError(clerkIncompleteAuthMessage('sign-in', signIn.status));
   };
 
   const onVerify = async () => {
@@ -234,6 +248,8 @@ export default function SignInScreen() {
           </View>
           {clerkPasswordError ? <Text style={styles.fieldError}>{clerkPasswordError}</Text> : null}
           {submitError ? <Text style={styles.fieldError}>{submitError}</Text> : null}
+
+          <View nativeID="clerk-captcha" />
 
           <View style={styles.rowBetween}>
             <Pressable

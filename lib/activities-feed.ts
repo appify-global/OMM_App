@@ -1,5 +1,7 @@
 import type { ImageSourcePropType } from 'react-native';
 
+import type { InspectionActivityItem } from '../packages/shared/src/mobile-api';
+
 import type { PublishedAgentListing } from '@/lib/agent-published-listings';
 import {
   isPublishedListingArchived,
@@ -8,10 +10,6 @@ import {
   sumBucketLastDays,
 } from '@/lib/agent-published-listings';
 import type { SavedListingCardData } from '@/lib/saved-listings';
-import {
-  DEMO_PRIMARY_LISTING_TITLE,
-  DEMO_PRIMARY_STREET,
-} from '@/lib/melbourne-demo-locations';
 import { AGENT_IMG, PROPERTY_IMG_1, propertyImageAtIndex } from '@/lib/propertyImages';
 import {
   ensureMessageThread,
@@ -44,6 +42,8 @@ export type ActivityFeedRow = {
   /** Persisted OMM message thread */
   threadId?: string;
   thumbSource?: ImageSourcePropType;
+  /** Used to interleave Postgres + local Activities (ignored by list UI beyond sort). */
+  sortAtMs?: number;
 };
 
 export function activityMatchesFilter(
@@ -131,6 +131,14 @@ function sellerPulseRow(listing: PublishedAgentListing): ActivityFeedRow | null 
     categories = ['messages'];
   }
 
+  const dk = latestDay ? parseDayKeyMs(latestDay) : null;
+  const pulseSortMs =
+    dk && dk > 0
+      ? dk
+      : Number.isFinite(Date.parse(listing.publishedAt))
+        ? Date.parse(listing.publishedAt)
+        : Date.now();
+
   return {
     id: `seller-pulse-${listing.id}`,
     kind: 'message',
@@ -144,21 +152,12 @@ function sellerPulseRow(listing: PublishedAgentListing): ActivityFeedRow | null 
     sheetTime: latestDay ? `Last activity · ${latestDay}` : undefined,
     listingId: listing.id,
     thumbSource: thumb,
+    sortAtMs: pulseSortMs,
   };
 }
 
-function sortSellerRows(rows: ActivityFeedRow[], listings: PublishedAgentListing[]): ActivityFeedRow[] {
-  const rank = new Map<string, number>();
-  for (const L of listings) {
-    const day = latestAnalyticsDayKey(L);
-    const ms = day ? parseDayKeyMs(day) : Date.parse(L.publishedAt);
-    rank.set(`seller-pulse-${L.id}`, ms);
-    for (const b of L.localInspectionBookings ?? []) {
-      const bookedMs = Date.parse(b.bookedAtIso);
-      rank.set(`seller-insp-${b.id}`, Number.isFinite(bookedMs) ? bookedMs : 0);
-    }
-  }
-  return [...rows].sort((a, b) => (rank.get(b.id) ?? 0) - (rank.get(a.id) ?? 0));
+function sortActivityRowsDescending(rows: ActivityFeedRow[]): ActivityFeedRow[] {
+  return [...rows].sort((a, b) => (b.sortAtMs ?? 0) - (a.sortAtMs ?? 0));
 }
 
 function calendarDayKeyFromIsoLocal(iso: string): string | null {
@@ -211,6 +210,7 @@ function sellerInspectionBookingRows(listings: PublishedAgentListing[]): Activit
         })}`,
         listingId: L.id,
         thumbSource: listingHeroImageSource(L),
+        sortAtMs: t,
       });
     }
   }
@@ -218,82 +218,36 @@ function sellerInspectionBookingRows(listings: PublishedAgentListing[]): Activit
   return rows;
 }
 
-const DEMO_SELLER_FALLBACK: ActivityFeedRow[] = [
-  {
-    id: 'demo-seller-msg-1',
-    kind: 'message',
-    categories: ['messages', 'offers'],
-    title: 'M. Patel',
-    subtitle: 'Offer $2.35m — vendor wants $2.42m walk-away.',
-    time: '2m',
-    sheetTitle: 'M. Patel',
-    sheetSubtitle: `Real Estate Agent · ${DEMO_PRIMARY_LISTING_TITLE}`,
-    sheetBody:
-      'Thanks for your offer. It is below what the seller will accept for this property. They are open to a counter closer to the list price.',
-    sheetTime: '2 minutes ago',
-    threadId: 'thread-demo-patel',
-    thumbSource: AGENT_IMG,
-  },
-  {
-    id: 'demo-seller-inspection-1',
+
+function postgresInspectionActivityRow(ins: InspectionActivityItem): ActivityFeedRow {
+  const seller = ins.perspective === 'seller';
+  const sortTs = Date.parse(ins.bookedAtIso);
+  const lm = Number.isFinite(sortTs) ? sortTs : Date.now();
+
+  const subtitle = `${ins.listingTitle} · ${ins.slotLabel}${
+    ins.counterpartyLabel ? ` · ${ins.counterpartyLabel}` : ''
+  }`;
+
+  const sheetBody = seller
+    ? `${ins.slotLabel}\n\nBuyer: ${ins.counterpartyLabel || '—'}\n\n${ins.listingAddress}`
+    : `${ins.slotLabel}\n\n${ins.counterpartyLabel ? `Agent: ${ins.counterpartyLabel}\n\n` : ''}${ins.listingAddress}`;
+
+  return {
+    id: `pg-inspection-${ins.id}`,
     kind: 'inspection',
     categories: ['inspections'],
     title: 'Inspection scheduled',
-    subtitle: `You've booked 137, Art Colony, Colling……`,
-    time: '8h',
+    subtitle,
+    time: relativeTimeFromIso(ins.bookedAtIso),
     sheetTitle: 'Inspection scheduled',
-    sheetSubtitle: DEMO_PRIMARY_STREET,
-    sheetBody:
-      'Sat 26 Apr · 10:30—11:15 · Buyer tour · Arrive 10:20 for check-in.',
+    sheetSubtitle: ins.listingTitle,
+    sheetBody,
+    sheetTime: sheetTimeFromIso(ins.bookedAtIso),
+    listingId: ins.listingId.startsWith('lst-') ? ins.listingId : undefined,
     thumbSource: PROPERTY_IMG_1,
-  },
-];
-
-const DEMO_BUYER_THREADS: ActivityFeedRow[] = [
-  {
-    id: 'demo-buyer-thread-patel',
-    kind: 'message',
-    categories: ['messages', 'offers'],
-    title: 'M. Patel',
-    subtitle: 'Offer $2.35m — vendor wants $2.42m walk-away.',
-    time: '2m',
-    sheetTitle: 'M. Patel',
-    sheetSubtitle: `Real Estate Agent · ${DEMO_PRIMARY_LISTING_TITLE}`,
-    sheetBody:
-      'Thanks for your offer. It is below what the seller will accept for this property. They are open to a counter closer to the list price.',
-    sheetTime: '2 minutes ago',
-    threadId: 'thread-demo-patel',
-    thumbSource: AGENT_IMG,
-  },
-  {
-    id: 'demo-buyer-thread-lin',
-    kind: 'message',
-    categories: ['messages'],
-    title: 'Sarah Lin',
-    subtitle: 'Floorplan v2 is in the data room — want a walk-through?',
-    time: '1d',
-    sheetTitle: 'Sarah Lin',
-    sheetSubtitle: 'Jellis Craig · Camberwell',
-    sheetBody:
-      'Floorplan v2 is in the data room — want a walk-through? I can do a 15-min video tonight.',
-    sheetTime: 'Yesterday',
-    threadId: 'thread-demo-lin',
-    thumbSource: AGENT_IMG,
-  },
-];
-
-const DEMO_BUYER_INSPECTION: ActivityFeedRow = {
-  id: 'demo-buyer-inspection-1',
-  kind: 'inspection',
-  categories: ['inspections'],
-  title: 'Inspection scheduled',
-  subtitle: "You've booked 137, Art Colony, Colling……",
-  time: '8h',
-  sheetTitle: 'Inspection scheduled',
-  sheetSubtitle: DEMO_PRIMARY_STREET,
-  sheetBody: 'Sat 26 Apr · 10:30—11:15 · Buyer tour · Arrive 10:20 for check-in.',
-  thumbSource: PROPERTY_IMG_1,
-};
+    sortAtMs: lm,
+  };
+}
 
 function savedListingActivity(saved: SavedListingCardData, index: number): ActivityFeedRow {
   const thumb = propertyImageAtIndex(saved.imageIndex);
@@ -310,6 +264,7 @@ function savedListingActivity(saved: SavedListingCardData, index: number): Activ
     sheetBody: `You saved this listing from search or a live card. Open it anytime from Saved properties.\n\n${saved.specLine}`,
     listingId: saved.id,
     thumbSource: thumb,
+    sortAtMs: Date.now() - index * 86_400_000,
   };
 }
 
@@ -323,6 +278,8 @@ function threadToActivityRow(
   const lastInbound = [...thread.messages].reverse().find((m) => m.direction === 'inbound');
   const last = thread.messages[thread.messages.length - 1];
   const displayBody = lastInbound?.body ?? last?.body ?? thread.preview;
+
+  const lm = Date.parse(thread.lastMessageAtIso);
 
   return {
     id: `activity-${thread.id}`,
@@ -338,6 +295,7 @@ function threadToActivityRow(
     threadId: thread.id,
     listingId: thread.listingId,
     thumbSource: threadThumbSource(thread, listing),
+    sortAtMs: Number.isFinite(lm) ? lm : Date.now(),
   };
 }
 
@@ -346,26 +304,37 @@ export function buildActivitiesFeed(input: {
   listings: PublishedAgentListing[];
   savedListings: SavedListingCardData[];
   messageThreads?: StoredThread[];
+  postgresInspections?: InspectionActivityItem[];
 }): ActivityFeedRow[] {
   const messageRows = (input.messageThreads ?? [])
     .filter((t) => t.perspective === input.perspective)
     .map((t) => threadToActivityRow(t, input.listings));
+
+  const pgInspections =
+    input.postgresInspections
+      ?.filter((i) => i.perspective === input.perspective)
+      .map(postgresInspectionActivityRow) ?? [];
 
   if (input.perspective === 'seller') {
     const pulses = input.listings
       .map(sellerPulseRow)
       .filter((r): r is ActivityFeedRow => r != null);
     const bookingRows = sellerInspectionBookingRows(input.listings);
-    const sorted = sortSellerRows([...messageRows, ...bookingRows, ...pulses], input.listings);
-    if (sorted.length === 0) return [...DEMO_SELLER_FALLBACK];
-    return sorted;
+    const merged = sortActivityRowsDescending([
+      ...messageRows,
+      ...bookingRows,
+      ...pulses,
+      ...pgInspections,
+    ]);
+    return merged;
   }
 
   const savedRows = input.savedListings.slice(0, 8).map(savedListingActivity);
-  const merged =
-    messageRows.length > 0
-      ? [...messageRows, ...savedRows, DEMO_BUYER_INSPECTION]
-      : [...savedRows, ...DEMO_BUYER_THREADS, DEMO_BUYER_INSPECTION];
+  const merged = sortActivityRowsDescending([
+    ...messageRows,
+    ...savedRows,
+    ...pgInspections,
+  ]);
 
   const seen = new Set<string>();
   const out: ActivityFeedRow[] = [];

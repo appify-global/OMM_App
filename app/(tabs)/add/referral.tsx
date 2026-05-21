@@ -90,6 +90,14 @@ export default function PublishListingReferral() {
     return formatReferralEstimateLine(guide, pct, assumedCommissionPct);
   }, [eligibleReferral, guide, pct, assumedCommissionPct]);
 
+  /** Long ranges like `$681 — $2,041` need a smaller fixed size — not `adjustsFontSizeToFit` (shrinks to illegible on iOS). */
+  const heroAudFontSize = useMemo(() => {
+    if (earnLine === '$0' || earnLine === '—') return 40;
+    if (earnLine.length > 28) return 26;
+    if (earnLine.length > 20) return 30;
+    return 40;
+  }, [earnLine]);
+
   const earnSub = useMemo(() => {
     if (!eligibleReferral) {
       return "Buyer's agents don't receive listing-agent referral fees on OMM ($0). This avoids double‑dipping with buyer-side arrangements.";
@@ -148,7 +156,9 @@ export default function PublishListingReferral() {
               </View>
             ) : null}
           </View>
-          <Text style={styles.heroAud} numberOfLines={2} adjustsFontSizeToFit minimumFontScale={0.65}>
+          <Text
+            style={[styles.heroAud, { fontSize: heroAudFontSize, lineHeight: heroAudFontSize + 6 }]}
+            numberOfLines={2}>
             {eligibleReferral ? earnLine : '$0'}
           </Text>
           <Text style={styles.heroAudCaption}>Whole dollars · illustrative until authority is linked</Text>
@@ -299,12 +309,12 @@ const styles = StyleSheet.create({
   },
   recBadgeText: { fontSize: 10, fontFamily: 'Satoshi-Medium', color: '#fff', letterSpacing: 0.2 },
   heroAud: {
-    fontSize: 40,
     fontFamily: 'Satoshi-Medium',
     color: '#fff',
-    letterSpacing: -0.8,
-    lineHeight: 46,
+    letterSpacing: -0.5,
     marginTop: 12,
+    alignSelf: 'stretch',
+    width: '100%',
   },
   heroAudCaption: {
     fontSize: 12,
@@ -344,7 +354,14 @@ const styles = StyleSheet.create({
   },
   slider: { width: '100%', height: 36 },
   tickRow: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 8, gap: 4 },
-  tick: { flex: 1, fontSize: 9, fontFamily: 'Satoshi-Medium', color: PL_BORDER, textAlign: 'center' },
+  tick: {
+    flex: 1,
+    fontSize: 11,
+    fontFamily: 'Satoshi-Medium',
+    color: 'rgba(0,0,0,0.72)',
+    textAlign: 'center',
+    lineHeight: 14,
+  },
 
   rulesNote: {
     fontSize: 12,

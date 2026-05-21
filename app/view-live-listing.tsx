@@ -44,6 +44,7 @@ import {
 } from '@/lib/agent-published-listings';
 import { useAgentPublishedListings } from '@/lib/agent-published-listings-context';
 import { sellerSchedulePrefsFromListing } from '@/lib/listing-inspection-availability';
+import { useOmmMessages } from '@/lib/omm-messages-context';
 import { accent, ink, layout } from '@/constants/theme';
 
 const SECTION = 28;
@@ -113,6 +114,7 @@ export default function ViewLiveListingScreen() {
     recordBuyerListingEnquiry,
     recordBuyerInspectionBooking,
   } = useAgentPublishedListings();
+  const { refresh: refreshMessagesInbox } = useOmmMessages();
   const { isSaved, toggleSaved } = useSavedListings();
   const [soiOpen, setSoiOpen] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
@@ -516,13 +518,19 @@ export default function ViewLiveListingScreen() {
         sellerAvailabilityNotes={inspectionSchedulePrefs?.notes ?? ''}
         onConfirmed={async (detail) => {
           const id = listingIdResolved?.trim();
-          if (isPersistedAgentListingId(id)) {
-            await recordBuyerInspectionBooking(id, {
-              aprilDay2026: detail.aprilDay2026,
-              slotId: detail.slotId,
-              slotLabel: detail.slotLabel,
-            });
+          if (!id || !isPersistedAgentListingId(id)) {
+            Alert.alert(
+              'Could not save booking',
+              'This preview listing cannot schedule inspections yet.',
+            );
+            return;
           }
+          await recordBuyerInspectionBooking(id, {
+            aprilDay2026: detail.aprilDay2026,
+            slotId: detail.slotId,
+            slotLabel: detail.slotLabel,
+          });
+          void refreshMessagesInbox();
           Alert.alert('Inspection booked', detail.toastLine, [{ text: 'OK' }]);
         }}
       />

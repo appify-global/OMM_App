@@ -92,6 +92,7 @@ export default function ContactSellerChatScreen() {
     sendMessageWithAutoReply,
     markRead,
     refresh,
+    hydrateThread,
   } = useOmmMessages();
 
   const menuAnchorRef = useRef<View>(null);
@@ -161,12 +162,16 @@ export default function ContactSellerChatScreen() {
       void (async () => {
         await refresh();
         if (!alive) return;
-        await ensureChatThread();
+        const thread = await ensureChatThread();
+        if (!alive || !thread) return;
+        if (thread.id.startsWith('thr-') && thread.messages.length === 0) {
+          await hydrateThread(thread.id);
+        }
       })();
       return () => {
         alive = false;
       };
-    }, [ensureChatThread, refresh]),
+    }, [ensureChatThread, hydrateThread, refresh]),
   );
 
   const activeThread = useMemo(() => {

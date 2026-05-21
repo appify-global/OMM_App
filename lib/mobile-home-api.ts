@@ -1,5 +1,7 @@
 import { apiFetch } from '@/lib/api';
 import type { AgentHomeMetricsPayload } from '@/lib/agent-home-metrics';
+import { parseHomeEnquiry } from '@/lib/home-enquiries';
+import { isMobileApiConfigured } from '@/lib/mobile-api-config';
 
 /** Matches `Listing` fixture shape from `/api/mobile/home`. */
 export type MobileHomeListing = {
@@ -22,13 +24,17 @@ export type MobileAuthorityItem = {
   title: string;
   address: string;
   daysLeft: number;
+  soiAttached: boolean;
 };
 
 export type MobileSoiReminder = {
   id: string;
   titleLine: string;
   subtitleLine: string;
+  /** True only when listing has no SOI on file (not used in “SOI expiring soon” carousel). */
   needsSoi: boolean;
+  /** Days until vendor authority ends, when SOI is attached and authority is due soon. */
+  authorityDaysLeft?: number;
 };
 
 /** Saved-search row mirrors web fixture `SavedSearch`-like API payloads. */
@@ -38,6 +44,14 @@ export type MobileSavedSearch = {
   criteria: string;
   alertsOn: boolean;
   newCount: number;
+};
+
+export type MobileHomeEnquiry = {
+  id: string;
+  name: string;
+  address: string;
+  listingTitle: string;
+  hoursAgo: number;
 };
 
 export type MobileOffMarketMatch = {
@@ -62,6 +76,7 @@ export type MobileHomePayload = {
     /** LIVE + PRE_MARKET + drafts; home carousel (omit if API omits field). */
     pipelineListings: MobileHomeListing[];
     newEnquiriesCount: number;
+    latestEnquiries: MobileHomeEnquiry[];
     totalViews7d: number;
   };
   buying: {
@@ -118,7 +133,7 @@ function parseAuthority(v: unknown): MobileAuthorityItem | null {
   const id = typeof v.id === 'string' ? v.id : '';
   const daysLeft =
     typeof v.daysLeft === 'number' && Number.isFinite(v.daysLeft)
-      ? Math.max(0, Math.floor(v.daysLeft))
+      ? Math.floor(v.daysLeft)
       : null;
   if (!id || daysLeft === null) return null;
   return {
@@ -126,20 +141,36 @@ function parseAuthority(v: unknown): MobileAuthorityItem | null {
     title: typeof v.title === 'string' ? v.title : '—',
     address: typeof v.address === 'string' ? v.address : '',
     daysLeft,
+    soiAttached: Boolean(v.soiAttached),
   };
 }
 
 function parseSoiReminder(v: unknown): MobileSoiReminder | null {
   if (!record(v)) return null;
   const id = typeof v.id === 'string' ? v.id : '';
-  const titleLine = typeof v.titleLine === 'string' ? v.titleLine : '';
-  if (!id || !titleLine) return null;
+  let titleLine = typeof v.titleLine === 'string' ? v.titleLine.trim() : '';
+  let subtitleLine =
+    typeof v.subtitleLine === 'string' ? v.subtitleLine.trim() : '';
+  if (!id || (!titleLine && !subtitleLine)) return null;
+  // Older API payloads used street number / address as titleLine.
+  if (
+    titleLine.length <= 3 &&
+    subtitleLine.length > titleLine.length &&
+    !subtitleLine.toLowerCase().includes('soi needed')
+  ) {
+    [titleLine, subtitleLine] = [subtitleLine, titleLine];
+  }
+  if (!titleLine) titleLine = subtitleLine || 'Listing';
+  const authorityDaysLeft =
+    typeof v.authorityDaysLeft === 'number' && Number.isFinite(v.authorityDaysLeft)
+      ? Math.floor(v.authorityDaysLeft)
+      : undefined;
   return {
     id,
     titleLine,
-    subtitleLine:
-      typeof v.subtitleLine === 'string' ? v.subtitleLine : '',
+    subtitleLine,
     needsSoi: Boolean(v.needsSoi),
+    authorityDaysLeft,
   };
 }
 
@@ -237,6 +268,10 @@ export function parseMobileHome(json: unknown): MobileHomePayload | null {
       ? Math.max(0, Math.floor(selling.newEnquiriesCount))
       : 0;
 
+  const latestEnquiries = Array.isArray(selling.latestEnquiries)
+    ? selling.latestEnquiries.map(parseHomeEnquiry).filter(Boolean) as MobileHomeEnquiry[]
+    : [];
+
   const totalViews7d =
     typeof selling.totalViews7d === 'number' && Number.isFinite(selling.totalViews7d)
       ? Math.max(0, Math.floor(selling.totalViews7d))
@@ -262,6 +297,7 @@ export function parseMobileHome(json: unknown): MobileHomePayload | null {
       preMarketCount,
       soiReminderListings,
       newEnquiriesCount,
+      latestEnquiries,
       totalViews7d,
     },
     buying: {
@@ -290,8 +326,7 @@ export function deriveAgentMetricsFromHome(
 export async function fetchMobileHome(
   getToken: () => Promise<string | null>,
 ): Promise<MobileHomePayload | null> {
-  const base = process.env.EXPO_PUBLIC_API_URL;
-  if (!base) return null;
+  if (!isMobileApiConfigured()) return null;
 
   try {
     const res = await apiFetch('/api/mobile/home', getToken, { method: 'GET' });
@@ -299,8 +334,18 @@ export async function fetchMobileHome(
       if (__DEV__) {
         try {
           const t = await res.text();
+          const htmlLike =
+            t.includes('<!DOCTYPE') ||
+            t.includes('<html') ||
+            t.includes('/_next/static/');
+          const hint =
+            res.status === 404 && htmlLike
+              ? '[fetchMobileHome] Hint: HTML 404 — wrong origin or missing `apps/web/app/api/mobile/*`. Point EXPO_PUBLIC_WEB_ORIGIN / EXPO_PUBLIC_API_URL at Next (port 3101). Restore deleted routes from git if needed.'
+              : res.status >= 500 && htmlLike
+                ? '[fetchMobileHome] Hint: HTML 5xx — check Next dev Terminal for stack trace. Clerk middleware now skips /api/mobile/. Add DATABASE_URL + CLERK_SECRET_KEY to apps/web/.env.local; ensure Postgres is reachable.'
+                : null;
           // eslint-disable-next-line no-console
-          console.warn('[fetchMobileHome]', res.status, t.slice(0, 280));
+          console.warn('[fetchMobileHome]', res.status, t.slice(0, 280), hint ?? '');
         } catch {
           // eslint-disable-next-line no-console
           console.warn('[fetchMobileHome]', res.status);

@@ -6,8 +6,6 @@ const bypassClerkAuth =
   process.env.BYPASS_CLERK_AUTH === "1";
 
 const isProtected = createRouteMatcher(["/app(.*)"]);
-/** Native app: Bearer session verified inside route handlers. */
-const isMobileApi = createRouteMatcher(["/api/mobile(.*)"]);
 const isPublicAuth = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
@@ -18,7 +16,6 @@ const isPublicAuth = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
-  if (isMobileApi(req)) return;
   if (isPublicAuth(req)) return;
   if (isProtected(req) && !bypassClerkAuth) {
     await auth.protect();
@@ -27,7 +24,8 @@ export default clerkMiddleware(async (auth, req) => {
 
 export const config = {
   matcher: [
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    "/(api|trpc)(.*)",
+    // Exclude `/api/mobile/*` — Expo Bearer JWT only (`getUserIdFromMobileRequest`), not Clerk cookies.
+    // Including those paths here makes Clerk require `CLERK_SECRET_KEY` on the Edge runtime before the handler runs.
+    "/((?!_next|api/mobile|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
   ],
 };

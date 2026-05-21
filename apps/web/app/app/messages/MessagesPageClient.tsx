@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import SiteFooter from "../../components/SiteFooter";
-import type { MessagesInboxData } from "../_data/rsc-loaders";
+import type { MessagesInboxData } from "../_data/dashboard-types";
 import { type MessageThread } from "../_data/fixtures";
 
 type Filter = "all" | "unread" | "buyers" | "listings" | "briefs";
@@ -24,7 +24,11 @@ export default function MessagesPageClient({
   const [filter, setFilter] = useState<Filter>("all");
   const [query, setQuery] = useState("");
 
-  const { threads, shortcuts: messagesShortcuts } = data;
+  const {
+    threads,
+    inspections = [],
+    shortcuts: messagesShortcuts,
+  } = data;
 
   const filtered = useMemo(
     () => filterThreads(threads, filter, query),
@@ -95,9 +99,15 @@ export default function MessagesPageClient({
           />
           <KpiTile
             kicker="v"
-            label="Reply rate"
-            value="94%"
-            delta={{ tone: "up", text: "Median 22m" }}
+            label="Inspection requests"
+            value={inspections.length}
+            delta={{
+              tone: inspections.length > 0 ? "up" : "muted",
+              text:
+                inspections.length > 0
+                  ? "From mobile bookings"
+                  : "No Postgres rows yet",
+            }}
           />
         </section>
 

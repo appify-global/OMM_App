@@ -31,6 +31,8 @@ export type StoredThread = {
   participantName: string;
   participantSubtitle: string;
   contextLine: string;
+  /** True when the signed-in viewer is buyer on agent-owned LISTING thread. */
+  participantView?: boolean;
   propertyRef?: string;
   listingId?: string;
   unread: boolean;
@@ -128,6 +130,7 @@ function parseThread(v: unknown): StoredThread | null {
     participantName: o.participantName,
     participantSubtitle: o.participantSubtitle,
     contextLine: o.contextLine,
+    participantView: o.participantView === true ? true : undefined,
     propertyRef: typeof o.propertyRef === 'string' ? o.propertyRef : undefined,
     listingId: typeof o.listingId === 'string' ? o.listingId : undefined,
     unread: o.unread === true,

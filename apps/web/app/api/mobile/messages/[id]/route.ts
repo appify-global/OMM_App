@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 
-import { appendMessageToThread } from "@/db/queries";
+import { appendMessageFromViewer } from "@/db/queries";
 import { loadThreadForDetail } from "../../../../app/_data/rsc-loaders";
 import { getUserIdFromMobileRequest } from "@/lib/mobile-bearer-auth";
 
@@ -51,10 +51,9 @@ export async function POST(req: Request, { params }: Params) {
     return NextResponse.json({ error: "empty_body" }, { status: 400 });
   }
 
-  const ok = await appendMessageToThread({
+  const ok = await appendMessageFromViewer({
     threadId,
-    ownerId: userId,
-    direction: "OUT",
+    viewerUserId: userId,
     body: text,
   });
   if (!ok) {

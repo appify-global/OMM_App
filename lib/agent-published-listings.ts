@@ -1051,7 +1051,8 @@ export function publishedToMobileHomeListing(p: PublishedAgentListing): MobileHo
     address: p.addressLine,
     priceRange: p.priceRangeDisplay,
     status: mobileHomeStatusFromPublished(p),
-    authorityDaysLeft: 30,
+    /** Omit placeholder authority — home SOI/authority rows come from Postgres when synced. */
+    authorityDaysLeft: null,
     beds: p.beds,
     baths: p.baths,
     landSqm: p.landSqm ?? 0,

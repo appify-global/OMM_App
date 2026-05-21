@@ -6,18 +6,16 @@ import { getUserIdFromMobileRequest } from "@/lib/mobile-bearer-auth";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+/** Same contract as OMM_BACKEND — DB probe without requiring Bearer auth. */
 export async function GET(req: Request) {
   const userId = await getUserIdFromMobileRequest(req);
-  if (!userId) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
 
   if (!process.env.DATABASE_URL) {
     return NextResponse.json({
       ok: false,
       database: false,
-      userId,
-      message: "DATABASE_URL is not set on the web service",
+      authenticated: Boolean(userId),
+      message: "DATABASE_URL is not set",
     });
   }
 
@@ -26,12 +24,18 @@ export async function GET(req: Request) {
     return NextResponse.json({
       ok: true,
       database: true,
-      userId,
+      authenticated: Boolean(userId),
+      ...(userId ? { userId } : {}),
     });
   } catch (e) {
     console.error("[api/mobile/health]", e);
     return NextResponse.json(
-      { ok: false, database: false, userId, error: "database_unreachable" },
+      {
+        ok: false,
+        database: false,
+        authenticated: Boolean(userId),
+        error: "database_unreachable",
+      },
       { status: 503 },
     );
   }

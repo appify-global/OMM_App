@@ -140,7 +140,23 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "invalid_body" }, { status: 400 });
   }
 
-  const hydrated = await ensureClerkUserInDatabase(userId);
+  let hydrated: Awaited<ReturnType<typeof ensureClerkUserInDatabase>>;
+  try {
+    hydrated = await ensureClerkUserInDatabase(userId);
+  } catch (e) {
+    console.error("[api/mobile/published-listings POST] ensureClerkUserInDatabase", e);
+    return NextResponse.json(
+      {
+        error: "database_unreachable",
+        message:
+          process.env.NODE_ENV === "development"
+            ? String(e instanceof Error ? e.message : e).slice(0, 280)
+            : undefined,
+      },
+      { status: 503 },
+    );
+  }
+
   if (!hydrated.ok) {
     return NextResponse.json({ error: "user_not_ready", reason: hydrated.reason }, { status: 424 });
   }

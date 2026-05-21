@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import SiteFooter from "../components/SiteFooter";
-import type { HomePageLoaderData } from "./_data/rsc-loaders";
+import type { HomePageLoaderData } from "./_data/dashboard-types";
 import ModeToggle, { useMode } from "./_components/ModeToggle";
 
 export default function AppHomeClient({

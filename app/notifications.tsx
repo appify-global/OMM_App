@@ -1,12 +1,17 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
+import { useFocusEffect } from '@react-navigation/native';
 import { SheetHeader } from '@/components/SheetHeader';
-import { useRouter } from 'expo-router';
+import { type Href, useRouter } from 'expo-router';
 import type { ComponentProps } from 'react';
-import { useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Text } from '@/components/OMMText';
 import type { ImageSourcePropType } from 'react-native';
-import { Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
+import type { NotificationKind, StoredNotification } from '@/lib/mobile-notifications-api';
+import { notificationHrefToMobileRoute } from '@/lib/notification-navigation';
+import { useOmmNotifications } from '@/lib/omm-notifications-context';
 
 /**
  * Notifications centre.
@@ -61,56 +66,110 @@ type NotifRow = {
   body: string;
   time: string;
   unread: boolean;
-  /** Listing shot or agent headshot — always shown in the row. */
   image: ImageSourcePropType;
-  /** Small contextual glyph on the thumbnail corner. */
   rowIcon: ComponentProps<typeof FontAwesome>['name'];
+  source: StoredNotification;
 };
 
-const RECENT_ITEMS: NotifRow[] = [
-  {
-    id: 'r1',
-    title: 'Buyer activity near your listing',
-    body: 'Search signals overlapped 142 Orrong Rd, Hawthorn East. Buyers and their agents start the thread when they’re ready.',
-    time: '2m',
-    unread: true,
-    image: PROPERTY_IMG_1,
-    rowIcon: 'home',
-  },
-  {
-    id: 'r2',
-    title: 'Armadale agent viewed your contract',
-    body: 'The digital contract for Barkly St, St Kilda has been opened for review.',
-    time: '1h',
-    unread: true,
-    image: AGENT_IMG,
-    rowIcon: 'file-text-o',
-  },
+const MS_DAY = 86_400_000;
+
+const MATCH_KINDS: NotificationKind[] = ['NEW_MATCH'];
+const SYSTEM_KINDS: NotificationKind[] = [
+  'INSPECTION',
+  'REVIEW',
+  'DISPUTE',
+  'BILLING',
+  'SYSTEM',
+  'BRIEF_REPLY',
 ];
 
-const EARLIER_ITEMS: NotifRow[] = [
-  {
-    id: 'e1',
-    title: 'Buyer activity near your listing',
-    body: 'Search signals overlapped 142 Orrong Rd, Hawthorn East. Buyers and their agents start the thread when they’re ready.',
-    time: '2m',
-    unread: true,
-    image: PROPERTY_IMG_2,
-    rowIcon: 'home',
-  },
-  {
-    id: 'e2',
-    title: 'Armadale agent viewed your contract',
-    body: 'The digital contract for Barkly St, St Kilda has been opened for review.',
-    time: '1h',
-    unread: true,
-    image: AGENT_IMG,
-    rowIcon: 'file-text-o',
-  },
-];
+function kindToIcon(kind: NotificationKind): ComponentProps<typeof FontAwesome>['name'] {
+  switch (kind) {
+    case 'NEW_MATCH':
+      return 'star';
+    case 'NEW_ENQUIRY':
+      return 'bolt';
+    case 'NEW_OFFER':
+      return 'dollar';
+    case 'INSPECTION':
+      return 'calendar';
+    case 'MESSAGE':
+    case 'BRIEF_REPLY':
+      return 'envelope-o';
+    case 'REVIEW':
+      return 'star-o';
+    case 'DISPUTE':
+      return 'gavel';
+    case 'BILLING':
+      return 'credit-card';
+    default:
+      return 'info-circle';
+  }
+}
 
-function NotifDetailModal({ row, onClose }: { row: NotifRow | null; onClose: () => void }) {
+function kindToImage(kind: NotificationKind): ImageSourcePropType {
+  if (
+    kind === 'MESSAGE' ||
+    kind === 'BRIEF_REPLY' ||
+    kind === 'REVIEW' ||
+    kind === 'NEW_ENQUIRY'
+  ) {
+    return AGENT_IMG;
+  }
+  if (kind === 'NEW_MATCH' || kind === 'NEW_OFFER' || kind === 'INSPECTION') {
+    return PROPERTY_IMG_1;
+  }
+  return PROPERTY_IMG_2;
+}
+
+function formatTimeLabel(label: string): string {
+  return label.replace(/\s+ago$/i, '').replace(/^just now$/i, 'Now');
+}
+
+function toNotifRow(item: StoredNotification): NotifRow {
+  return {
+    id: item.id,
+    title: item.title,
+    body: item.body,
+    time: formatTimeLabel(item.occurredAtLabel),
+    unread: !item.read,
+    image: kindToImage(item.kind),
+    rowIcon: kindToIcon(item.kind),
+    source: item,
+  };
+}
+
+function filterItems(items: StoredNotification[], filter: FilterKey): StoredNotification[] {
+  if (filter === 'unread') return items.filter((row) => !row.read);
+  if (filter === 'matches') return items.filter((row) => MATCH_KINDS.includes(row.kind));
+  if (filter === 'system') return items.filter((row) => SYSTEM_KINDS.includes(row.kind));
+  return items;
+}
+
+function splitRecentEarlier(items: StoredNotification[]): { recent: NotifRow[]; earlier: NotifRow[] } {
+  const now = Date.now();
+  const recent: NotifRow[] = [];
+  const earlier: NotifRow[] = [];
+  for (const item of items) {
+    const at = new Date(item.occurredAtIso).getTime();
+    const row = toNotifRow(item);
+    if (Number.isFinite(at) && now - at < MS_DAY) recent.push(row);
+    else earlier.push(row);
+  }
+  return { recent, earlier };
+}
+
+function NotifDetailModal({
+  row,
+  onClose,
+  onOpen,
+}: {
+  row: NotifRow | null;
+  onClose: () => void;
+  onOpen: () => void;
+}) {
   if (!row) return null;
+  const canOpen = notificationHrefToMobileRoute(row.source) != null;
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={notifModalStyles.scrim} onPress={onClose} />
@@ -118,6 +177,15 @@ function NotifDetailModal({ row, onClose }: { row: NotifRow | null; onClose: () 
         <Text style={notifModalStyles.title}>{row.title}</Text>
         <Text style={notifModalStyles.time}>{row.time}</Text>
         <Text style={notifModalStyles.body}>{row.body}</Text>
+        {canOpen ? (
+          <Pressable
+            style={notifModalStyles.openBtn}
+            onPress={onOpen}
+            accessibilityRole="button"
+            accessibilityLabel="Open">
+            <Text style={notifModalStyles.openBtnLabel}>OPEN</Text>
+          </Pressable>
+        ) : null}
         <Pressable style={notifModalStyles.closeBtn} onPress={onClose} accessibilityRole="button" accessibilityLabel="Close">
           <Text style={notifModalStyles.closeBtnLabel}>CLOSE</Text>
         </Pressable>
@@ -158,6 +226,20 @@ const notifModalStyles = StyleSheet.create({
     lineHeight: 20,
     color: 'rgba(0,0,0,0.65)',
     marginBottom: 20,
+  },
+  openBtn: {
+    height: 44,
+    backgroundColor: accent,
+    borderRadius: 9,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 10,
+  },
+  openBtnLabel: {
+    fontSize: 13,
+    fontFamily: 'Satoshi-Medium',
+    color: '#fff',
+    letterSpacing: 0.5,
   },
   closeBtn: {
     height: 44,
@@ -207,9 +289,52 @@ export default function NotificationsScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const hPad = useScreenHorizontalPadding();
+  const { items, ready, refresh, markRead } = useOmmNotifications();
   const [filter, setFilter] = useState<FilterKey>('all');
   const [showFeatured, setShowFeatured] = useState(true);
   const [detailNotif, setDetailNotif] = useState<NotifRow | null>(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      void refresh();
+    }, [refresh]),
+  );
+
+  const filtered = useMemo(() => filterItems(items, filter), [items, filter]);
+  const { recent, earlier } = useMemo(() => splitRecentEarlier(filtered), [filtered]);
+
+  const newEnquiryCount = useMemo(
+    () => items.filter((row) => !row.read && row.kind === 'NEW_ENQUIRY').length,
+    [items],
+  );
+  const pendingReviewCount = useMemo(
+    () =>
+      items.filter(
+        (row) => !row.read && (row.kind === 'NEW_OFFER' || row.kind === 'INSPECTION'),
+      ).length,
+    [items],
+  );
+
+  const featuredSource = useMemo(
+    () =>
+      items.find((row) => !row.read && (row.kind === 'NEW_ENQUIRY' || row.kind === 'NEW_MATCH')),
+    [items],
+  );
+
+  const openRow = useCallback(
+    (row: NotifRow) => {
+      if (!row.source.read) void markRead(row.source.id);
+      const route = notificationHrefToMobileRoute(row.source);
+      if (route) router.push(route);
+      else setDetailNotif(row);
+    },
+    [markRead, router],
+  );
+
+  const dismissFeatured = useCallback(() => {
+    setShowFeatured(false);
+    if (featuredSource && !featuredSource.read) void markRead(featuredSource.id);
+  }, [featuredSource, markRead]);
 
   return (
     <View style={[styles.screen, { paddingTop: insets.top }]}>
@@ -239,50 +364,110 @@ export default function NotificationsScreen() {
         </View>
 
         <View style={[styles.listBody, hPad]}>
-          <ShortcutBanner icon="bolt" text="3 new enquiries" />
-          <View style={{ height: 10 }} />
-          <ShortcutBanner icon="star" text="2 transactions awaiting review" />
-          <View style={{ height: 18 }} />
+          {!ready ? (
+            <View style={styles.loadingWrap}>
+              <ActivityIndicator color={slateNavy} />
+            </View>
+          ) : null}
 
-          {showFeatured ? (
-            <View style={styles.featured}>
-              <Image source={PROPERTY_IMG_1} style={styles.featuredImg} resizeMode="cover" />
+          {ready && newEnquiryCount > 0 ? (
+            <>
+              <ShortcutBanner
+                icon="bolt"
+                text={
+                  newEnquiryCount === 1
+                    ? '1 new enquiry'
+                    : `${newEnquiryCount} new enquiries`
+                }
+              />
+              <View style={{ height: 10 }} />
+            </>
+          ) : null}
+          {ready && pendingReviewCount > 0 ? (
+            <>
+              <ShortcutBanner
+                icon="star"
+                text={
+                  pendingReviewCount === 1
+                    ? '1 update awaiting review'
+                    : `${pendingReviewCount} updates awaiting review`
+                }
+              />
+              <View style={{ height: 18 }} />
+            </>
+          ) : null}
+
+          {ready && showFeatured && featuredSource ? (
+            <Pressable
+              style={styles.featured}
+              onPress={() => openRow(toNotifRow(featuredSource))}
+              accessibilityRole="button">
+              <Image
+                source={kindToImage(featuredSource.kind)}
+                style={styles.featuredImg}
+                resizeMode="cover"
+              />
               <Pressable
                 style={styles.featuredClose}
-                onPress={() => setShowFeatured(false)}
+                onPress={dismissFeatured}
                 hitSlop={10}
                 accessibilityRole="button"
                 accessibilityLabel="Dismiss">
                 <FontAwesome name="times-circle" size={22} color="rgba(0,0,0,0.55)" />
               </Pressable>
               <View style={styles.featuredText}>
-                <Text style={styles.featuredTitle}>Buyer activity near your listing</Text>
-                <Text style={styles.featuredSub}>
-                  Search signals overlapped 142 Orrong Rd, Hawthorn East. Buyers and their agents start the thread when they’re ready.
-                </Text>
+                <Text style={styles.featuredTitle}>{featuredSource.title}</Text>
+                <Text style={styles.featuredSub}>{featuredSource.body}</Text>
               </View>
-            </View>
+            </Pressable>
           ) : null}
 
-          <Text style={styles.sectionKicker}>RECENT</Text>
-          {RECENT_ITEMS.map((row, i) => (
-            <View key={row.id}>
-              <NotificationRow row={row} onPress={() => setDetailNotif(row)} />
-              {i < RECENT_ITEMS.length - 1 ? <View style={styles.notifRule} /> : null}
-            </View>
-          ))}
+          {ready && filtered.length === 0 ? (
+            <Text style={styles.emptyCopy}>
+              {items.length === 0
+                ? 'No notifications yet. Enquiries and messages will show up here.'
+                : 'Nothing in this filter.'}
+            </Text>
+          ) : null}
 
-          <Text style={[styles.sectionKicker, { marginTop: 28 }]}>EARLIER</Text>
-          {EARLIER_ITEMS.map((row, i) => (
-            <View key={row.id}>
-              <NotificationRow row={row} onPress={() => setDetailNotif(row)} />
-              {i < EARLIER_ITEMS.length - 1 ? <View style={styles.notifRule} /> : null}
-            </View>
-          ))}
+          {recent.length > 0 ? (
+            <>
+              <Text style={styles.sectionKicker}>RECENT</Text>
+              {recent.map((row, i) => (
+                <View key={row.id}>
+                  <NotificationRow row={row} onPress={() => openRow(row)} />
+                  {i < recent.length - 1 ? <View style={styles.notifRule} /> : null}
+                </View>
+              ))}
+            </>
+          ) : null}
+
+          {earlier.length > 0 ? (
+            <>
+              <Text style={[styles.sectionKicker, { marginTop: recent.length > 0 ? 28 : 0 }]}>
+                EARLIER
+              </Text>
+              {earlier.map((row, i) => (
+                <View key={row.id}>
+                  <NotificationRow row={row} onPress={() => openRow(row)} />
+                  {i < earlier.length - 1 ? <View style={styles.notifRule} /> : null}
+                </View>
+              ))}
+            </>
+          ) : null}
         </View>
       </ScrollView>
 
-      <NotifDetailModal row={detailNotif} onClose={() => setDetailNotif(null)} />
+      <NotifDetailModal
+        row={detailNotif}
+        onClose={() => setDetailNotif(null)}
+        onOpen={() => {
+          if (!detailNotif) return;
+          const route = notificationHrefToMobileRoute(detailNotif.source);
+          setDetailNotif(null);
+          if (route) router.push(route as Href);
+        }}
+      />
     </View>
   );
 }
@@ -298,6 +483,15 @@ const styles = StyleSheet.create({
     borderBottomColor: borderHairline,
   },
   listBody: { paddingTop: 12 },
+  loadingWrap: { paddingVertical: 32, alignItems: 'center' },
+  emptyCopy: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: inkSubtle,
+    fontFamily: 'Satoshi-Medium',
+    marginTop: 8,
+    marginBottom: 12,
+  },
   chipScroller: {
     flexGrow: 0,
     flexShrink: 0,

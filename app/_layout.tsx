@@ -18,6 +18,7 @@ import { AgentDisputesProvider } from '@/lib/agent-disputes-context';
 import { MobileDatabaseProvider } from '@/lib/mobile-database-context';
 import { AgentPublishedListingsProvider } from '@/lib/agent-published-listings-context';
 import { OmmMessagesProvider } from '@/lib/omm-messages-context';
+import { OmmNotificationsProvider } from '@/lib/omm-notifications-context';
 import { PushPrefsProvider } from '@/lib/push-preferences-context';
 import { SavedListingsProvider } from '@/lib/saved-listings-context';
 import { RecentBuyerSearchesProvider } from '@/lib/recent-buyer-searches-context';
@@ -91,6 +92,7 @@ function RootLayoutNav() {
         <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : OmmLightTheme}>
           <AgentPublishedListingsProvider>
           <OmmMessagesProvider>
+          <OmmNotificationsProvider>
           <AgentDisputesProvider>
           <SavedListingsProvider>
           <SavedSearchesProvider>
@@ -150,6 +152,7 @@ function RootLayoutNav() {
           </SavedSearchesProvider>
           </SavedListingsProvider>
           </AgentDisputesProvider>
+          </OmmNotificationsProvider>
           </OmmMessagesProvider>
           </AgentPublishedListingsProvider>
         </ThemeProvider>

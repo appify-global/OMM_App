@@ -1,20 +1,6 @@
 import "server-only";
 
-import { briefs, listings, threads as threadsTbl } from "@/db/schema";
-import {
-  getBriefsByBuyer,
-  getCurrentUser,
-  getIncomingBriefsForAgent,
-  getListingsByAgentGrouped,
-  getNotifications,
-  getOffMarketListingsPublic,
-  getSavedSearches,
-  getThreadByIdForOwner,
-  getMessagesForThread,
-  getAttachmentsForMessage,
-  getThreadsForOwner,
-} from "@/db/queries";
-import type { InferSelectModel } from "drizzle-orm";
+import { eq, InferSelectModel, inArray } from "drizzle-orm";
 
 import {
   activeListings,
@@ -38,6 +24,7 @@ import {
   type DraftListing,
   type Listing,
   type ListingEnquiryRow,
+  type Message,
   type MessageThread,
 } from "./fixtures";
 import {
@@ -45,11 +32,37 @@ import {
   type NotificationListItem,
 } from "./notification-fixtures";
 
+import { db } from "@/db/index";
+import {
+  briefs,
+  listings,
+  threads as threadsTbl,
+  users as usersTbl,
+} from "@/db/schema";
+import {
+  getAttachmentsForMessage,
+  getBriefsByBuyer,
+  getCurrentUser,
+  getIncomingBriefsForAgent,
+  getListingsByAgentGrouped,
+  getMessagesForThread,
+  getNotifications,
+  getOffMarketListingsPublic,
+  getSavedSearches,
+  getThreadByIdForViewer,
+  getThreadsAccessibleByUser,
+  getThreadsForOwner,
+  listInspectionActivitiesForUser,
+  type InspectionActivityRow,
+} from "@/db/queries";
+import type { InspectionActivityItem, MessagesInboxData } from "./dashboard-types";
+
 const HAS_DB = Boolean(process.env.DATABASE_URL);
 
 type ListingRow = InferSelectModel<typeof listings>;
 type BriefRow = InferSelectModel<typeof briefs>;
 type ThreadRow = InferSelectModel<typeof threadsTbl>;
+type UserRow = InferSelectModel<typeof usersTbl>;
 
 function mapStatus(s: string): string {
   const m: Record<string, string> = {
@@ -161,19 +174,24 @@ export async function loadNotificationsList(
   }
   const rows = await getNotifications(userId);
   if (rows.length === 0) {
-    return defaultNotificationItems;
+    return [];
   }
-  return rows.map((r) => ({
-    id: r.id,
-    kind: r.kind,
-    title: r.title,
-    body: r.body ?? "",
-    href: r.href ?? "/app/notifications",
-    read: r.read,
-    occurredAt: formatNotificationAge(
-      r.occurredAt instanceof Date ? r.occurredAt : new Date(r.occurredAt),
-    ),
-  }));
+  return rows.map((r) => {
+    const at =
+      r.occurredAt instanceof Date ? r.occurredAt : new Date(r.occurredAt);
+    return {
+      id: r.id,
+      kind: r.kind,
+      title: r.title,
+      body: r.body ?? "",
+      href: r.href ?? "/app/notifications",
+      read: r.read,
+      occurredAt: formatNotificationAge(at),
+      occurredAtIso: at.toISOString(),
+      listingId: r.listingId ?? undefined,
+      threadId: r.threadId ?? undefined,
+    };
+  });
 }
 
 export type HomePageLoaderData = {
@@ -262,11 +280,17 @@ export async function loadHomePageData(
         daysFrom(l.authorityExpiresAt) !== null &&
         (daysFrom(l.authorityExpiresAt) as number) <= 30,
     )
+    .sort(
+      (a, b) =>
+        (daysFrom(a.authorityExpiresAt) ?? 99) -
+        (daysFrom(b.authorityExpiresAt) ?? 99),
+    )
     .map((l) => ({
       id: l.id,
       title: l.title,
       address: l.address,
       daysLeft: daysFrom(l.authorityExpiresAt) as number,
+      soiAttached: Boolean(l.soiUrl),
     }));
 
   const othersBriefs = await getIncomingBriefsForAgent(userId);
@@ -278,7 +302,29 @@ export async function loadHomePageData(
 
   const totalViews7d = allMine.reduce((s, l) => s + l.viewsCount, 0);
   const thr = await getThreadsForOwner(userId);
-  const unreadE = thr.filter((t) => t.unread).length;
+  const enquiryThreads = thr.filter(
+    (t) => t.category === "LISTING" || t.category === "BRIEF",
+  );
+  const unreadE = enquiryThreads.filter((t) => t.unread).length;
+  const latestEnquiriesDb = enquiryThreads.slice(0, 8).map((t) => {
+    const at = t.lastMessageAt ?? t.updatedAt ?? t.createdAt;
+    const preview = (t.preview ?? "").trim();
+    const atDate = at instanceof Date ? at : at ? new Date(at) : null;
+    const hoursAgo =
+      atDate && !Number.isNaN(+atDate)
+        ? Math.max(0, Math.floor((Date.now() - +atDate) / 3_600_000))
+        : 0;
+    return {
+      id: t.id,
+      name: t.participantName,
+      address:
+        t.category === "BRIEF"
+          ? (t.participantFirm?.trim() || preview || "Buyer brief")
+          : preview || t.context,
+      listingTitle: t.context,
+      hoursAgo,
+    };
+  });
 
   const om = (await getOffMarketListingsPublic(6)).map(
     (l) =>
@@ -321,52 +367,41 @@ export async function loadHomePageData(
     (a, b) => (+b.updatedAt || 0) - (+a.updatedAt || 0),
   );
   const soiReminderListingsRaw = reminderPool
-    .filter(
-      (l) =>
-        !l.soiUrl ||
-        (l.authorityExpiresAt !== null &&
-          (daysFrom(l.authorityExpiresAt) ?? 99) <= 21),
-    )
+    .filter((l) => Boolean(l.soiUrl?.trim()))
+    .filter((l) => {
+      const days = daysFrom(l.authorityExpiresAt);
+      return days !== null && days <= 21;
+    })
     .slice(0, 6);
-  const soiReminderListingsMapped =
-    soiReminderListingsRaw.length > 0
-      ? soiReminderListingsRaw.map((l) => ({
-          id: l.id,
-          titleLine: (l.address || l.title).replace(/\s+/g, " ").trim(),
-          subtitleLine:
-            `${l.suburb}${l.postcode?.trim() ? ` ${l.postcode.trim()}` : ""}${l.state ? ` · ${l.state}` : ""}`.trim() ||
-            l.address,
-          needsSoi: !l.soiUrl,
-        }))
-      : reminderPool.slice(0, 4).map((l) => ({
-          id: l.id,
-          titleLine: (l.address || l.title).replace(/\s+/g, " ").trim(),
-          subtitleLine:
-            `${l.suburb}${l.postcode?.trim() ? ` ${l.postcode.trim()}` : ""}${l.state ? ` · ${l.state}` : ""}`.trim(),
-          needsSoi: !l.soiUrl,
-        }));
+  const soiReminderListingsMapped = soiReminderListingsRaw.map((l) => {
+    const title = (l.title || "").replace(/\s+/g, " ").trim();
+    const address = (l.address || "").replace(/\s+/g, " ").trim();
+    const location = [l.suburb?.trim(), l.state?.trim(), l.postcode?.trim()]
+      .filter(Boolean)
+      .join(" · ");
+    const authDays = daysFrom(l.authorityExpiresAt) as number;
+    return {
+      id: l.id,
+      titleLine: title || address || "Listing",
+      subtitleLine: location || (address !== title ? address : ""),
+      needsSoi: false,
+      authorityDaysLeft: authDays,
+    };
+  });
 
   return {
     userFirstName: first,
     selling: {
       activeListings: act.length ? act : activeListings,
-      authorityExpiringSoon: exp.length ? exp : authorityExpiringSoon,
-      newEnquiriesCount: unreadE || newEnquiriesCount,
-      latestEnquiries: latestEnquiries,
+      authorityExpiringSoon: exp,
+      newEnquiriesCount: unreadE,
+      latestEnquiries: latestEnquiriesDb,
       buyerMatches: bm.length ? bm : buyerMatches,
       totalViews7d: totalViews7d || 500,
       transactionsAwaitingReviewCount,
       draftCount: grouped.draft.length,
       preMarketCount: grouped.offMarket.length,
-      soiReminderListings:
-        soiReminderListingsMapped.length > 0
-          ? soiReminderListingsMapped
-          : activeListings.slice(0, 3).map((l) => ({
-              id: l.id,
-              titleLine: l.title,
-              subtitleLine: l.address,
-              needsSoi: !l.soiAttached,
-            })),
+      soiReminderListings: soiReminderListingsMapped,
       homePipelineListings:
         homePipelineListingsDb.length > 0 ? homePipelineListingsDb : activeListings,
     },
@@ -502,66 +537,259 @@ function mapArchiveToPanel(l: ListingRow): ArchivedListing {
   };
 }
 
-function mapThreadToFixture(t: ThreadRow): MessageThread {
+function threadLastIso(t: ThreadRow): string {
+  const x = t.lastMessageAt ?? t.updatedAt ?? t.createdAt;
+  return x instanceof Date ? x.toISOString() : new Date().toISOString();
+}
+
+function participantInitialsForName(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return `${parts[0]!.slice(0, 1)}${parts[1]!.slice(0, 1)}`.toUpperCase();
+  return name.slice(0, 2).toUpperCase() || "••";
+}
+
+/** Agent inbox: `participant*` is buyer / counterpart. */
+function mapSellerThreadHeader(t: ThreadRow, displayContext: string): MessageThread {
   return {
     id: t.id,
     participant: {
       name: t.participantName,
-      initials: t.participantInitials ?? t.participantName.slice(0, 2).toUpperCase(),
+      initials:
+        t.participantInitials ?? participantInitialsForName(t.participantName),
       firm: t.participantFirm ?? "",
       isOnline: false,
     },
-    context: t.context,
+    context: displayContext,
     category: t.category,
     unread: t.unread,
     preview: t.preview ?? "",
     lastTime: relTime(t.lastMessageAt),
+    lastMessageAt: threadLastIso(t),
     messages: [],
     pinned: t.pinned,
+    listingId:
+      t.category === "LISTING" && t.context.startsWith("lst-")
+        ? t.context
+        : undefined,
   };
 }
 
-export type MessagesInboxData = { threads: MessageThread[]; shortcuts: { newEnquiries: number; pendingReviews: number } };
+/** Buyer view: counterpart is listing agent (`participant*` mirrors agent profile). */
+function mapParticipantThreadHeader(
+  t: ThreadRow,
+  displayContext: string,
+  agent: UserRow | undefined,
+): MessageThread {
+  const nm = agent?.name?.trim() || "Selling agent";
+  return {
+    id: t.id,
+    participant: {
+      name: nm,
+      initials: participantInitialsForName(agent?.name ?? "Selling agent"),
+      firm: agent?.firm?.trim() ?? "",
+      isOnline: false,
+    },
+    context: displayContext,
+    category: t.category,
+    unread: false,
+    preview: t.preview ?? "",
+    lastTime: relTime(t.lastMessageAt),
+    lastMessageAt: threadLastIso(t),
+    messages: [],
+    pinned: t.pinned,
+    participantView: true,
+    listingId:
+      t.category === "LISTING" && t.context.startsWith("lst-")
+        ? t.context
+        : undefined,
+  };
+}
 
-export async function loadMessagesInbox(
-  userId: string,
-): Promise<MessagesInboxData> {
+function mapInspectionRow(row: InspectionActivityRow): InspectionActivityItem {
+  return {
+    id: row.id,
+    listingId: row.listingId,
+    listingTitle: row.listingTitle,
+    listingAddress: row.listingAddress,
+    slotLabel: row.slotLabel,
+    bookedAtIso: row.bookedAtIso,
+    perspective: row.perspective,
+    counterpartyLabel: row.counterpartyLabel,
+  };
+}
+
+/** Back-compat helper for loaders that assume owner-only inbox (e.g. home KPI snippet). */
+function mapThreadToFixture(t: ThreadRow): MessageThread {
+  return mapSellerThreadHeader(t, t.context);
+}
+
+export async function loadMessagesInbox(userId: string): Promise<MessagesInboxData> {
+  const emptyShortcuts = { newEnquiries: 0, pendingReviews: 0 };
   if (!HAS_DB) {
     return {
       threads: fixtureThreads,
       shortcuts: { newEnquiries: 2, pendingReviews: 1 },
+      inspections: [],
     };
   }
-  const thr = await getThreadsForOwner(userId);
-  if (!thr.length) {
-    return { threads: fixtureThreads, shortcuts: { newEnquiries: 0, pendingReviews: 0 } };
+
+  const [thr, inspectionsDb] = await Promise.all([
+    getThreadsAccessibleByUser(userId),
+    listInspectionActivitiesForUser(userId),
+  ]);
+
+  const inspections = inspectionsDb.map(mapInspectionRow);
+
+  const listingIds = [
+    ...new Set(
+      thr
+        .filter((t) => t.category === "LISTING" && t.context.startsWith("lst-"))
+        .map((t) => t.context),
+    ),
+  ];
+  const listingTitleById = new Map<string, string>();
+  if (listingIds.length) {
+    const rows = await db
+      .select({ id: listings.id, title: listings.title })
+      .from(listings)
+      .where(inArray(listings.id, listingIds));
+    for (const r of rows) {
+      listingTitleById.set(r.id, r.title.trim());
+    }
   }
+
+  function displayContext(row: ThreadRow): string {
+    if (row.category === "LISTING" && row.context.startsWith("lst-")) {
+      const title = listingTitleById.get(row.context);
+      if (title) return title;
+    }
+    return row.context;
+  }
+
+  const participantOwnerIds = [
+    ...new Set(
+      thr
+        .filter(
+          (t) =>
+            Boolean(t.participantId) &&
+            t.participantId === userId &&
+            t.ownerId !== userId,
+        )
+        .map((t) => t.ownerId),
+    ),
+  ];
+  const agentByOwnerId = new Map<string, UserRow>();
+  if (participantOwnerIds.length) {
+    const agents = await db
+      .select()
+      .from(usersTbl)
+      .where(inArray(usersTbl.id, participantOwnerIds));
+    for (const u of agents) agentByOwnerId.set(u.id, u);
+  }
+
+  const threadsMapped =
+    thr.length > 0
+      ? thr.map((t) => {
+          const ctx = displayContext(t);
+          const isParticipant =
+            Boolean(t.participantId) &&
+            t.participantId === userId &&
+            t.ownerId !== userId;
+          if (isParticipant) {
+            return mapParticipantThreadHeader(t, ctx, agentByOwnerId.get(t.ownerId));
+          }
+          return mapSellerThreadHeader(t, ctx);
+        })
+      : [];
+
+  if (!threadsMapped.length && !inspections.length) {
+    return {
+      threads: [],
+      shortcuts: emptyShortcuts,
+      inspections: [],
+    };
+  }
+
   return {
-    threads: thr.map(mapThreadToFixture),
+    threads: threadsMapped,
     shortcuts: {
-      newEnquiries: thr.filter((t) => t.unread).length,
+      newEnquiries: threadsMapped.filter((w) => w.unread).length,
       pendingReviews: 0,
     },
+    inspections,
   };
 }
 
-export async function loadThreadForDetail(threadId: string, ownerId: string) {
+export async function loadThreadForDetail(
+  threadId: string,
+  viewerUserId: string,
+): Promise<MessageThread | null> {
+  const flipParticipantDirection = (
+    dir: Message["direction"],
+  ): Message["direction"] => (dir === "IN" ? "OUT" : "IN");
+
   if (!HAS_DB) {
     const { getThreadById } = await import("./fixtures");
     return getThreadById(threadId);
   }
-  const t = await getThreadByIdForOwner(threadId, ownerId);
+
+  const t = await getThreadByIdForViewer(threadId, viewerUserId);
   if (!t) return null;
+
+  const listingTitles = new Map<string, string>();
+  if (t.category === "LISTING" && t.context.startsWith("lst-")) {
+    const lr = await db
+      .select({ id: listings.id, title: listings.title })
+      .from(listings)
+      .where(eq(listings.id, t.context))
+      .limit(1);
+    if (lr[0]) listingTitles.set(lr[0].id, lr[0].title.trim());
+  }
+
+  let agentProfile: UserRow | undefined;
+  const isParticipant =
+    Boolean(t.participantId) &&
+    t.participantId === viewerUserId &&
+    t.ownerId !== viewerUserId;
+
+  if (isParticipant) {
+    const ar = await db
+      .select()
+      .from(usersTbl)
+      .where(eq(usersTbl.id, t.ownerId))
+      .limit(1);
+    agentProfile = ar[0];
+  }
+
+  let displayCtx = t.context;
+  if (t.category === "LISTING" && t.context.startsWith("lst-")) {
+    const title = listingTitles.get(t.context);
+    if (title) displayCtx = title;
+  }
+
+  let out: MessageThread = isParticipant
+    ? mapParticipantThreadHeader(t, displayCtx, agentProfile)
+    : mapSellerThreadHeader(t, displayCtx);
+
   const msgs = await getMessagesForThread(threadId);
-  const out: MessageThread = { ...mapThreadToFixture(t), messages: [] };
+  out = { ...out, messages: [] };
+
+  const flipDirections = Boolean(isParticipant);
   for (const m of msgs) {
     const atts = await getAttachmentsForMessage(m.id);
+    const direction = flipDirections
+      ? flipParticipantDirection(m.direction as Message["direction"])
+      : (m.direction as Message["direction"]);
+
     out.messages.push({
       id: m.id,
-      direction: m.direction,
+      direction,
       body: m.body ?? "",
       time: m.sentAt
-        ? m.sentAt.toLocaleTimeString("en-AU", { hour: "2-digit", minute: "2-digit" })
+        ? m.sentAt.toLocaleTimeString("en-AU", {
+            hour: "2-digit",
+            minute: "2-digit",
+          })
         : "—",
       dateGroup: "TODAY",
       attachments: atts.length
@@ -574,13 +802,15 @@ export async function loadThreadForDetail(threadId: string, ownerId: string) {
         : undefined,
     });
   }
+
   if (!out.messages.length) {
     out.messages.push({
       id: "ph",
-      direction: "IN" as const,
+      direction: "IN",
       body: t.preview ?? "No messages yet.",
       time: "—",
     });
   }
+
   return out;
 }

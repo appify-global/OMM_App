@@ -1,6 +1,7 @@
 import { Text } from "@/components/OMMText";
 import { TextInput } from "@/components/OMMTextInput";
 import { useAuth } from "@clerk/expo";
+import { useFocusEffect } from "@react-navigation/native";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { useGlobalSearchParams, useRouter, type Href } from "expo-router";
 import {
@@ -65,12 +66,35 @@ import {
   DEMO_SEARCH_SUBURB,
 } from "@/lib/melbourne-demo-locations";
 import {
+  buyerEnquiriesHeadline,
+  buyerEnquiriesSubcopy,
+  enquiryTagFromTitle,
+  formatEnquiryTimeLabel,
+  homeEnquiriesFromThreads,
+  unreadEnquiryCountFromThreads,
+  type HomeEnquiryRow,
+} from "@/lib/home-enquiries";
+import {
+  countExpiringAttention,
+  formatAuthorityDaysLeft,
+  mergeAuthorityExpiringRows,
+  mergeSoiReminderListings,
+  soiAuthorityHeadline,
+  soiAuthoritySubcopy,
+  soiReminderSubtitle,
+  soiStatusPill,
+  type AuthorityExpiringRow,
+} from "@/lib/home-soi-authority";
+import {
   deriveAgentMetricsFromHome,
   fetchMobileHome,
   thumbnailIndexFromListingId,
   type MobileHomeListing,
   type MobileHomePayload,
 } from "@/lib/mobile-home-api";
+import { useMobileDatabase } from "@/lib/mobile-database-context";
+import { useOmmMessages } from "@/lib/omm-messages-context";
+import { useBuyerPostgresSearch } from "@/lib/use-buyer-pg-search";
 import {
   PROPERTY_IMG_1,
   PROPERTY_IMG_2,
@@ -180,18 +204,64 @@ function EnquiryCard({
   );
 }
 
+/** SOI / authority status promo below carousels */
+function SoiAuthorityCallout({
+  authorityCount,
+  missingSoiCount,
+  attentionCount,
+  onViewAll,
+}: {
+  authorityCount: number;
+  missingSoiCount: number;
+  attentionCount: number;
+  onViewAll: () => void;
+}) {
+  return (
+    <View style={styles.buyerEnqCard}>
+      <View style={styles.buyerEnqIconWrap}>
+        <FontAwesome name="file-text-o" size={18} color="#e85d04" />
+      </View>
+      <Text style={styles.buyerEnqHeadline}>
+        {soiAuthorityHeadline(authorityCount, missingSoiCount, attentionCount)}
+      </Text>
+      <Text style={styles.buyerEnqSub}>
+        {soiAuthoritySubcopy(missingSoiCount, authorityCount)}
+      </Text>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="View authority and SOI"
+        onPress={onViewAll}
+        style={({ pressed }) => [
+          styles.buyerEnqGhostBtn,
+          pressed && { opacity: 0.85 },
+        ]}
+      >
+        <Text style={styles.buyerEnqGhostBtnText}>View all expiring</Text>
+      </Pressable>
+    </View>
+  );
+}
+
 /** Ignite-inspired buyer enquiries promo + outlined CTA */
-function BuyerEnquiriesCallout({ onViewAll }: { onViewAll: () => void }) {
+function BuyerEnquiriesCallout({
+  unreadCount,
+  totalCount,
+  onViewAll,
+}: {
+  unreadCount: number;
+  totalCount: number;
+  onViewAll: () => void;
+}) {
   return (
     <View style={styles.buyerEnqCard}>
       <View style={styles.buyerEnqIconWrap}>
         <FontAwesome name="fire" size={18} color="#e85d04" />
       </View>
       <Text style={styles.buyerEnqHeadline}>
-        You’re up to date with all of your buyer enquiries!
+        {buyerEnquiriesHeadline(unreadCount, totalCount)}
       </Text>
       <Text style={styles.buyerEnqSub}>
-        Stay on top of every enquiry — see them in one place anytime.
+        {buyerEnquiriesSubcopy(unreadCount, totalCount)}
       </Text>
       <Pressable
         accessibilityRole="button"
@@ -760,6 +830,7 @@ export default function HomeScreen() {
   const [saveAlerts, setSaveAlerts] = useState(false);
   const { listings: savedProperties } = useSavedListings();
   const { listings: publishedAgentListings } = useAgentPublishedListings();
+  const { threads: messageThreads, refresh: refreshMessages } = useOmmMessages();
 
   const visibleSavedProperties = useMemo(
     () => filterSavedListingsNotArchivedPublished(savedProperties, publishedAgentListings),
@@ -778,12 +849,76 @@ export default function HomeScreen() {
   );
   const [mobileHome, setMobileHome] = useState<MobileHomePayload | null>(null);
 
+  const sellingEnquiryRows = useMemo((): HomeEnquiryRow[] => {
+    const fromApi = mobileHome?.selling.latestEnquiries ?? [];
+    if (fromApi.length > 0) return fromApi;
+    return homeEnquiriesFromThreads(messageThreads);
+  }, [mobileHome?.selling.latestEnquiries, messageThreads]);
+
+  const sellingUnreadEnquiryCount = useMemo(() => {
+    const fromThreads = unreadEnquiryCountFromThreads(messageThreads);
+    const fromHome = mobileHome?.selling.newEnquiriesCount;
+    const homeHasRows = (mobileHome?.selling.latestEnquiries.length ?? 0) > 0;
+    if (fromHome != null && homeHasRows) return fromHome;
+    return fromThreads;
+  }, [mobileHome, messageThreads]);
+
+  const openEnquiryThread = useCallback(
+    (threadId: string) => {
+      router.push({
+        pathname: "/contact-seller-chat",
+        params: { threadId },
+      } as Href);
+    },
+    [router],
+  );
+
   const mergedPipelineListings = mergeByIdLocalFirst(
     publishedAgentListings
       .filter((p) => !isPublishedListingArchived(p))
       .filter((p) => resolvedPublishedListingStatus(p) !== "sold")
       .map(publishedToMobileHomeListing),
     mobileHome?.selling.pipelineListings ?? [],
+  );
+
+  const sellingAuthorityAll = useMemo(
+    (): AuthorityExpiringRow[] =>
+      mergeAuthorityExpiringRows(
+        mobileHome?.selling.authorityExpiringSoon ?? [],
+        mergedPipelineListings,
+      ),
+    [mobileHome?.selling.authorityExpiringSoon, mergedPipelineListings],
+  );
+
+  const sellingAuthorityRows = useMemo(
+    () => sellingAuthorityAll.slice(0, 8),
+    [sellingAuthorityAll],
+  );
+
+  const sellingSoiAll = useMemo(
+    () =>
+      mergeSoiReminderListings(
+        mobileHome?.selling.soiReminderListings ?? [],
+        mergedPipelineListings,
+      ),
+    [mobileHome?.selling.soiReminderListings, mergedPipelineListings],
+  );
+
+  const sellingSoiRows = useMemo(() => sellingSoiAll.slice(0, 6), [sellingSoiAll]);
+
+  const sellingExpiringAttention = useMemo(
+    () => countExpiringAttention(sellingAuthorityAll, sellingSoiAll),
+    [sellingAuthorityAll, sellingSoiAll],
+  );
+
+  const openListingById = useCallback(
+    (listingId: string) => {
+      router.push({
+        pathname: "/view-live-listing",
+        params: { listingId },
+      } as Href);
+    },
+    [router],
   );
 
   const mergedOffMarketListed = mergeByIdLocalFirst(
@@ -793,6 +928,8 @@ export default function HomeScreen() {
       .map(publishedToOffMarketMatch),
     mobileHome?.buying.offMarketMatches ?? [],
   );
+
+  const { postgresLinked } = useMobileDatabase();
 
   const mergedBuyerListedCatalog = useMemo(() => {
     const publishedRows = publishedAgentListings
@@ -809,15 +946,23 @@ export default function HomeScreen() {
     return mergeByIdLocalFirst(publishedRows, mergedFromApi);
   }, [publishedAgentListings, mobileHome]);
 
+  const buyerPgSearch = useBuyerPostgresSearch(
+    searchQuery,
+    mode === "buying" && postgresLinked,
+  );
+
   const buyerListedVisibleRows = useMemo(() => {
     const q = searchQuery.trim();
     if (buyerSearchTokens(q).length === 0) {
       return mergedBuyerListedCatalog.slice(0, 48);
     }
+    if (buyerPgSearch.kind === "ready") {
+      return buyerPgSearch.listings;
+    }
     return mergedBuyerListedCatalog.filter((l) =>
       listingMatchesBuyerQuery(l, q),
     );
-  }, [mergedBuyerListedCatalog, searchQuery]);
+  }, [mergedBuyerListedCatalog, searchQuery, buyerPgSearch]);
 
   const trimmedBuyerListedQ = searchQuery.trim();
   const buyerListedSearchHasTokens =
@@ -911,24 +1056,28 @@ export default function HomeScreen() {
     [recordBuyerExplore, searchQuery],
   );
 
-  useEffect(() => {
-    if (!isLoaded) return;
-    let alive = true;
+  const refreshSellingHomeData = useCallback(async () => {
+    if (!isLoaded || !isSignedIn) return;
     const tokenGetter = async () => (await getTokenRef.current()) ?? null;
-    void (async () => {
-      const [metricsRes, home] = await Promise.all([
-        fetchAgentHomeMetrics(tokenGetter),
-        fetchMobileHome(tokenGetter),
-      ]);
-      if (!alive) return;
-      setAgentMetrics(deriveAgentMetricsFromHome(home, metricsRes.metrics));
-      setMobileHome(home);
-    })();
-    return () => {
-      alive = false;
-    };
-    /** Clerk’s `getToken` identity churns often; anchor on stable auth/session signals. */
-  }, [isLoaded, isSignedIn]);
+    const [metricsRes, home] = await Promise.all([
+      fetchAgentHomeMetrics(tokenGetter),
+      fetchMobileHome(tokenGetter),
+      refreshMessages(),
+    ]);
+    setAgentMetrics(deriveAgentMetricsFromHome(home, metricsRes.metrics));
+    setMobileHome(home);
+  }, [isLoaded, isSignedIn, refreshMessages]);
+
+  useEffect(() => {
+    void refreshSellingHomeData();
+  }, [refreshSellingHomeData, publishedAgentListings.length]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (mode !== "selling") return;
+      void refreshSellingHomeData();
+    }, [mode, refreshSellingHomeData]),
+  );
 
   /** Selling KPI row: prefer device-published listings when any exist (includes persisted inspection bookings). */
   const sellingPerformanceMetrics = useMemo(() => {
@@ -1106,155 +1255,102 @@ export default function HomeScreen() {
               title="Latest enquiries"
               onSeeAll={() => router.push("/messages" as Href)}
             />
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.hScroll}
-            >
-              <Pressable
-                onPress={() => router.push("/messages" as Href)}
-                accessibilityRole="button"
+            {sellingEnquiryRows.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.hScroll}
               >
-                <EnquiryCard
-                  name="John Doe"
-                  time="2h ago"
-                  address="8 Union St, Brunswick VIC 3056"
-                  tag="RE: HAWTHORN CITY CENTER"
-                />
-              </Pressable>
-              <Pressable
-                onPress={() => router.push("/messages" as Href)}
-                accessibilityRole="button"
-              >
-                <EnquiryCard
-                  name="Anita Wong"
-                  time="5h ago"
-                  address="44 Walter St, Moorabbin VIC 3189"
-                  tag="RE: INNER EAST BRIEF"
-                />
-              </Pressable>
-              <Pressable
-                onPress={() => router.push("/messages" as Href)}
-                accessibilityRole="button"
-              >
-                <EnquiryCard
-                  name="Dave Tribolet"
-                  time="20 days ago"
-                  address="2/28 Wimba Avenue, Kew, VIC 3101"
-                  tag="REGISTERED BUYER FOLLOW-UP"
-                />
-              </Pressable>
-            </ScrollView>
+                {sellingEnquiryRows.map((enq) => (
+                  <Pressable
+                    key={enq.id}
+                    onPress={() => openEnquiryThread(enq.id)}
+                    accessibilityRole="button"
+                  >
+                    <EnquiryCard
+                      name={enq.name}
+                      time={formatEnquiryTimeLabel(enq.hoursAgo)}
+                      address={enq.address}
+                      tag={enquiryTagFromTitle(enq.listingTitle)}
+                    />
+                  </Pressable>
+                ))}
+              </ScrollView>
+            ) : (
+              <Text style={styles.enquiryEmptyHint}>
+                No enquiries yet. They appear here when a buyer contacts you about a
+                listing.
+              </Text>
+            )}
             <BuyerEnquiriesCallout
+              unreadCount={sellingUnreadEnquiryCount}
+              totalCount={sellingEnquiryRows.length}
               onViewAll={() => router.push("/messages" as Href)}
             />
             <SectionHeader
               title="Authority expiring"
               onSeeAll={() => router.push("/authority-expiring" as Href)}
             />
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.hScroll}
-            >
-              {mobileHome?.selling.authorityExpiringSoon.length ? (
-                mobileHome.selling.authorityExpiringSoon.map((item) => (
-                  <AuthorityExpiringCarouselCard
+            {sellingAuthorityRows.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.hScroll}
+              >
+                {sellingAuthorityRows.map((item) => (
+                  <Pressable
                     key={item.id}
-                    address={item.address}
-                    daysLeft={`${item.daysLeft}D LEFT`}
-                    subtitleLine={item.title}
-                    soiPill="AUTHORITY EXPIRING"
-                  />
-                ))
-              ) : (
-                <>
-                  <AuthorityExpiringCarouselCard
-                    address="45 Buckley St, Moonee Ponds VIC 3039"
-                    daysLeft="6D LEFT"
-                    subtitleLine="Moonee Ponds Villa"
-                    soiPill="SOI ATTACHED"
-                  />
-                  <AuthorityExpiringCarouselCard
-                    address="102 Glenhuntly Rd, Elsternwick VIC 3185"
-                    daysLeft="11D LEFT"
-                    subtitleLine="Elsternwick Corner Shop"
-                    soiPill="SOI MISSING — ACTION NEEDED"
-                  />
-                  <AuthorityExpiringCarouselCard
-                    address="17 Ferguson St, Williamstown VIC 3016"
-                    daysLeft="16D LEFT"
-                    subtitleLine="Williamstown Period"
-                    soiPill="SOI ATTACHED"
-                  />
-                </>
-              )}
-            </ScrollView>
+                    onPress={() => openListingById(item.id)}
+                    accessibilityRole="button"
+                  >
+                    <AuthorityExpiringCarouselCard
+                      address={item.address}
+                      daysLeft={formatAuthorityDaysLeft(item.daysLeft)}
+                      subtitleLine={item.title}
+                      soiPill={soiStatusPill(item.soiAttached)}
+                    />
+                  </Pressable>
+                ))}
+              </ScrollView>
+            ) : (
+              <Text style={styles.enquiryEmptyHint}>
+                No authorities expiring in the next 30 days.
+              </Text>
+            )}
             <SectionHeader
               title="SOI expiring soon"
               onSeeAll={() => router.push("/authority-expiring" as Href)}
             />
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.hScrollDense}
-            >
-              {mobileHome?.selling.soiReminderListings.length ? (
-                mobileHome.selling.soiReminderListings.map((item) => (
+            {sellingSoiRows.length > 0 ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.hScrollDense}
+              >
+                {sellingSoiRows.map((item) => (
                   <ListingThumbRow
                     key={item.id}
                     imageSource={propertyImageAtIndex(
                       thumbnailIndexFromListingId(item.id),
                     )}
                     titleLine={item.titleLine}
-                    subtitleLine={
-                      item.needsSoi
-                        ? `${item.subtitleLine} · SOI needed`
-                        : item.subtitleLine
-                    }
-                    onPress={() =>
-                      router.push({
-                        pathname: "/view-live-listing" as Href,
-                        params: { listingId: item.id },
-                      } as Href)
-                    }
+                    subtitleLine={soiReminderSubtitle(item)}
+                    onPress={() => openListingById(item.id)}
                   />
-                ))
-              ) : (
-                <>
-                  <ListingThumbRow
-                    imageSource={propertyImageAtIndex(2)}
-                    titleLine="83A Glen Iris Road"
-                    subtitleLine="Glen Iris VIC"
-                    onPress={() =>
-                      router.push({ pathname: "/view-live-listing" } as Href)
-                    }
-                  />
-                  <ListingThumbRow
-                    imageSource={propertyImageAtIndex(0)}
-                    titleLine="312 Church Street"
-                    subtitleLine="Richmond VIC"
-                    onPress={() =>
-                      router.push({
-                        pathname: "/recent-listings",
-                        params: { mode: "live" },
-                      } as Href)
-                    }
-                  />
-                  <ListingThumbRow
-                    imageSource={PROPERTY_IMG_1}
-                    titleLine="18 Marine Parade"
-                    subtitleLine="Elwood VIC"
-                    onPress={() =>
-                      router.push({
-                        pathname: "/recent-listings",
-                        params: { mode: "live" },
-                      } as Href)
-                    }
-                  />
-                </>
-              )}
-            </ScrollView>
+                ))}
+              </ScrollView>
+            ) : (
+              <Text style={styles.enquiryEmptyHint}>
+                No SOIs expiring soon. Attach an SOI on a listing first; renewals
+                due within 21 days will show here.
+              </Text>
+            )}
+            <SoiAuthorityCallout
+              authorityCount={sellingExpiringAttention.authorityCount}
+              missingSoiCount={sellingExpiringAttention.missingSoiCount}
+              attentionCount={sellingExpiringAttention.attentionCount}
+              onViewAll={() => router.push("/authority-expiring" as Href)}
+            />
             <SectionHeader
               title="Your listings"
               style={styles.sectionHeaderBeforeListingCard}
@@ -2193,6 +2289,13 @@ const styles = StyleSheet.create({
     color: ink,
     fontSize: 14,
     fontFamily: "Satoshi-Medium",
+  },
+  enquiryEmptyHint: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: "rgba(17,17,17,0.5)",
+    fontFamily: "Satoshi-Medium",
+    marginBottom: 12,
   },
   enquiryCard: {
     width: 220,

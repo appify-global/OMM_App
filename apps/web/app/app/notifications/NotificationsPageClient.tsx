@@ -1,10 +1,13 @@
 "use client";
 
+import { useAuth } from "@clerk/nextjs";
 import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import type { NotificationListItem } from "../_data/notification-fixtures";
 import SiteFooter from "../../components/SiteFooter";
+
+import { getPublicBackendOrigin } from "@/lib/backend-public-origin";
 
 const KIND_LABEL: Record<NotificationListItem["kind"], string> = {
   NEW_MATCH: "Match",
@@ -26,6 +29,8 @@ export default function NotificationsPageClient({
 }: {
   initialItems: NotificationListItem[];
 }) {
+  const { getToken } = useAuth();
+  const backendBase = getPublicBackendOrigin();
   const [filter, setFilter] = useState<Filter>("ALL");
   const [items, setItems] = useState(initialItems);
   const [marking, setMarking] = useState(false);
@@ -50,9 +55,15 @@ export default function NotificationsPageClient({
       prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
     try {
-      await fetch(`/api/notifications/${encodeURIComponent(id)}/read`, {
-        method: "POST",
-      });
+      const token = await getToken();
+      if (!backendBase || !token) return;
+      await fetch(
+        `${backendBase}/api/mobile/notifications/${encodeURIComponent(id)}/read`,
+        {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
     } catch {
       setItems((prev) =>
         prev.map((n) => (n.id === id ? { ...n, read: false } : n)),
@@ -66,11 +77,17 @@ export default function NotificationsPageClient({
     setMarking(true);
     setItems((prev) => prev.map((n) => ({ ...n, read: true })));
     try {
+      const token = await getToken();
+      if (!backendBase || !token) return;
       await Promise.all(
         unread.map((n) =>
-          fetch(`/api/notifications/${encodeURIComponent(n.id)}/read`, {
-            method: "POST",
-          }),
+          fetch(
+            `${backendBase}/api/mobile/notifications/${encodeURIComponent(n.id)}/read`,
+            {
+              method: "POST",
+              headers: { Authorization: `Bearer ${token}` },
+            },
+          ),
         ),
       );
     } finally {

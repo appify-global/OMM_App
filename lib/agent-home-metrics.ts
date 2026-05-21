@@ -1,4 +1,5 @@
 import { apiFetch } from '@/lib/api';
+import { isMobileApiConfigured } from '@/lib/mobile-api-config';
 
 /**
  * When false, the home KPI row hides the pipeline commission estimate (even if data exists).
@@ -166,7 +167,7 @@ export function formatPipelineCommissionRangeDisplay(
 
 export type FetchAgentHomeMetricsResult = {
   metrics: AgentHomeMetricsPayload;
-  /** True when `EXPO_PUBLIC_API_URL` is set and home metrics API returned 200. */
+  /** True when Expo has a mobile-api origin configured and `/api/mobile/agent-home-metrics` returned 200. */
   ok: boolean;
 };
 
@@ -177,8 +178,7 @@ export type FetchAgentHomeMetricsResult = {
 export async function fetchAgentHomeMetrics(
   getToken: () => Promise<string | null>,
 ): Promise<FetchAgentHomeMetricsResult> {
-  const base = process.env.EXPO_PUBLIC_API_URL;
-  if (!base) {
+  if (!isMobileApiConfigured()) {
     return { metrics: FALLBACK_AGENT_HOME_METRICS, ok: false };
   }
   try {

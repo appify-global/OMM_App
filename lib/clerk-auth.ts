@@ -97,3 +97,91 @@ export function clerkFieldError(errors: unknown, ...keys: string[]): string | nu
   }
   return null;
 }
+
+/** Profile fields collected on sign-up step 1 — must be sent to Clerk, not only stored locally. */
+export function clerkSignUpProfileParams(
+  firstName: string,
+  lastName: string,
+  phone: string,
+): { firstName?: string; lastName?: string; phoneNumber?: string } {
+  const fn = firstName.trim();
+  const ln = lastName.trim();
+  const ph = phone.trim();
+  return {
+    ...(fn ? { firstName: fn } : {}),
+    ...(ln ? { lastName: ln } : {}),
+    ...(ph ? { phoneNumber: ph } : {}),
+  };
+}
+
+type SignUpLike = {
+  missingFields: string[];
+  unverifiedFields: string[];
+  status: string;
+  update: (params: Record<string, unknown>) => Promise<{ error?: { message?: string } | null }>;
+};
+
+/** Push step-1 values into Clerk when the instance still reports missing required fields. */
+export async function syncClerkSignUpProfile(
+  signUp: SignUpLike,
+  firstName: string,
+  lastName: string,
+  phone: string,
+  options?: { legalAccepted?: boolean },
+): Promise<string | null> {
+  const profile = clerkSignUpProfileParams(firstName, lastName, phone);
+  const payload: Record<string, unknown> = { ...profile };
+
+  for (const field of signUp.missingFields) {
+    if (field === 'first_name' && profile.firstName) payload.firstName = profile.firstName;
+    if (field === 'last_name' && profile.lastName) payload.lastName = profile.lastName;
+    if (field === 'phone_number' && profile.phoneNumber) payload.phoneNumber = profile.phoneNumber;
+  }
+
+  if (options?.legalAccepted && signUp.missingFields.includes('legal_accepted')) {
+    payload.legalAcceptedAt = Date.now();
+  }
+
+  if (Object.keys(payload).length === 0) return null;
+
+  const { error } = await signUp.update(payload);
+  return error?.message ?? null;
+}
+
+const FIELD_LABELS: Record<string, string> = {
+  first_name: 'first name',
+  last_name: 'last name',
+  phone_number: 'phone number',
+  email_address: 'email',
+  password: 'password',
+  legal_accepted: 'terms acceptance',
+};
+
+/** User-facing message when Clerk did not reach `complete` (avoids opaque “could not be completed”). */
+export function clerkIncompleteAuthMessage(
+  flow: 'sign-up' | 'sign-in',
+  status: string | undefined,
+  missingFields: string[] = [],
+  unverifiedFields: string[] = [],
+): string {
+  if (unverifiedFields.includes('email_address')) {
+    return flow === 'sign-up'
+      ? 'Check your inbox for a verification code.'
+      : 'Check your inbox for a sign-in verification code.';
+  }
+  if (unverifiedFields.includes('phone_number')) {
+    return 'Verify your phone number with the code we sent by SMS.';
+  }
+  if (missingFields.length > 0) {
+    const labels = missingFields.map((f) => FIELD_LABELS[f] ?? f.replace(/_/g, ' '));
+    return `Still required: ${labels.join(', ')}. Go back and complete those fields, then try again.`;
+  }
+  if (status === 'missing_requirements') {
+    return flow === 'sign-up'
+      ? 'Additional sign-up steps are required in Clerk (e.g. email or phone verification).'
+      : 'Additional sign-in verification is required.';
+  }
+  return flow === 'sign-up'
+    ? 'Sign up could not be completed. Try again or contact support.'
+    : 'Sign in could not be completed. Try again or contact support.';
+}

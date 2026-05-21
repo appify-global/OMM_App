@@ -4,6 +4,7 @@ import { useEffect, useRef } from 'react';
 import { useAgentPublishedListings } from '@/lib/agent-published-listings-context';
 import { useMobileDatabase } from '@/lib/mobile-database-context';
 import { useOmmMessages } from '@/lib/omm-messages-context';
+import { useOmmNotifications } from '@/lib/omm-notifications-context';
 
 /**
  * When Postgres is connected, refresh listing + message contexts so mobile
@@ -14,6 +15,7 @@ export function MobileDatabaseBootstrap() {
   const { postgresLinked } = useMobileDatabase();
   const { refresh: refreshListings } = useAgentPublishedListings();
   const { refresh: refreshMessages } = useOmmMessages();
+  const { refresh: refreshNotifications } = useOmmNotifications();
   const syncedRef = useRef(false);
 
   useEffect(() => {
@@ -23,8 +25,8 @@ export function MobileDatabaseBootstrap() {
     }
     if (syncedRef.current) return;
     syncedRef.current = true;
-    void Promise.all([refreshListings(), refreshMessages()]);
-  }, [postgresLinked, isSignedIn, refreshListings, refreshMessages]);
+    void Promise.all([refreshListings(), refreshMessages(), refreshNotifications()]);
+  }, [postgresLinked, isSignedIn, refreshListings, refreshMessages, refreshNotifications]);
 
   return null;
 }

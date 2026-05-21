@@ -1,69 +1,31 @@
 import { ScreenHeader } from '@/components/ScreenHeader';
+import { useAuth } from '@clerk/expo';
+import { useFocusEffect } from '@react-navigation/native';
 import { useRouter } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Text } from '@/components/OMMText';
-import { Pressable, ScrollView, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { accent, borderHairline, Fonts, ink, inkMuted, palette, slateNavy } from '@/constants/theme';
-import { FIELD_OUTLINE_COLOR, FIELD_OUTLINE_WIDTH } from '@/lib/field-outline';
+import { useAgentPublishedListings } from '@/lib/agent-published-listings-context';
+import {
+  isPublishedListingArchived,
+  publishedToMobileHomeListing,
+  resolvedPublishedListingStatus,
+} from '@/lib/agent-published-listings';
+import {
+  filterAuthorityRows,
+  formatAuthorityDaysLeft,
+  mergeAuthorityExpiringRows,
+  soiStatusPill,
+  type AuthorityExpiringFilter,
+  type AuthorityExpiringRow,
+} from '@/lib/home-soi-authority';
+import { fetchMobileHome } from '@/lib/mobile-home-api';
 import { useScreenHorizontalPadding } from '@/lib/useScreenHorizontalPadding';
 
 /** [Figma 1053:1981](https://www.figma.com/design/H5hNLHSDJ0mmP61piGW2T4/OMM?node-id=1053-1981) */
-
-type FilterKey = 'all' | 'week' | 'month' | 'expired';
-
-type Listing = {
-  id: string;
-  title: string;
-  address: string;
-  daysLeft: string;
-  soiLine: string;
-  filter: FilterKey;
-};
-
-const LISTINGS: Listing[] = [
-  {
-    id: '1',
-    title: 'Moonee Ponds Villa',
-    address: '45 Buckley St, Moonee Ponds',
-    daysLeft: '6D LEFT',
-    soiLine: 'SOI ATTACHED',
-    filter: 'week',
-  },
-  {
-    id: '2',
-    title: 'Elsternwick Corner',
-    address: '102 Glenhuntly Rd, Elsternwick',
-    daysLeft: '11D LEFT',
-    soiLine: 'SOI MISSING — ACTION NEEDED',
-    filter: 'week',
-  },
-  {
-    id: '3',
-    title: 'Williamstown Period',
-    address: '17 Ferguson St, Williamstown',
-    daysLeft: '16D LEFT',
-    soiLine: 'SOI ATTACHED',
-    filter: 'month',
-  },
-  {
-    id: '4',
-    title: 'Northcote Corner Block',
-    address: '72 Arthurton Rd, Northcote',
-    daysLeft: '24D LEFT',
-    soiLine: 'SOI ATTACHED',
-    filter: 'month',
-  },
-  {
-    id: '5',
-    title: 'Prahran Loft',
-    address: 'Lot 4, Commercial Rd, Prahran',
-    daysLeft: 'EXPIRED',
-    soiLine: 'SOI ATTACHED',
-    filter: 'expired',
-  },
-];
 
 function FilterChip({
   label,
@@ -90,14 +52,16 @@ function AuthorityListCard({
   address,
   daysLeft,
   soiLine,
+  onPress,
 }: {
   title: string;
   address: string;
   daysLeft: string;
   soiLine: string;
+  onPress: () => void;
 }) {
   return (
-    <View style={styles.card}>
+    <Pressable style={styles.card} onPress={onPress} accessibilityRole="button">
       <View style={styles.cardTop}>
         <Text style={styles.cardTitle} numberOfLines={2}>
           {title}
@@ -116,7 +80,7 @@ function AuthorityListCard({
         <Text style={styles.actionBullet}> • </Text>
         <Text style={styles.actionMuted}>CONTACT VENDOR</Text>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -124,12 +88,54 @@ export default function AuthorityExpiringScreen() {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const hPad = useScreenHorizontalPadding();
-  const [filter, setFilter] = useState<FilterKey>('all');
+  const { getToken, isLoaded, isSignedIn } = useAuth();
+  const getTokenRef = useRef(getToken);
+  getTokenRef.current = getToken;
+  const { listings: publishedListings } = useAgentPublishedListings();
+  const [filter, setFilter] = useState<AuthorityExpiringFilter>('all');
+  const [authorityRows, setAuthorityRows] = useState<AuthorityExpiringRow[]>([]);
+  const [ready, setReady] = useState(false);
 
-  const filtered = useMemo(() => {
-    if (filter === 'all') return LISTINGS;
-    return LISTINGS.filter((l) => l.filter === filter);
-  }, [filter]);
+  const loadAuthorityRows = useCallback(async () => {
+    if (!isLoaded) return;
+    const tokenGetter = async () => (await getTokenRef.current()) ?? null;
+    const home = await fetchMobileHome(tokenGetter);
+    const pipelinePublished = publishedListings
+      .filter((p) => !isPublishedListingArchived(p))
+      .filter((p) => resolvedPublishedListingStatus(p) !== 'sold')
+      .map(publishedToMobileHomeListing);
+    const rows = mergeAuthorityExpiringRows(
+      home?.selling.authorityExpiringSoon ?? [],
+      pipelinePublished,
+    );
+    setAuthorityRows(rows);
+    setReady(true);
+  }, [isLoaded, publishedListings]);
+
+  useEffect(() => {
+    void loadAuthorityRows();
+  }, [loadAuthorityRows, isSignedIn]);
+
+  useFocusEffect(
+    useCallback(() => {
+      void loadAuthorityRows();
+    }, [loadAuthorityRows]),
+  );
+
+  const filtered = useMemo(
+    () => filterAuthorityRows(authorityRows, filter),
+    [authorityRows, filter],
+  );
+
+  const openListing = useCallback(
+    (listingId: string) => {
+      router.push({
+        pathname: '/view-live-listing',
+        params: { listingId },
+      });
+    },
+    [router],
+  );
 
   const count = filtered.length;
 
@@ -151,27 +157,48 @@ export default function AuthorityExpiringScreen() {
             <FilterChip label="All" active={filter === 'all'} onPress={() => setFilter('all')} />
             <FilterChip label="Week" active={filter === 'week'} onPress={() => setFilter('week')} />
             <FilterChip label="Month" active={filter === 'month'} onPress={() => setFilter('month')} />
-            <FilterChip label="Expired" active={filter === 'expired'} onPress={() => setFilter('expired')} />
+            <FilterChip
+              label="Expired"
+              active={filter === 'expired'}
+              onPress={() => setFilter('expired')}
+            />
           </ScrollView>
         </View>
 
         <View style={[styles.body, hPad]}>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaCount}>
-              {count} listing{count === 1 ? '' : 's'} expiring
-            </Text>
-            <Text style={styles.metaSort}>SORT • SOONEST</Text>
-          </View>
+          {!ready ? (
+            <View style={styles.loadingWrap}>
+              <ActivityIndicator color={slateNavy} />
+            </View>
+          ) : (
+            <>
+              <View style={styles.metaRow}>
+                <Text style={styles.metaCount}>
+                  {count} listing{count === 1 ? '' : 's'} expiring
+                </Text>
+                <Text style={styles.metaSort}>SORT • SOONEST</Text>
+              </View>
 
-          {filtered.map((item) => (
-            <AuthorityListCard
-              key={item.id}
-              title={item.title}
-              address={item.address}
-              daysLeft={item.daysLeft}
-              soiLine={item.soiLine}
-            />
-          ))}
+              {count === 0 ? (
+                <Text style={styles.emptyCopy}>
+                  {authorityRows.length === 0
+                    ? 'No authorities expiring in the next 30 days.'
+                    : 'Nothing in this filter.'}
+                </Text>
+              ) : (
+                filtered.map((item) => (
+                  <AuthorityListCard
+                    key={item.id}
+                    title={item.title}
+                    address={item.address}
+                    daysLeft={formatAuthorityDaysLeft(item.daysLeft)}
+                    soiLine={soiStatusPill(item.soiAttached)}
+                    onPress={() => openListing(item.id)}
+                  />
+                ))
+              )}
+            </>
+          )}
         </View>
       </ScrollView>
     </View>
@@ -193,121 +220,121 @@ const styles = StyleSheet.create({
   body: {
     paddingTop: 16,
   },
+  loadingWrap: {
+    paddingVertical: 32,
+    alignItems: 'center',
+  },
+  emptyCopy: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: inkMuted,
+    fontFamily: Fonts.sansMedium,
+  },
   filterStrip: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
   chip: {
-    height: 30,
+    height: 31,
     paddingHorizontal: 14,
     borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
   },
   chipOn: { backgroundColor: accent },
-  chipOff: {
-    backgroundColor: palette.white,
-    borderWidth: 1,
-    borderColor: borderHairline,
+  chipOff: { backgroundColor: 'rgba(0,0,0,0.06)' },
+  chipLabel: {
+    fontSize: 13,
+    fontFamily: Fonts.sansMedium,
+    color: inkMuted,
   },
-  chipLabel: { fontSize: 13, fontFamily: Fonts.medium, color: inkMuted },
-  chipLabelOn: { color: ink },
+  chipLabelOn: { color: palette.white },
   metaRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 18,
-  },
-  metaCount: { fontSize: 15, fontFamily: 'Satoshi-Medium', color: 'rgba(0,0,0,0.55)', letterSpacing: 0.5 },
-  metaSort: { fontSize: 12, fontFamily: 'Satoshi-Medium', color: 'rgba(0,0,0,0.55)', letterSpacing: 0.6 },
-  card: {
-    minHeight: 144,
-    backgroundColor: '#fff',
-    borderRadius: 11,
-    borderWidth: FIELD_OUTLINE_WIDTH,
-    borderColor: FIELD_OUTLINE_COLOR,
-    paddingHorizontal: 16,
-    paddingTop: 15,
-    paddingBottom: 14,
+    justifyContent: 'space-between',
     marginBottom: 14,
+  },
+  metaCount: {
+    fontSize: 13,
+    fontFamily: Fonts.sansMedium,
+    color: ink,
+  },
+  metaSort: {
+    fontSize: 11,
+    fontFamily: Fonts.sansMedium,
+    color: inkMuted,
+    letterSpacing: 0.4,
+  },
+  card: {
+    backgroundColor: palette.white,
+    borderRadius: 14,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: borderHairline,
   },
   cardTop: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 10,
+    marginBottom: 8,
   },
   cardTitle: {
     flex: 1,
-    fontSize: 17,
-    fontFamily: 'Satoshi-Medium',
-    color: '#000000',
-    lineHeight: 24,
+    fontSize: 16,
+    fontFamily: Fonts.sansMedium,
+    color: ink,
   },
   daysPill: {
-    minWidth: 56,
-    height: 24,
-    paddingHorizontal: 8,
-    borderRadius: 4,
     backgroundColor: slateNavy,
-    alignItems: 'center',
-    justifyContent: 'center',
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
   },
   daysPillText: {
     fontSize: 10,
-    fontFamily: 'Satoshi-Medium',
-    color: '#fff',
-    letterSpacing: 0.45,
-    textTransform: 'uppercase',
+    fontFamily: Fonts.sansMedium,
+    color: palette.white,
+    letterSpacing: 0.3,
   },
   cardAddr: {
-    marginTop: 8,
     fontSize: 13,
+    fontFamily: Fonts.sansMedium,
     color: inkMuted,
-    lineHeight: 19,
+    marginBottom: 8,
   },
   cardSoi: {
-    marginTop: 10,
     fontSize: 11,
-    fontFamily: 'Satoshi-Medium',
-    color: 'rgba(0, 0, 0, 0.55)',
-    letterSpacing: 0.25,
-    textTransform: 'uppercase',
+    fontFamily: Fonts.sansMedium,
+    color: inkMuted,
+    letterSpacing: 0.3,
   },
   cardRule: {
-    marginTop: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: '#ebebeb',
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: borderHairline,
+    marginVertical: 12,
   },
   cardActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    flexWrap: 'wrap',
-    marginTop: 12,
-    paddingTop: 2,
   },
   actionStrong: {
     fontSize: 11,
-    fontFamily: 'Satoshi-Medium',
-    color: '#000000',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    lineHeight: 16,
+    fontFamily: Fonts.sansMedium,
+    color: ink,
+    letterSpacing: 0.4,
   },
   actionBullet: {
     fontSize: 11,
-    fontWeight: '400',
-    color: '#b3b3b3',
-    lineHeight: 16,
+    color: inkMuted,
   },
   actionMuted: {
     fontSize: 11,
-    fontFamily: 'Satoshi-Medium',
-    color: 'rgba(0,0,0,0.55)',
-    letterSpacing: 0.5,
-    textTransform: 'uppercase',
-    lineHeight: 16,
+    fontFamily: Fonts.sansMedium,
+    color: inkMuted,
+    letterSpacing: 0.4,
   },
 });

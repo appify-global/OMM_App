@@ -1,10 +1,10 @@
-import { getAppUserId } from "@/lib/auth-user";
+import { loadListingsPageDataFromBackend } from "@/lib/backend-web-loaders";
 
-import { loadListingsPageData } from "../_data/rsc-loaders";
 import ListingsPageClient from "./ListingsPageClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function AppListingsPage() {
-  const userId = await getAppUserId();
-  const data = await loadListingsPageData(userId);
+  const data = await loadListingsPageDataFromBackend();
   return <ListingsPageClient data={data} />;
 }

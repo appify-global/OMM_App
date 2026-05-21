@@ -30,6 +30,8 @@
     "dev": "npm run dev -w apps/web",
     "web": "npm run dev -w apps/web",
     "dev:web": "npm run dev -w apps/web",
+    "dev:backend": "npm run dev --prefix ../OMM_BACKEND",
+    "dev:api": "npm run dev:backend",
     "dev:mobile": "expo start --localhost",
     "dev:mobile:lan": "expo start",
     "build:website": "npm run build -w apps/web",

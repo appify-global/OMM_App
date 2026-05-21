@@ -184,7 +184,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, error: parsed.detail }, { status: 400 });
   }
 
-  const hydrated = await ensureClerkUserInDatabase(userId);
+  let hydrated: Awaited<ReturnType<typeof ensureClerkUserInDatabase>>;
+  try {
+    hydrated = await ensureClerkUserInDatabase(userId);
+  } catch (e) {
+    console.error("[api/mobile/listings POST] ensureClerkUserInDatabase", e);
+    return NextResponse.json(
+      {
+        ok: false,
+        error: "database_unreachable",
+        message:
+          process.env.NODE_ENV === "development"
+            ? String(e instanceof Error ? e.message : e).slice(0, 280)
+            : undefined,
+      },
+      { status: 503 },
+    );
+  }
+
   if (!hydrated.ok) {
     const status = hydrated.reason === "missing_clerk_secret" ? 503 : 424;
     return NextResponse.json(

@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { incrementListingEnquiryCount, patchListingMobileMeta } from "@/db/queries";
+import {
+  ensureListingEnquiryThreadForBuyer,
+  incrementListingEnquiryCount,
+  patchListingMobileMeta,
+} from "@/db/queries";
 import { getUserIdFromMobileRequest } from "@/lib/mobile-bearer-auth";
 import type { OmmListingMobileMeta } from "@/lib/mobile-published-listings";
 
@@ -31,6 +35,7 @@ export async function PATCH(req: Request, { params }: Params) {
 
   if (action === "buyer_enquiry") {
     await incrementListingEnquiryCount(listingId);
+    await ensureListingEnquiryThreadForBuyer(listingId, userId);
     return NextResponse.json({ ok: true });
   }
 

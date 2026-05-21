@@ -1,22 +1,26 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getAppUserId } from "@/lib/auth-user";
+
 import SiteFooter from "../../../components/SiteFooter";
-import { loadMessagesInbox, loadThreadForDetail } from "../../_data/rsc-loaders";
+import {
+  loadMessagesInboxFromBackend,
+  loadThreadForDetailFromBackend,
+} from "@/lib/backend-web-loaders";
 import { type Message } from "../../_data/fixtures";
 import ThreadComposer from "./ThreadComposer";
 
 type Params = Promise<{ id: string }>;
 
+export const dynamic = "force-dynamic";
+
 export default async function ThreadDetailPage({ params }: { params: Params }) {
   const { id } = await params;
-  const userId = await getAppUserId();
-  const thread = await loadThreadForDetail(id, userId);
+  const thread = await loadThreadForDetailFromBackend(id);
   if (!thread) notFound();
 
   const groupedMessages = groupByDate(thread.messages);
 
-  const inbox = await loadMessagesInbox(userId);
+  const inbox = await loadMessagesInboxFromBackend();
   const otherThreads = inbox.threads
     .filter((t) => t.id !== thread.id)
     .slice(0, 4);

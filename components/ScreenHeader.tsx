@@ -8,6 +8,7 @@ import { Image, LayoutChangeEvent, Pressable, StyleSheet, useWindowDimensions, V
 import { Text } from '@/components/OMMText';
 import { Fonts, brand, ink, inkMuted, layout, toolbar } from '@/constants/theme';
 import { hapticLight } from '@/lib/haptics';
+import { useOmmNotifications } from '@/lib/omm-notifications-context';
 
 const LOGO = require('@/assets/images/match-logo.png');
 
@@ -46,7 +47,9 @@ export function ScreenHeader({
   variant = 'default',
 }: ScreenHeaderProps) {
   const router = useRouter();
+  const { unreadCount } = useOmmNotifications();
   const { width: windowWidth } = useWindowDimensions();
+  const showBadge = showNotificationBadge && unreadCount > 0;
   const [toolbarWidth, setToolbarWidth] = useState(0);
 
   const titleMaxWidth = useMemo(() => {
@@ -135,7 +138,7 @@ export function ScreenHeader({
               accessibilityLabel="Notifications"
               style={styles.iconBtn}>
               <FontAwesome name="bell-o" size={18} color={ink} />
-              {showNotificationBadge ? <View style={styles.notifBadge} /> : null}
+              {showBadge ? <View style={styles.notifBadge} /> : null}
             </Pressable>
             <Pressable
               onPress={goMessages}

@@ -1,10 +1,10 @@
-import { getAppUserId } from "@/lib/auth-user";
+import { loadMessagesInboxFromBackend } from "@/lib/backend-web-loaders";
 
-import { loadMessagesInbox } from "../_data/rsc-loaders";
 import MessagesPageClient from "./MessagesPageClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function AppMessagesPage() {
-  const userId = await getAppUserId();
-  const data = await loadMessagesInbox(userId);
+  const data = await loadMessagesInboxFromBackend();
   return <MessagesPageClient data={data} />;
 }

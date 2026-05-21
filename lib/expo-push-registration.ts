@@ -3,6 +3,8 @@ import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 import * as Notifications from 'expo-notifications';
 
+import { getExpoMobileApiOriginHint } from '@/lib/mobile-api-config';
+
 /** Default Android channel — required for heads-up on Android 8+. */
 export const ANDROID_DEFAULT_CHANNEL_ID = 'default';
 
@@ -84,7 +86,7 @@ export async function postExpoPushTokenToBackend(
   token: string,
   getBearerJwt: () => Promise<string | null>,
 ): Promise<boolean> {
-  const base = process.env.EXPO_PUBLIC_API_URL?.trim();
+  const base = getExpoMobileApiOriginHint();
   if (!base) return false;
 
   let jwt: string | null;

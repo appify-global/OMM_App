@@ -9,7 +9,8 @@ import "server-only";
 
 import { randomBytes } from "node:crypto";
 
-import { and, desc, eq, not, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, not, or, sql } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
 import { db, schema } from "./index";
 
@@ -229,6 +230,21 @@ export async function getThreadsForOwner(ownerId: string) {
     .orderBy(desc(schema.threads.lastMessageAt), desc(schema.threads.updatedAt));
 }
 
+/** Listing threads the user owns (agent inbox) or participates in (buyer on a listing enquiry). */
+export async function getThreadsAccessibleByUser(viewerUserId: string) {
+  if (!HAS_DB) return [];
+  return db
+    .select()
+    .from(schema.threads)
+    .where(
+      or(
+        eq(schema.threads.ownerId, viewerUserId),
+        eq(schema.threads.participantId, viewerUserId),
+      ),
+    )
+    .orderBy(desc(schema.threads.lastMessageAt), desc(schema.threads.updatedAt));
+}
+
 export async function getThreadByIdForOwner(threadId: string, ownerId: string) {
   if (!HAS_DB) return null;
   const rows = await db
@@ -238,6 +254,27 @@ export async function getThreadByIdForOwner(threadId: string, ownerId: string) {
       and(
         eq(schema.threads.id, threadId),
         eq(schema.threads.ownerId, ownerId),
+      ),
+    )
+    .limit(1);
+  return rows[0] ?? null;
+}
+
+export async function getThreadByIdForViewer(
+  threadId: string,
+  viewerUserId: string,
+): Promise<typeof schema.threads.$inferSelect | null> {
+  if (!HAS_DB) return null;
+  const rows = await db
+    .select()
+    .from(schema.threads)
+    .where(
+      and(
+        eq(schema.threads.id, threadId),
+        or(
+          eq(schema.threads.ownerId, viewerUserId),
+          eq(schema.threads.participantId, viewerUserId),
+        ),
       ),
     )
     .limit(1);
@@ -551,19 +588,39 @@ function newMessageId(): string {
   return `msg-${randomBytes(8).toString("hex")}`;
 }
 
-/** Agent or buyer sends a message in a thread they own. */
+/** Agent sends in a thread they own; `IN` = inbound to the agent (e.g. buyer message). */
 export async function appendMessageToThread(input: {
   threadId: string;
   ownerId: string;
   direction: "IN" | "OUT";
   body: string;
 }): Promise<boolean> {
-  if (!HAS_DB) return false;
-  const trimmed = input.body.trim();
-  if (!trimmed) return false;
-
   const thread = await getThreadByIdForOwner(input.threadId, input.ownerId);
   if (!thread) return false;
+  return insertThreadMessage(input.threadId, input.direction, input.body);
+}
+
+/** Owner or participant posts a message (`IN` from participant, `OUT` from listing owner). */
+export async function appendMessageFromViewer(input: {
+  threadId: string;
+  viewerUserId: string;
+  body: string;
+}): Promise<boolean> {
+  const thread = await getThreadByIdForViewer(input.threadId, input.viewerUserId);
+  if (!thread) return false;
+  const direction: "IN" | "OUT" =
+    thread.ownerId === input.viewerUserId ? "OUT" : "IN";
+  return insertThreadMessage(input.threadId, direction, input.body);
+}
+
+async function insertThreadMessage(
+  threadId: string,
+  direction: "IN" | "OUT",
+  body: string,
+): Promise<boolean> {
+  if (!HAS_DB) return false;
+  const trimmed = body.trim();
+  if (!trimmed) return false;
 
   const now = new Date();
   const preview = trimmed.length > 72 ? `${trimmed.slice(0, 69)}…` : trimmed;
@@ -571,8 +628,8 @@ export async function appendMessageToThread(input: {
   await db.transaction(async (tx) => {
     await tx.insert(schema.messages).values({
       id: newMessageId(),
-      threadId: input.threadId,
-      direction: input.direction,
+      threadId,
+      direction,
       body: trimmed,
       sentAt: now,
     });
@@ -582,11 +639,27 @@ export async function appendMessageToThread(input: {
         preview,
         lastMessageAt: now,
         updatedAt: now,
-        unread: input.direction === "IN",
+        unread: direction === "IN",
       })
-      .where(eq(schema.threads.id, input.threadId));
+      .where(eq(schema.threads.id, threadId));
   });
 
+  return true;
+}
+
+export async function markThreadReadForViewer(
+  threadId: string,
+  viewerUserId: string,
+): Promise<boolean> {
+  const t = await getThreadByIdForViewer(threadId, viewerUserId);
+  if (!t) return false;
+  if (t.ownerId !== viewerUserId) {
+    return true;
+  }
+  await db
+    .update(schema.threads)
+    .set({ unread: false, updatedAt: new Date() })
+    .where(eq(schema.threads.id, threadId));
   return true;
 }
 
@@ -628,32 +701,92 @@ function newThreadId(): string {
 
 export type CreateThreadForOwnerInput = {
   ownerId: string;
+  /** When set, thread is scoped to this buyer (listing enquiries). */
+  participantUserId?: string | null;
   participantName: string;
   participantFirm?: string;
+  /** For listing threads use the listing id so each listing + buyer pair is unique. */
   context: string;
   category: (typeof schema.messageCategoryEnum.enumValues)[number];
   seedInboundBody?: string;
 };
 
-/** Reuse an existing thread for the same owner + context + category, or create one. */
+function participantInitials(name: string): string {
+  return name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+}
+
+/** Reuse an existing thread for the same owner + context + category (+ participant when set), or create one. */
 export async function findOrCreateThreadForOwner(
   input: CreateThreadForOwnerInput,
 ): Promise<string | null> {
   if (!HAS_DB) return null;
 
-  const existing = await db
-    .select({ id: schema.threads.id })
+  const partId = input.participantUserId?.trim() || null;
+
+  const baseMatch = [
+    eq(schema.threads.ownerId, input.ownerId),
+    eq(schema.threads.context, input.context),
+    eq(schema.threads.category, input.category),
+  ];
+  const withParticipant = partId
+    ? [...baseMatch, eq(schema.threads.participantId, partId)]
+    : baseMatch;
+
+  let found = await db
+    .select({
+      id: schema.threads.id,
+      participantId: schema.threads.participantId,
+    })
     .from(schema.threads)
-    .where(
-      and(
-        eq(schema.threads.ownerId, input.ownerId),
-        eq(schema.threads.context, input.context),
-        eq(schema.threads.category, input.category),
-      ),
-    )
+    .where(and(...withParticipant))
     .limit(1);
 
-  if (existing[0]?.id) return existing[0].id;
+  if (!found[0]?.id && partId) {
+    const legacy = await db
+      .select({ id: schema.threads.id })
+      .from(schema.threads)
+      .where(
+        and(
+          ...baseMatch,
+          sql`${schema.threads.participantId} is null`,
+        ),
+      )
+      .limit(1);
+    if (legacy[0]?.id) {
+      await db
+        .update(schema.threads)
+        .set({
+          participantId: partId,
+          participantName: input.participantName,
+          participantFirm: input.participantFirm ?? null,
+          participantInitials: participantInitials(input.participantName),
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.threads.id, legacy[0].id));
+      return legacy[0].id;
+    }
+  }
+
+  if (found[0]?.id) {
+    if (partId && found[0].participantId !== partId) {
+      await db
+        .update(schema.threads)
+        .set({
+          participantId: partId,
+          participantName: input.participantName,
+          participantFirm: input.participantFirm ?? null,
+          participantInitials: participantInitials(input.participantName),
+          updatedAt: new Date(),
+        })
+        .where(eq(schema.threads.id, found[0].id));
+    }
+    return found[0].id;
+  }
 
   const id = newThreadId();
   const now = new Date();
@@ -666,15 +799,10 @@ export async function findOrCreateThreadForOwner(
   await db.insert(schema.threads).values({
     id,
     ownerId: input.ownerId,
-    participantId: null,
+    participantId: partId,
     participantName: input.participantName,
     participantFirm: input.participantFirm ?? null,
-    participantInitials: input.participantName
-      .split(/\s+/)
-      .map((w) => w[0])
-      .join("")
-      .slice(0, 2)
-      .toUpperCase(),
+    participantInitials: participantInitials(input.participantName),
     context: input.context,
     category: input.category,
     unread: Boolean(input.seedInboundBody?.trim()),
@@ -686,13 +814,174 @@ export async function findOrCreateThreadForOwner(
   });
 
   if (input.seedInboundBody?.trim()) {
-    await appendMessageToThread({
-      threadId: id,
-      ownerId: input.ownerId,
-      direction: "IN",
-      body: input.seedInboundBody.trim(),
+    await insertThreadMessage(id, "IN", input.seedInboundBody.trim());
+  }
+
+  return id;
+}
+
+export async function ensureListingEnquiryThreadForBuyer(
+  listingId: string,
+  buyerUserId: string,
+): Promise<string | null> {
+  const listing = await getListingById(listingId);
+  if (!listing) return null;
+  const buyer = await getCurrentUser(buyerUserId);
+  const displayName = buyer?.name?.trim() || "Buyer";
+  const first = displayName.split(/\s+/)[0] ?? "A buyer";
+  const firm =
+    [buyer?.firm?.trim(), buyer?.email?.trim()].filter(Boolean).join(" · ") ||
+    undefined;
+  return findOrCreateThreadForOwner({
+    ownerId: listing.agentId,
+    participantUserId: buyerUserId,
+    participantName: displayName,
+    participantFirm: firm,
+    context: listingId,
+    category: "LISTING",
+    seedInboundBody: `${first} reached out about this listing on OMM. Reply here to keep everything in one place.`,
+  });
+}
+
+function newInspectionBookingId(): string {
+  return `insb-${randomBytes(10).toString("hex")}`;
+}
+
+function newNotificationId(): string {
+  return `ntf-${randomBytes(10).toString("hex")}`;
+}
+
+export type InspectionActivityRow = {
+  id: string;
+  listingId: string;
+  listingTitle: string;
+  listingAddress: string;
+  slotLabel: string;
+  bookedAtIso: string;
+  perspective: "buyer" | "seller";
+  counterpartyLabel: string;
+};
+
+export async function listInspectionActivitiesForUser(
+  userId: string,
+): Promise<InspectionActivityRow[]> {
+  if (!HAS_DB) return [];
+
+  const buyerRows = await db
+    .select({
+      b: schema.inspectionBookings,
+      l: schema.listings,
+      agent: schema.users,
+    })
+    .from(schema.inspectionBookings)
+    .innerJoin(
+      schema.listings,
+      eq(schema.inspectionBookings.listingId, schema.listings.id),
+    )
+    .innerJoin(schema.users, eq(schema.listings.agentId, schema.users.id))
+    .where(eq(schema.inspectionBookings.buyerId, userId));
+
+  const InspectionBuyer = alias(schema.users, "inspection_buyer");
+
+  const sellerRows = await db
+    .select({
+      b: schema.inspectionBookings,
+      l: schema.listings,
+      buyerU: InspectionBuyer,
+    })
+    .from(schema.inspectionBookings)
+    .innerJoin(
+      schema.listings,
+      eq(schema.inspectionBookings.listingId, schema.listings.id),
+    )
+    .innerJoin(
+      InspectionBuyer,
+      eq(schema.inspectionBookings.buyerId, InspectionBuyer.id),
+    )
+    .where(eq(schema.listings.agentId, userId));
+
+  const out: InspectionActivityRow[] = [];
+
+  for (const row of buyerRows) {
+    const addr = [row.l.address.trim(), row.l.suburb.trim()]
+      .filter(Boolean)
+      .join(", ");
+    out.push({
+      id: row.b.id,
+      listingId: row.l.id,
+      listingTitle: row.l.title.trim(),
+      listingAddress: addr,
+      slotLabel: row.b.slotLabel,
+      bookedAtIso: row.b.createdAt.toISOString(),
+      perspective: "buyer",
+      counterpartyLabel: [row.agent.name.trim(), row.agent.firm?.trim()]
+        .filter(Boolean)
+        .join(" · "),
     });
   }
+
+  for (const row of sellerRows) {
+    const addr = [row.l.address.trim(), row.l.suburb.trim()]
+      .filter(Boolean)
+      .join(", ");
+    out.push({
+      id: row.b.id,
+      listingId: row.l.id,
+      listingTitle: row.l.title.trim(),
+      listingAddress: addr,
+      slotLabel: row.b.slotLabel,
+      bookedAtIso: row.b.createdAt.toISOString(),
+      perspective: "seller",
+      counterpartyLabel: [row.buyerU.name.trim(), row.buyerU.email?.trim()]
+        .filter(Boolean)
+        .join(" · "),
+    });
+  }
+
+  return out.sort(
+    (a, b) => Date.parse(b.bookedAtIso) - Date.parse(a.bookedAtIso),
+  );
+}
+
+export async function createInspectionBooking(input: {
+  listingId: string;
+  buyerUserId: string;
+  slotLabel: string;
+  bookedForAt?: Date | null;
+}): Promise<string | null> {
+  if (!HAS_DB) return null;
+  const listing = await getListingById(input.listingId);
+  if (!listing) return null;
+  const label = input.slotLabel.trim();
+  if (!label) return null;
+
+  const buyer = await getCurrentUser(input.buyerUserId);
+  const buyerLabel = buyer?.name?.trim() || "Buyer";
+  const id = newInspectionBookingId();
+  const now = new Date();
+
+  await db.transaction(async (tx) => {
+    await tx.insert(schema.inspectionBookings).values({
+      id,
+      listingId: input.listingId,
+      buyerId: input.buyerUserId,
+      slotLabel: label,
+      bookedForAt: input.bookedForAt ?? null,
+      createdAt: now,
+    });
+    await tx.insert(schema.notifications).values({
+      id: newNotificationId(),
+      userId: listing.agentId,
+      kind: "INSPECTION",
+      title: "Inspection request",
+      body: `${buyerLabel} booked ${label} · ${listing.title.trim()}`,
+      href: "/app/messages",
+      listingId: listing.id,
+      read: false,
+      occurredAt: now,
+      createdAt: now,
+    });
+  });
 
   return id;
 }
@@ -749,6 +1038,15 @@ export async function getAgentHomeMetricsForAgent(
   for (const m of mobileRows) {
     inspectionsBookedCount += m.localInspectionBookings?.length ?? 0;
   }
+  const pgIns = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(schema.inspectionBookings)
+    .innerJoin(
+      schema.listings,
+      eq(schema.inspectionBookings.listingId, schema.listings.id),
+    )
+    .where(eq(schema.listings.agentId, agentId));
+  inspectionsBookedCount += pgIns[0]?.count ?? 0;
 
   const recentlySold = sold
     .sort((a, b) => {

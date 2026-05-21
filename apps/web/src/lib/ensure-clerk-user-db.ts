@@ -12,6 +12,25 @@ import { db, schema } from "@/db";
 export async function ensureClerkUserInDatabase(userId: string): Promise<
   { ok: true } | { ok: false; reason: "missing_clerk_secret" | "clerk_fetch_failed" | "no_email" }
 > {
+  const devBypassId = process.env.DEV_MOBILE_BYPASS_USER_ID?.trim();
+  if (process.env.NODE_ENV === "development" && devBypassId && userId === devBypassId) {
+    const now = new Date();
+    await db
+      .insert(schema.users)
+      .values({
+        id: userId,
+        email: "dev-bypass@local.test",
+        name: "Dev Mobile Test Agent",
+        role: "AGENT",
+        updatedAt: now,
+      })
+      .onConflictDoUpdate({
+        target: schema.users.id,
+        set: { name: "Dev Mobile Test Agent", updatedAt: now },
+      });
+    return { ok: true };
+  }
+
   const existing = await db
     .select({ id: schema.users.id })
     .from(schema.users)

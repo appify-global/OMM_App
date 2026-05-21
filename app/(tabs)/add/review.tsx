@@ -162,11 +162,12 @@ export default function PublishListingReview() {
         pathname: '/add/listing-published',
         params: { listingId },
       } as Href);
-    } catch {
-      Alert.alert(
-        'Could not publish',
-        'Something went wrong saving your listing on this device. Try again.',
-      );
+    } catch (e) {
+      const message =
+        e instanceof Error && e.message
+          ? e.message
+          : 'Something went wrong saving your listing. Try again.';
+      Alert.alert('Could not publish', message);
     } finally {
       setPublishing(false);
     }

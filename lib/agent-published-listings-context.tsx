@@ -1,4 +1,6 @@
 import { useAuth } from '@clerk/expo';
+
+import { getClerkMobileBearerToken } from '@/lib/clerk-mobile-token';
 import {
   createContext,
   useCallback,
@@ -17,20 +19,20 @@ import {
   loadPublishedAgentListings,
   mergePublishedListingAnalyticsSaveDelta,
   mergePublishedListingAnalyticsView,
-  persistNewPublishedListing,
   updatePublishedListingStored,
   type InspectionBookingInput,
   type NewPublishedListingInput,
   type PublishedAgentListing,
 } from '@/lib/agent-published-listings';
 import { isMobileApiConfigured } from '@/lib/mobile-api-config';
-import { isMobilePostgresLinked } from '@/lib/mobile-database-link';
+import { isMobilePostgresLinked, setMobilePostgresLinked } from '@/lib/mobile-database-link';
 import {
   fetchPublishedListingsFromApi,
   mergeListingOverlays,
   patchListingOnApi,
   publishListingToApi,
 } from '@/lib/mobile-published-listings-api';
+import { postInspectionBookingForListing } from '@/lib/mobile-inspection-booking-api';
 import { ensureListingEnquiryThread } from '@/lib/omm-messages';
 
 type Ctx = {
@@ -59,13 +61,10 @@ export function AgentPublishedListingsProvider({ children }: { children: ReactNo
   const [ready, setReady] = useState(false);
   const [usingDatabase, setUsingDatabase] = useState(false);
 
-  const tokenGetter = useCallback(async () => {
-    try {
-      return (await getToken()) ?? null;
-    } catch {
-      return null;
-    }
-  }, [getToken]);
+  const tokenGetter = useCallback(
+    () => getClerkMobileBearerToken(getToken),
+    [getToken],
+  );
 
   const refresh = useCallback(async () => {
     if (isSignedIn && isMobileApiConfigured()) {
@@ -122,37 +121,56 @@ export function AgentPublishedListingsProvider({ children }: { children: ReactNo
 
   const recordListing = useCallback(
     async (payload: NewPublishedListingInput) => {
-      if (isSignedIn && isMobileApiConfigured()) {
-        const published = await publishListingToApi(tokenGetter, {
-          details: {
-            address: payload.addressLine,
-            propertyType: payload.propertyType,
-            bedrooms: String(payload.beds),
-            bathrooms: String(payload.baths),
-            carSpaces: String(payload.cars),
-            landAreaSize: payload.landSqm != null ? String(payload.landSqm) : '',
-            internalArea: '',
-          },
-          listingPriceFromAud: payload.listingPriceFromAud ?? null,
-          listingPriceToAud: payload.listingPriceToAud ?? null,
-          addressDisclosure: payload.addressDisclosure,
-          sellerInspectionAvailability: payload.sellerInspectionAvailability,
-          sellerInspectionAvailabilityTags: payload.sellerInspectionAvailabilityTags,
-          sellerInspectionAvailabilityNotes: payload.sellerInspectionAvailabilityNotes,
-          draftPhotos: payload.listingPhotos?.map((p) => ({ uri: p.uri, id: p.id })),
-          draftFloorPlan: payload.listingFloorPlan,
-        });
-        if (published) {
-          await refresh();
-          return published.listingId;
-        }
-        if (isMobilePostgresLinked()) {
-          throw new Error('Could not publish listing to Railway Postgres');
-        }
+      if (!isMobileApiConfigured()) {
+        throw new Error(
+          'Set EXPO_PUBLIC_MOBILE_API_ORIGIN in repo-root `.env` (e.g. http://127.0.0.1:3102). Run `npm run dev:backend` (OMM_BACKEND). Restart Expo after .env changes.',
+        );
       }
-      const id = await persistNewPublishedListing(payload);
+      if (!isSignedIn) {
+        throw new Error(
+          'Sign in to publish. New listings are saved to the server (Postgres), not on this device.',
+        );
+      }
+
+      const published = await publishListingToApi(tokenGetter, {
+        details: {
+          address: payload.addressLine,
+          propertyType: payload.propertyType,
+          bedrooms: String(payload.beds),
+          bathrooms: String(payload.baths),
+          carSpaces: String(payload.cars),
+          landAreaSize: payload.landSqm != null ? String(payload.landSqm) : '',
+          internalArea: '',
+        },
+        listingPriceFromAud: payload.listingPriceFromAud ?? null,
+        listingPriceToAud: payload.listingPriceToAud ?? null,
+        addressDisclosure: payload.addressDisclosure,
+        sellerInspectionAvailability: payload.sellerInspectionAvailability,
+        sellerInspectionAvailabilityTags: payload.sellerInspectionAvailabilityTags,
+        sellerInspectionAvailabilityNotes: payload.sellerInspectionAvailabilityNotes,
+        draftPhotos: payload.listingPhotos?.map((p) => ({ uri: p.uri, id: p.id })),
+        draftFloorPlan: payload.listingFloorPlan,
+      });
+
+      if (!published) {
+        throw new Error(
+          'Could not reach the publish endpoint. Set EXPO_PUBLIC_MOBILE_API_ORIGIN and run `npm run dev:backend` (port 3102).',
+        );
+      }
+      if (!published.ok) {
+        throw new Error(published.error);
+      }
+
+      if (!published.listingId.startsWith('lst-')) {
+        throw new Error(
+          'Server did not return a Postgres listing id — publish may not have reached OMM_BACKEND.',
+        );
+      }
+
+      setUsingDatabase(true);
+      setMobilePostgresLinked(true);
       await refresh();
-      return id;
+      return published.listingId;
     },
     [isSignedIn, refresh, tokenGetter],
   );
@@ -214,12 +232,13 @@ export function AgentPublishedListingsProvider({ children }: { children: ReactNo
     async (listingId: string) => {
       if (isSignedIn && isMobileApiConfigured() && listingId.startsWith('lst-')) {
         await patchListingOnApi(tokenGetter, listingId, { action: 'buyer_enquiry' });
+        // `buyer_enquiry` on OMM_BACKEND also creates a thread on the listing agent's inbox in Postgres.
       } else {
         await incrementPublishedListingBuyerEnquiry(listingId);
-      }
-      const row = listings.find((l) => l.id === listingId);
-      if (row) {
-        await ensureListingEnquiryThread(row);
+        const row = listings.find((l) => l.id === listingId);
+        if (row) {
+          await ensureListingEnquiryThread(row);
+        }
       }
       await refresh();
     },
@@ -231,18 +250,21 @@ export function AgentPublishedListingsProvider({ children }: { children: ReactNo
       const row = listings.find((l) => l.id === listingId);
       if (!row) return false;
       const next = mergePublishedListingAppendInspectionBooking(row, input);
+
+      if (listingId.startsWith('lst-') && isSignedIn && isMobileApiConfigured()) {
+        void postInspectionBookingForListing(tokenGetter, listingId, input.slotLabel);
+      }
+
       if (usingDatabase) {
-        await patchListingOnApi(tokenGetter, listingId, {
-          localInspectionBookings: next.localInspectionBookings,
-        });
         setListings((prev) => prev.map((r) => (r.id === listingId ? next : r)));
         return true;
       }
+
       const ok = await updatePublishedListingStored(next);
       if (ok) await refresh();
       return ok;
     },
-    [listings, refresh, tokenGetter, usingDatabase],
+    [isSignedIn, listings, refresh, tokenGetter, usingDatabase],
   );
 
   const value = useMemo(

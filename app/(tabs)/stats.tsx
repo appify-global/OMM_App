@@ -138,8 +138,13 @@ export default function ActivitiesScreen() {
   const params = useLocalSearchParams<{ filter?: string | string[] }>();
   const { listings } = useAgentPublishedListings();
   const { listings: savedListingCards } = useSavedListings();
-  const { threads: messageThreads, sendMessageWithAutoReply, markRead, getById: getThreadById } =
-    useOmmMessages();
+  const {
+    threads: messageThreads,
+    inspections: postgresInspectionActivities,
+    sendMessageWithAutoReply,
+    markRead,
+    getById: getThreadById,
+  } = useOmmMessages();
   const [role, setRole] = useState<Role>("buyer");
   const [filter, setFilter] = useState<FilterKey>("all");
   const [sheet, setSheet] = useState<ActiveSheet | null>(null);
@@ -156,8 +161,9 @@ export default function ActivitiesScreen() {
         listings,
         savedListings: savedListingCards,
         messageThreads,
+        postgresInspections: postgresInspectionActivities,
       }),
-    [role, listings, savedListingCards, messageThreads],
+    [role, listings, savedListingCards, messageThreads, postgresInspectionActivities],
   );
 
   const activeThread = useMemo(() => {

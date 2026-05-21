@@ -1,4 +1,4 @@
-/** JSON types for `/api/mobile/*` — keep aligned with `apps/web` loaders and fixtures. */
+/** JSON types for `/api/mobile/*` — keep aligned with `OMM_BACKEND` handlers and dashboard fixtures. */
 
 export type ListingStatus =
   | "ACTIVE"
@@ -28,6 +28,7 @@ export type AuthorityExpiring = {
   title: string;
   address: string;
   daysLeft: number;
+  soiAttached?: boolean;
 };
 
 export type Enquiry = {
@@ -164,6 +165,8 @@ export type MessageThread = {
   preview: string;
   lastTime: string;
   pinned: boolean;
+  /** True when the signed-in user is the participant (e.g. buyer on a listing thread). */
+  participantView?: boolean;
   messages: {
     id: string;
     direction: string;
@@ -179,9 +182,21 @@ export type MessageThread = {
   }[];
 };
 
+export type InspectionActivityItem = {
+  id: string;
+  listingId: string;
+  listingTitle: string;
+  listingAddress: string;
+  slotLabel: string;
+  bookedAtIso: string;
+  perspective: "buyer" | "seller";
+  counterpartyLabel: string;
+};
+
 export type MessagesInboxData = {
   threads: MessageThread[];
   shortcuts: { newEnquiries: number; pendingReviews: number };
+  inspections: InspectionActivityItem[];
 };
 
 export type NotificationKind =
@@ -203,11 +218,16 @@ export type NotificationListItem = {
   body: string;
   href: string;
   read: boolean;
+  /** Human-readable age label (e.g. "2m ago"). */
   occurredAt: string;
+  occurredAtIso?: string;
+  listingId?: string;
+  threadId?: string;
 };
 
 export type NotificationsResponse = { items: NotificationListItem[] };
 
+/** Postgres-backed when `/api/mobile/search` runs with `DATABASE_URL` (optional `q`, `suburbs`, `bedroomsMin`, `priceMin`, `priceMax`). */
 export type SearchBootstrapResponse = {
   propertyTypes: string[];
   suburbs: string[];
