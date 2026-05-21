@@ -19,7 +19,14 @@ export default function SiteDock() {
     <>
       <nav className="site-dock" aria-label="Site navigation">
         <Link href="/" className="site-dock-logo" aria-label="Home">
-          <Image src="/match-logo.png" alt="" width={36} height={12} className="site-dock-logo-img" />
+          <Image
+            src="/match-logo.png?v=8"
+            alt=""
+            width={410}
+            height={84}
+            className="site-dock-logo-img"
+            unoptimized
+          />
         </Link>
         <span className="site-dock-label">{label}</span>
         <button

@@ -21,12 +21,13 @@ export default function SiteHeader() {
       <div className="site-header-inner">
         <Link href="/" className="brand" aria-label="MATCH home">
           <Image
-            src="/match-logo.png"
-            alt=""
-            width={132}
-            height={32}
+            src="/match-logo.png?v=8"
+            alt="Match"
+            width={410}
+            height={84}
             className="brand-logo"
             priority
+            unoptimized
           />
         </Link>
         <nav className="site-header-nav" aria-label="Primary">

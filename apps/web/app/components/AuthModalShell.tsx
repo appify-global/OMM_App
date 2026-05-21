@@ -64,7 +64,7 @@ export default function AuthModalShell({ mode }: Props) {
         <header className="auth-modal__head">
           <Link href="/" className="auth-modal__brand" aria-label="MATCH home">
             <Image
-              src="/match-logo.png"
+              src="/match-logo.png?v=8"
               alt="MATCH"
               width={118}
               height={22}
