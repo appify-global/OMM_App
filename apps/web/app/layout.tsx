@@ -10,11 +10,11 @@ export const metadata: Metadata = {
   description: "Search off-market property across Victoria before it reaches the portals.",
   icons: {
     icon: [
-      { url: "/favicon-16.png?v=8", sizes: "16x16", type: "image/png" },
-      { url: "/favicon-32.png?v=8", sizes: "32x32", type: "image/png" },
-      { url: "/favicon.ico?v=8", sizes: "any" },
+      { url: "/favicon-16.png?v=9", sizes: "16x16", type: "image/png" },
+      { url: "/favicon-32.png?v=9", sizes: "32x32", type: "image/png" },
+      { url: "/favicon.ico?v=9", sizes: "any" },
     ],
-    apple: [{ url: "/apple-touch-icon.png?v=8", sizes: "180x180" }],
+    apple: [{ url: "/apple-touch-icon.png?v=9", sizes: "180x180" }],
   },
 };
 
