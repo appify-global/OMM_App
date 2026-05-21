@@ -112,6 +112,7 @@ html:has(.find-page--about) .site-footer {
   z-index: 2;
   display: inline-flex;
   align-items: center;
+  justify-self: start;
   flex-shrink: 0;
   line-height: 0;
   text-decoration: none;
