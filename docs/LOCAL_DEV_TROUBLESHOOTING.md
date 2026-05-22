@@ -6,10 +6,8 @@
 
 ### Fix (recommended split)
 
-1. **Two terminals** from monorepo root:
-   - **`npm run dev:backend`** — API on **3102**
-   - **`npm run dev`** — web UI on **3101**
-2. Repo root **`.env`**:
+1. **Two terminals:** from **`OMM`**, **`npm run dev`** (web UI on **3101**); from **`OMM_BACKEND`**, **`npm run dev`** (API on **3102**).
+2. **`OMM_APP/.env`** (sibling **`Documents/OMM_APP`**):
    ```env
    EXPO_PUBLIC_MOBILE_API_ORIGIN=http://127.0.0.1:3102
    EXPO_PUBLIC_API_URL=http://127.0.0.1:3102
@@ -26,7 +24,7 @@
 
 ### After env changes
 
-Restart **OMM_BACKEND**, **Next web**, and **Expo** (`npm run dev:mobile`).
+Restart **OMM_BACKEND**, **Next web**, and **Expo** (from **`OMM_APP`**, `npm run start`).
 
 ### Smoke test
 

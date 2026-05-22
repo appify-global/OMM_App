@@ -64,7 +64,7 @@ export type ListingsPageData = {
 
 export type BriefsPageData = { my: Brief[]; incoming: Brief[] };
 
-/** Matches `packages/shared` mobile-api shape — mobile Activities + inbox. */
+/** Matches `OMM_APP/packages/shared` mobile-api shape — mobile Activities + inbox. */
 export type InspectionActivityItem = {
   id: string;
   listingId: string;
