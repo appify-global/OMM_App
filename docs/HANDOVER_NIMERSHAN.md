@@ -4,68 +4,82 @@
 
 | Path | Purpose |
 |------|---------|
-| [`apps/web`](../apps/web) | Next.js — marketing, authenticated `/app` workspace, Drizzle + Postgres. Exposes **`/api/mobile/*`** JSON for the Expo app (same DB loaders as server components where applicable). |
-| [`app/`](../app/) (repo root) | Expo Router + NativeWind — primary native client; uses Clerk Expo and **`EXPO_PUBLIC_API_URL`** to reach the Next app. |
-| [`packages/shared`](../packages/shared) | Shared TypeScript surface for **`/api/mobile/*`** payloads (keep aligned with web route handlers). |
+| [`apps/web`](../apps/web) | Next.js — marketing, authenticated `/app` workspace (UI only for data; server components call **`NEXT_PUBLIC_BACKEND_URL`** with Clerk Bearer). |
+| **[`OMM_BACKEND`](../../OMM_BACKEND)** (sibling folder) | API service — Drizzle + Postgres, **`/api/mobile/*`** for Expo and web, **`/api/webhooks/clerk`**. |
+| **[`OMM_APP`](../../OMM_APP)** (`Documents/OMM_APP`) | Expo Router — separate repo; **`EXPO_PUBLIC_API_URL`** → same backend origin as **`NEXT_PUBLIC_BACKEND_URL`**. |
+| [`OMM_APP/packages/shared`](../../OMM_APP/packages/shared) | Shared TS types for **`/api/mobile/*`** payloads — keep aligned with backend route handlers. |
 
-## Run web locally
+## Run locally
+
+### API backend (required for `/app` + mobile)
 
 ```sh
-cd /path/to/omm
+cd /path/to/OMM_BACKEND
 npm install
-npm run dev
+cp .env.example .env.local   # DATABASE_URL, CLERK_SECRET_KEY, CLERK_WEBHOOK_SECRET, …
+npm run dev                  # port 3102
 ```
 
-Next listens on **port 3101** by default (`apps/web/package.json`).
+### Web (this repo — Next.js only)
+
+```sh
+cd /path/to/OMM
+npm install
+# apps/web/.env.local: NEXT_PUBLIC_BACKEND_URL=http://127.0.0.1:3102 (+ Clerk publishable key, etc.)
+npm run dev                  # port 3101
+```
 
 ## Native vs web UI
 
-Marketing and authenticated **web UI** lives under `apps/web`. The native app (`app/` at repo root) is a separate React Native codebase (Expo Router) that should stay visually aligned with web product decisions via shared tokens/design language as you evolve both.
+Marketing and authenticated **web UI** lives under `apps/web`. The native app lives in sibling repo **`OMM_APP`** (Expo Router) — keep visual/product alignment via shared tokens and design docs as both evolve.
 
-## Run mobile locally (root Expo app)
+## Run mobile locally (`OMM_APP`)
 
 ```sh
-npm run dev:mobile
+cd /path/to/OMM_APP
+npm install
+npm run start              # expo start --localhost
 ```
 
-`dev:mobile` runs **`expo start --localhost`** so simulator + Metro resolve `127.0.0.1` cleanly. For a **physical device** or Expo Go on Wi‑Fi, use **`npm run dev:mobile:lan`** (`expo start`) and set **`EXPO_PUBLIC_API_URL`** to your Mac’s **LAN IP** (not `127.0.0.1`).
+For a **physical device**, use **`npm run start:lan`** and set **`EXPO_PUBLIC_API_URL`** to your Mac’s **LAN IP** and backend port (e.g. `http://192.168.x.x:3102`).
 
 ### Env (mobile)
 
-Configure **repo root** `.env` (see [`../.env.example`](../.env.example)):
+Configure **`OMM_APP/.env`** (see [`../../OMM_APP/.env.example`](../../OMM_APP/.env.example) on your machine):
 
 - **`EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`** — must match web **`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`** (same Clerk application).
-- **`EXPO_PUBLIC_API_URL`** — local: **`http://127.0.0.1:3101`**; device: **`http://<LAN-IP>:3101`**; prod: **`https://<your-deployment>`** origin only.
+- **`EXPO_PUBLIC_API_URL`** — backend origin: local **`http://127.0.0.1:3102`**; prod: **`https://<your-backend-deployment>`** (no trailing slash).
 
 ## Environment (web)
 
-Copy [`.env.example`](../.env.example) hints into **`apps/web/.env`** (and Railway vars). Required for mobile APIs:
+In **`apps/web/.env.local`**:
 
-- **`CLERK_SECRET_KEY`** — verifies Bearer tokens on **`/api/mobile/*`** (must match the same Clerk app as publishable keys above).
+- **`NEXT_PUBLIC_BACKEND_URL`** — public origin of **`OMM_BACKEND`** (used by RSC fetch + client notification calls).
+- **`BACKEND_URL`** — optional server-only override (same as above if unset).
+- **`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`** / Clerk web session vars as before.
+- **No `DATABASE_URL`** on web — DB lives only on the backend.
+
+## Environment (API backend)
+
+See **`OMM_BACKEND/.env.example`**: `DATABASE_URL`, `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET`, etc.
 
 ## Mobile HTTP API (`/api/mobile/*`)
 
-Route handlers under **`apps/web/app/api/mobile/`** implement JSON for authenticated native clients. Middleware skips cookie **`auth.protect()`** for **`/api/mobile/*`**; each handler validates **`Authorization: Bearer`** via **`getUserIdFromMobileRequest`** (`apps/web/src/lib/mobile-bearer-auth.ts`).
+Implemented under **`OMM_BACKEND/app/api/mobile/`**. Each handler validates **`Authorization: Bearer`** via **`getUserIdFromMobileRequest`** (`OMM_BACKEND/src/lib/mobile-bearer-auth.ts`). Next.js web server components use the same JWT via **`auth().getToken()`** when calling the backend.
+
+## Clerk webhook
+
+Configure in Clerk Dashboard → Webhooks:
+
+- **Endpoint:** `https://<backend-host>/api/webhooks/clerk` (the **`OMM_BACKEND`** deployment, not necessarily the marketing site).
 
 ## EAS / stores
 
-- [`eas.json`](../eas.json) — **`development`**, **`preview`**, **`production`** build profiles at repo root.
-- Set a real Expo project id in **`app.json`** → **`expo.extra.eas.projectId`** (replace placeholder).
-- EAS CLI: `npx eas-cli` from repo root (`eas build …` targets this app).
-
-## Mobile using the same backend as Railway
-
-The deployed Next app is the backend the native app talks to (**`/api/mobile/*`**). Mirror Railway web env into Expo/EAS:
-
-| Railway (web) | Mobile (Expo / EAS) | Notes |
-|---------------|---------------------|--------|
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | **Same string** — one Clerk application. |
-| Public site URL (e.g. `https://your-app.up.railway.app`) | `EXPO_PUBLIC_API_URL` | **Origin only**, no trailing slash. |
-
-**EAS:** define **`EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`** and **`EXPO_PUBLIC_API_URL`** for preview/production build profiles ([EAS environment variables](https://docs.expo.dev/eas/environment-variables/)).
-
-**Clerk:** allowed origins / redirect URLs must include your Railway hostname and Clerk’s Expo redirect URI patterns.
+- [`eas.json`](../../OMM_APP/eas.json) — **`development`**, **`preview`**, **`production`** build profiles (in **`OMM_APP`**).
+- Set a real Expo project id in **`OMM_APP`** **`app.json`** → **`expo.extra.eas.projectId`**.
+- EAS env: **`EXPO_PUBLIC_API_URL`** should be the **backend** public URL.
 
 ## Deploy (Railway)
 
-[`railway.json`](../railway.json): **Build** `npm install && npm run build:website`, **Start** `npm run start:website`.
+- **Web (this repo):** [`railway.json`](../railway.json) — build/start `apps/web`. Set **`NEXT_PUBLIC_BACKEND_URL`** to your backend service URL (and ensure **`npm run build:website`** receives that var at build time if required).
+- **Backend:** deploy **`OMM_BACKEND`** separately with `DATABASE_URL`, `CLERK_SECRET_KEY`, `CLERK_WEBHOOK_SECRET`, and the same Clerk application as web/Expo.

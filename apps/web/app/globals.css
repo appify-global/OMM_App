@@ -7893,6 +7893,17 @@ h2 em {
   color: var(--ink, #1c1c1c);
 }
 
+.auth-notice {
+  margin: 0 0 20px;
+  padding: 12px 14px;
+  border-radius: 6px;
+  background: rgba(180, 35, 24, 0.08);
+  border: 1px solid rgba(180, 35, 24, 0.35);
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--ink, #1c1c1c);
+}
+
 .auth-masthead {
   display: flex;
   flex-direction: column;

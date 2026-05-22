@@ -103,6 +103,7 @@ app.get('/api/agent-home-metrics', requireAuth, async (req, res) => {
       ],
       activeListingsCount: 4,
       pendingListingsCount: 2,
+      soldListingsCount: 3,
       inspectionsBookedCount: 3,
       pipelineCommissionEstimateAud: { lowAud: 41250, highAud: 51500 },
     });

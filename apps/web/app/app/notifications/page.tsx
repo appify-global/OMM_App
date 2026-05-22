@@ -1,10 +1,10 @@
-import { getAppUserId } from "@/lib/auth-user";
+import { loadNotificationsListFromBackend } from "@/lib/backend-web-loaders";
 
-import { loadNotificationsList } from "../_data/rsc-loaders";
 import NotificationsPageClient from "./NotificationsPageClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function NotificationsPage() {
-  const userId = await getAppUserId();
-  const initialItems = await loadNotificationsList(userId);
+  const initialItems = await loadNotificationsListFromBackend();
   return <NotificationsPageClient initialItems={initialItems} />;
 }

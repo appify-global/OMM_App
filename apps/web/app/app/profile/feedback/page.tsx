@@ -18,6 +18,10 @@ export default function FeedbackPage() {
   const [body, setBody] = useState("");
   const [contactOk, setContactOk] = useState(true);
   const [sent, setSent] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const categoryLabel = KINDS.find((k) => k.id === kind)?.label ?? kind;
 
   return (
     <>
@@ -65,9 +69,39 @@ export default function FeedbackPage() {
         ) : (
           <form
             className="subpage-form"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              setSent(true);
+              setFormError(null);
+              if (!body.trim() || submitting) return;
+              setSubmitting(true);
+              try {
+                const res = await fetch("/api/support/feedback", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({
+                    source: "web",
+                    category: categoryLabel,
+                    message: body.trim(),
+                    contactOk,
+                  }),
+                });
+                const data = (await res.json().catch(() => ({}))) as {
+                  error?: string;
+                };
+                if (!res.ok) {
+                  setFormError(
+                    data.error === "server_misconfigured" || res.status === 503
+                      ? "Feedback isn’t configured on the server yet."
+                      : "Could not send feedback. Try again.",
+                  );
+                  return;
+                }
+                setSent(true);
+              } catch {
+                setFormError("Network error. Try again.");
+              } finally {
+                setSubmitting(false);
+              }
             }}
           >
             <fieldset className="subpage-fieldset">
@@ -140,13 +174,23 @@ export default function FeedbackPage() {
               </div>
             </fieldset>
 
+            {formError ? (
+              <p className="subpage-fieldset-lede" role="alert" style={{ color: "#b42318" }}>
+                {formError}
+              </p>
+            ) : null}
+
             <footer className="subpage-form-footer">
               <div className="subpage-form-actions">
                 <Link href="/app/profile" className="dash-cta is-ghost">
                   Cancel
                 </Link>
-                <button type="submit" className="dash-cta">
-                  Send feedback
+                <button
+                  type="submit"
+                  className="dash-cta"
+                  disabled={!body.trim() || submitting}
+                >
+                  {submitting ? "Sending…" : "Send feedback"}
                 </button>
               </div>
             </footer>

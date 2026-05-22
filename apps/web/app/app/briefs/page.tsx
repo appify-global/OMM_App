@@ -1,10 +1,10 @@
-import { getAppUserId } from "@/lib/auth-user";
+import { loadBriefsPageDataFromBackend } from "@/lib/backend-web-loaders";
 
-import { loadBriefsPageData } from "../_data/rsc-loaders";
 import BriefsPageClient from "./BriefsPageClient";
 
+export const dynamic = "force-dynamic";
+
 export default async function AppBriefsPage() {
-  const userId = await getAppUserId();
-  const data = await loadBriefsPageData(userId);
+  const data = await loadBriefsPageDataFromBackend();
   return <BriefsPageClient data={data} />;
 }

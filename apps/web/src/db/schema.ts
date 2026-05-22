@@ -4,6 +4,7 @@
  * Top-level domain map:
  *   users           — synced from Clerk via webhook
  *   listings        — agent-owned property campaigns
+ *   inspection_bookings — buyer-requested inspections on listings
  *   listing_media   — photos / floor plans / videos / SOI files
  *   briefs          — buyer briefs (off-market wishlists)
  *   brief_matches   — listings/agents matched to a brief
@@ -228,6 +229,31 @@ export const listingMedia = pgTable("listing_media", {
   position: integer("position").default(0).notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+/** Buyer-requested inspections on listings (mobile Activities + agent alerts). */
+export const inspectionBookings = pgTable("inspection_bookings", {
+  id: text("id").primaryKey(),
+  listingId: text("listing_id")
+    .notNull()
+    .references(() => listings.id, { onDelete: "cascade" }),
+  buyerId: text("buyer_id")
+    .notNull()
+    .references(() => users.id, { onDelete: "cascade" }),
+  slotLabel: text("slot_label").notNull(),
+  bookedForAt: timestamp("booked_for_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const inspectionBookingsRelations = relations(inspectionBookings, ({ one }) => ({
+  listing: one(listings, {
+    fields: [inspectionBookings.listingId],
+    references: [listings.id],
+  }),
+  buyer: one(users, {
+    fields: [inspectionBookings.buyerId],
+    references: [users.id],
+  }),
+}));
 
 /* ────────────────────────────────────────────────────────────
    BRIEFS
@@ -527,6 +553,7 @@ export const listingsRelations = relations(listings, ({ one, many }) => ({
     references: [users.id],
   }),
   media: many(listingMedia),
+  inspectionBookings: many(inspectionBookings),
 }));
 
 export const listingMediaRelations = relations(listingMedia, ({ one }) => ({

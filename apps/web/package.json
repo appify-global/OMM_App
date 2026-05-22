@@ -12,6 +12,11 @@
     "db:studio": "drizzle-kit studio",
     "db:seed": "tsx src/db/seed.ts"
   },
+  "optionalDependencies": {
+    "@next/swc-darwin-arm64": "16.2.4",
+    "@next/swc-darwin-x64": "16.2.4",
+    "@next/swc-linux-x64-gnu": "16.2.4"
+  },
   "devDependencies": {
     "@types/node": "^25.6.0",
     "@types/pg": "^8.20.0",
@@ -30,6 +35,7 @@
     "pg": "^8.20.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
+    "resend": "^6.12.3",
     "server-only": "^0.0.1",
     "svix": "^1.92.2"
   }

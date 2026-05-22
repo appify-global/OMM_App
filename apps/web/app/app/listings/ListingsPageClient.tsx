@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import SiteFooter from "../../components/SiteFooter";
-import type { ListingsPageData } from "../_data/rsc-loaders";
+import type { ListingsPageData } from "../_data/dashboard-types";
 import type { ArchivedListing, DraftListing, Listing } from "../_data/fixtures";
 
 type Tab = "active" | "drafts" | "off-market" | "archive";

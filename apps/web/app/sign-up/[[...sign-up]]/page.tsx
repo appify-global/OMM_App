@@ -2,6 +2,7 @@ import { SignUp } from "@clerk/nextjs";
 import Link from "next/link";
 
 import { clerkAuthAppearance } from "../../../lib/clerk-appearance";
+import { WorkEmailAuthNotice } from "../../components/WorkEmailAuthNotice";
 
 export default function SignUpPage() {
   return (
@@ -40,6 +41,7 @@ export default function SignUpPage() {
         </div>
 
         <div className="auth-form">
+          <WorkEmailAuthNotice />
           <SignUp
             routing="path"
             path="/sign-up"

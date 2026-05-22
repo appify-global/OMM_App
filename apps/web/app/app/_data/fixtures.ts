@@ -639,8 +639,14 @@ export type MessageThread = {
   unread: boolean;
   preview: string;
   lastTime: string;
+  /** ISO8601 last activity — mobile inbox sorting (`lastTime` stays human-relative for web). */
+  lastMessageAt?: string;
   messages: Message[];
   pinned?: boolean;
+  /** Viewer is buyer on a listing thread (counterparty shown is the listing agent). */
+  participantView?: boolean;
+  /** Postgres listing id (`lst-*`) when this is an enquiry-on-listing thread. */
+  listingId?: string;
 };
 
 export const threads: MessageThread[] = [

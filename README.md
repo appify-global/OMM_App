@@ -1,34 +1,38 @@
-# Unlisted
+# Unlisted (web)
 
-Monorepo for the Unlisted product (OMM).
+Next.js repo for **Unlisted / PreMarket** — marketing site and authenticated **`/app`**.
 
-## Apps
+Mobile (Expo) lives in sibling repo **`../OMM_APP`** (same machine path: **`Documents/OMM_APP`**).
 
-- [`apps/web`](apps/web) — Next.js (marketing + authenticated `/app` + Postgres via Drizzle + **`/api/mobile/*`** JSON for the native client).
-- **Expo mobile** lives at **repo root** — [`app/`](app/) (Expo Router, NativeWind). Same Clerk app + same backend URLs as web.
+## Architecture
 
-## Common commands
+| Surface | Repo / path |
+| -------- | ----------- |
+| **Web** | This repo: [`apps/web`](apps/web) — port **3101** |
+| **Mobile** | [`../OMM_APP`](../OMM_APP) — Expo |
+| **API** | **`../OMM_BACKEND`** (recommended) — **`/api/mobile/*`**, Postgres, Clerk — port **3102** |
+
+Server-side data loaders in Next call **`BACKEND_URL`** / **`NEXT_PUBLIC_BACKEND_URL`** → **`OMM_BACKEND`**.
+
+The native app calls **`EXPO_PUBLIC_API_URL`** / **`EXPO_PUBLIC_MOBILE_API_ORIGIN`** at the **`/api/mobile/*`** host (see **`../OMM_APP/.env.example`**).
+
+**Clerk:** `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` in **`apps/web/.env.local`** must match **`EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`** in **`../OMM_APP/.env`**.
+
+## Commands
 
 ```sh
 npm install
-npm run dev          # Next.js (default dev server, port 3101)
-npm run dev:mobile   # Expo (--localhost; use dev:mobile:lan for a physical device)
+npm run dev          # Next.js in apps/web, port 3101
+npm run dev:backend  # Starts ../OMM_BACKEND if present (port 3102)
 npm run build:website
 npm run start:website
 ```
 
-Production deploy (Railway) uses `build:website` and `start:website` — see [`railway.json`](railway.json).
+- Web env: **`apps/web/.env.local`** (see [`.env.example`](.env.example)).
+- Mobile env: **`../OMM_APP/.env`**.
 
-### Mobile dev (root Expo app)
+Production (e.g. Railway): set **`EXPO_PUBLIC_*`** origins on the Expo/EAS side to your deployed API/web URL as documented in mobile README.
 
-1. Copy [`.env.example`](.env.example) to `.env` at repo root **or** set the same vars in EAS/build.
-2. **Web Clerk env lives only under [`apps/web/`](apps/web)** — copy [`apps/web/.env.example`](apps/web/.env.example) to **`apps/web/.env.local`**. Next does not read the repo-root `.env`.
-3. Use the **same** Clerk publishable key in both places: `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` (in `apps/web/.env.local`) **must equal** `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` (repo root `.env`). If they differ, web shows errors like **“Couldn't find your account”** for users that exist in the other Clerk instance.
-4. Point `EXPO_PUBLIC_API_URL` at your Next **origin**. Local default: **`http://127.0.0.1:3101`** (see `apps/web/package.json`).
-5. Run `npm run dev` (web) and `npm run dev:mobile` (Expo). For a phone on the network use `npm run dev:mobile:lan` and set `EXPO_PUBLIC_API_URL` to your machine’s LAN IP.
-
-Native calls **`GET/POST`** routes under **`/api/mobile/*`** on that origin (Bearer token auth). **`CLERK_SECRET_KEY`** in `apps/web/.env.local` is required so those handlers can verify JWTs.
-
-**Railway:** use the same publishable key and set `EXPO_PUBLIC_API_URL` to your Railway site origin (no trailing slash). Configure `expo.extra.eas.projectId` in [`app.json`](app.json) and use [`eas.json`](eas.json) for builds.
+See [`docs/LOCAL_DEV_TROUBLESHOOTING.md`](docs/LOCAL_DEV_TROUBLESHOOTING.md).
 
 See [`docs/HANDOVER_NIMERSHAN.md`](docs/HANDOVER_NIMERSHAN.md) for more detail.

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import SiteFooter from "../../components/SiteFooter";
 import ModeToggle, { useMode } from "../_components/ModeToggle";
-import type { BriefsPageData } from "../_data/rsc-loaders";
+import type { BriefsPageData } from "../_data/dashboard-types";
 
 type Tab = "active" | "drafts" | "archived";
 

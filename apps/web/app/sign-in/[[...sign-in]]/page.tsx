@@ -3,6 +3,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { clerkAuthAppearance } from "../../../lib/clerk-appearance";
 
+import { WorkEmailAuthNotice } from "../../components/WorkEmailAuthNotice";
+
 export default function SignInPage() {
   return (
     <main className="auth-find">
@@ -45,6 +47,7 @@ export default function SignInPage() {
         </div>
 
         <div className="auth-find__form">
+          <WorkEmailAuthNotice />
           <SignIn
             routing="path"
             path="/sign-in"
