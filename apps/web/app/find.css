@@ -1182,81 +1182,94 @@ html:has(.find-page--about) .site-footer {
   aspect-ratio: 4 / 3;
 }
 
+/* Photo stays obscured - the address is the secret, not the price.
+ * Everything below the image is deliberately legible so a member agent
+ * can judge fit at a glance. */
 .find-listing-card__img {
   width: 100%;
   height: 100%;
   background-size: cover;
   background-position: center;
-  filter: blur(14px) saturate(0.75);
-  transform: scale(1.08);
+  filter: blur(18px) saturate(0.9);
+  transform: scale(1.14);
+  transition: transform 240ms ease;
 }
 
-.find-listing-card__lock {
+.find-listing-card:hover .find-listing-card__img {
+  transform: scale(1.18);
+}
+
+.find-listing-card__tag {
   position: absolute;
-  inset: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.42);
-  backdrop-filter: blur(10px) saturate(1.1);
-  -webkit-backdrop-filter: blur(10px) saturate(1.1);
+  top: 12px;
+  left: 12px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: #000;
-}
-
-.find-listing-card__lock-icon {
-  opacity: 0.88;
-}
-
-.find-listing-card__lock-label {
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
+  white-space: nowrap;
 }
 
 .find-listing-card__body {
-  position: relative;
-  overflow: hidden;
   padding: 14px 16px 16px;
-  min-height: 4.5rem;
 }
 
-.find-listing-card__body-blur {
-  filter: blur(7px);
-  opacity: 0.55;
-  user-select: none;
-  pointer-events: none;
-}
-
-.find-listing-card__body-blur h3 {
-  margin: 0 0 4px;
-  font-size: 15px;
-  font-weight: 500;
-}
-
-.find-listing-card__body-blur p {
+.find-listing-card__suburb {
   margin: 0;
   font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.01em;
   color: var(--find-muted);
 }
 
-.find-listing-card__body-mask {
-  position: absolute;
-  inset: 0;
+.find-listing-card__price {
+  margin: 3px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: #000;
+}
+
+.find-listing-card__specs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 8px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  letter-spacing: -0.01em;
+  color: var(--find-muted);
+}
+
+.find-listing-card__specs li + li::before {
+  content: "\00b7";
+  margin-right: 8px;
+  color: rgba(0, 0, 0, 0.28);
+}
+
+.find-listing-card__withheld {
   display: flex;
   align-items: center;
-  justify-content: center;
-  margin: 0;
-  padding: 0 12px;
-  background: rgba(255, 255, 255, 0.72);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
+  gap: 6px;
+  margin: 14px 0 0;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   font-size: 12px;
   font-weight: 500;
   letter-spacing: -0.01em;
   color: rgba(0, 0, 0, 0.42);
-  text-align: center;
+}
+
+.find-listing-card__lock-icon {
+  flex: none;
+  opacity: 0.7;
 }
 
 .find-link {
