@@ -225,7 +225,7 @@ export default function HeroFind() {
           }
         >
           <h1 className="hero-find__title">
-            <span className="hero-find__title-word hero-find__title-word--search">Search</span>{" "}
+            <span className="hero-find__title-word hero-find__title-word--search">Sold</span>{" "}
             <span className="hero-find__title-word hero-find__title-word--rest">before it&rsquo;s listed</span>
           </h1>
         </div>
@@ -421,10 +421,10 @@ export default function HeroFind() {
           >
             <p className="hero-find__why-eyebrow">Why MATCH</p>
             <h2 className="hero-find__why-headline">
-              See the homes nobody else is showing you.
+              The best deals never go public.
             </h2>
             <p className="hero-find__why-sub">
-              Private listings across Victoria, before they hit the portals.
+              Agent to agent, before the campaign starts.
             </p>
           </div>
         )}
@@ -442,10 +442,10 @@ export default function HeroFind() {
         >
           <p className="hero-find__lede">
             <span className="hero-find__lede-strong">
-              Off-market properties across Victoria.
+              Where listing agents meet buyers agents.
             </span>{" "}
-            <span className="hero-find__lede-soft">
-              Buy homes before they hit the public market.
+            <span className="hero-find__lede-strong">
+              Off-market stock, before the campaign.
             </span>
           </p>
           <button

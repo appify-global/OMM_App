@@ -28,7 +28,7 @@ export const headerNavItems: NavItem[] = [
 
 /** Overlay menu - mobile / legacy. */
 export const menuNavItems: NavItem[] = [
-  { label: "Buy", href: "/listings", disabled: true },
+  { label: "Listings", href: "/listings", disabled: true },
   { label: "Suburbs", href: "/suburbs", disabled: true },
   { label: "Briefs", href: "/briefs", disabled: true },
   { label: "Insights", href: "/blog", disabled: true },
@@ -39,7 +39,7 @@ export const navItems: NavItem[] = headerNavItems;
 
 export function dockLabelForPath(pathname: string): string {
   if (pathname === "/") return "Home";
-  if (pathname.startsWith("/listings")) return "Buy";
+  if (pathname.startsWith("/listings")) return "Listings";
   if (pathname.startsWith("/suburbs")) return "Suburbs";
   if (pathname.startsWith("/briefs")) return "Briefs";
   if (pathname.startsWith("/blog")) return "Insights";

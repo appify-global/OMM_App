@@ -7,7 +7,7 @@ import ApplyJoinCta from "../components/ApplyJoinCta";
 export const metadata = {
   title: "About - MATCH",
   description:
-    "MATCH is a members' network for off-market Australian property - private campaigns, buyer briefs, and introductions before the portals.",
+    "MATCH is the licensed-agent network for off-market Australian property - listing agents and buyers agents, private campaigns, verified briefs, and introductions before the portals.",
 };
 
 const principles = [
@@ -16,12 +16,12 @@ const principles = [
     body: "Private campaigns. No portal sign, no open-home queue.",
   },
   {
-    title: "Buyers write briefs.",
-    body: "Plain-English brief. Agents search before they shortlist.",
+    title: "Buyers agents write briefs.",
+    body: "Plain-English brief. Listing agents search it before they shortlist.",
   },
   {
-    title: "Agents keep the relationship.",
-    body: "MATCH introduces. You keep the agent.",
+    title: "You keep the relationship.",
+    body: "MATCH introduces, then gets out of the way. Your client stays yours.",
   },
   {
     title: "Built for the long hold.",
@@ -210,10 +210,11 @@ export default function AboutPage() {
         <section className="find-cta" aria-labelledby="about-cta-title">
           <div className="find-cta__inner">
             <h2 id="about-cta-title" className="find-cta__title">
-              Ready to search off-market?
+              Ready to work off-market?
             </h2>
             <p className="find-cta__text">
-              Apply for membership. Browse private listings across Victoria.
+              Join the network behind Victoria&rsquo;s quiet sales. Licensed
+              agents only.
             </p>
             <ApplyJoinCta className="btn-pill btn-pill--hero find-cta__cta" />
           </div>

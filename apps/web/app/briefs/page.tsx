@@ -6,7 +6,7 @@ import { fetchBriefs } from "../lib/api";
 export const metadata = {
   title: "Buyer briefs - MATCH",
   description:
-    "Tell the private market what you want. Agents see briefs before they build a campaign.",
+    "Post your client's brief to the private market. Listing agents see briefs before they build a campaign.",
 };
 
 export default async function BriefsPage() {
@@ -22,10 +22,10 @@ export default async function BriefsPage() {
             title={
               <>
                 <span className="find-page__title-strong">Tell the market</span>
-                <span className="find-page__title-soft"> what you want.</span>
+                <span className="find-page__title-soft"> what they want.</span>
               </>
             }
-            lede="A buyer brief is a private record of the home you intend to buy. Agents running quiet campaigns search briefs before they build shortlists."
+            lede="A buyer brief is a private record of the home your client intends to buy. Listing agents running off-market campaigns search briefs before they build shortlists."
             stats={[
               { label: "Active briefs", value: "4.8k" },
               { label: "Agents searching", value: "1.1k" },
@@ -77,7 +77,7 @@ export default async function BriefsPage() {
                 </select>
               </div>
               <div className="find-page__field">
-                <label htmlFor="brief-notes">Notes for agents</label>
+                <label htmlFor="brief-notes">Notes for listing agents</label>
                 <textarea
                   id="brief-notes"
                   placeholder="Must-haves, deal breakers, anything that helps an agent recognise the right home."

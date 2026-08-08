@@ -30,7 +30,7 @@ export default async function BlogPage() {
                 </span>
               </>
             }
-            lede="Essays, primers, data and interviews - written with agents, buyers and owners across Australia."
+            lede="Essays, primers, data and interviews - written with listing agents and buyers agents across Australia."
             stats={[
               { label: "Published", value: posts.length },
               { label: "Subscribers", value: "12.4k" },

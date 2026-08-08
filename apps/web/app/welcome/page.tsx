@@ -12,8 +12,8 @@ export default function WelcomePage() {
             Off the Market Match
           </Link>
           <p className="auth-issue">
-            Vol. I &middot; Issue 04 &middot; Off-market property, before it
-            reaches the listings.
+            Vol. I &middot; Issue 04 &middot; Off-market property, agent to
+            agent.
           </p>
         </header>
 
@@ -28,38 +28,39 @@ export default function WelcomePage() {
             property.
           </h1>
           <p className="auth-hero-lede">
-            Off the Market Match is where Australia&rsquo;s most considered agents and
-            buyers meet, before a listing ever goes public. Members only,
-            verified credentials, no clutter.
+            MATCH is where Australia&rsquo;s most considered listing agents and
+            buyers agents meet, before a campaign ever goes public. Licensed
+            members only, verified credentials, no clutter.
           </p>
 
           <ul className="auth-pitch" role="list">
             <li>
               <span className="auth-pitch-num">i</span>
               <div>
-                <p className="auth-pitch-title">For sellers</p>
+                <p className="auth-pitch-title">For listing agents</p>
                 <p className="auth-pitch-body">
-                  Pre-market campaigns. Statement of Information in minutes.
-                  A folio of buyers who already know what they want.
+                  Off-market campaigns. Statement of Information in minutes.
+                  A folio of buyers agents who know what their clients want.
                 </p>
               </div>
             </li>
             <li>
               <span className="auth-pitch-num">ii</span>
               <div>
-                <p className="auth-pitch-title">For buyers</p>
+                <p className="auth-pitch-title">For buyers agents</p>
                 <p className="auth-pitch-body">
-                  Briefs that bring properties to you. Saved searches with
-                  meaningful matches. Off-market homes, before they aren&rsquo;t.
+                  Briefs that bring properties to your client. Saved searches
+                  with meaningful matches. Off-market homes, before they
+                  aren&rsquo;t.
                 </p>
               </div>
             </li>
             <li>
               <span className="auth-pitch-num">iii</span>
               <div>
-                <p className="auth-pitch-title">For everyone</p>
+                <p className="auth-pitch-title">For both sides</p>
                 <p className="auth-pitch-body">
-                  Verified agents. Honest reviews. Clear records. A
+                  Licence-verified members. Honest reviews. Clear records. A
                   marketplace built on the boring fundamentals of trust.
                 </p>
               </div>

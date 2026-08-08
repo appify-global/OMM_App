@@ -7,7 +7,7 @@ import { fetchListings } from "../lib/api";
 export const metadata = {
   title: "Listings - MATCH",
   description:
-    "Private campaigns, quiet listings and off-market property for MATCH members.",
+    "Private campaigns and off-market property, shared agent to agent across the MATCH network.",
 };
 
 type ListingsPageProps = {
