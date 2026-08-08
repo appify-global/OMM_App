@@ -1,0 +1,47 @@
+# Typecheck and build the marketing site on every PR and push to main.
+#
+# This exists because typechecking was silently disabled for a long time: a
+# deprecated `baseUrl` in apps/web/tsconfig.json made `tsc` abort on a config
+# error and exit 0 *without checking a single file*, so broken imports reported
+# clean. Keep this job green and that cannot happen unnoticed again.
+
+name: Verify
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - run: npm ci
+
+      # Fails the build on any type error. Do not add --ignoreDeprecations
+      # here: if tsc starts complaining about tsconfig again, we want to know,
+      # not to silence it.
+      - name: Typecheck
+        run: npx tsc --noEmit
+        working-directory: apps/web
+
+      - name: Build
+        run: npm run build:website
+        env:
+          # Build-time only. Real values come from Railway at runtime; these
+          # just let Next collect page data without a live Clerk instance.
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: pk_test_Y2xlcmsuZXhhbXBsZS5jb20k
+          CLERK_SECRET_KEY: sk_test_ci
+          NEXT_TELEMETRY_DISABLED: "1"
