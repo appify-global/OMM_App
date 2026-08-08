@@ -1,71 +1,77 @@
-# Handover — Unlisted (web + native)
+# Handover — MATCH marketing website
 
-## Apps
+**This repo is the marketing website only.** It used to also hold an
+authenticated `/app` workspace, an `/api/mobile/*` surface and an `apps/mobile`
+Expo client. Those were superseded and removed — the product now lives in its
+own repos. If you are looking for the app or the API, they are not here.
+
+## Where everything lives
+
+One Railway project, `OMM: Web & Mobile Platform`:
+
+| Repo | Railway service | Domain | What it is |
+|---|---|---|---|
+| `appify-global/OMM_App` *(this one)* | `website-frontend` | www.offmarketmatch.com.au | Marketing site |
+| `appify-global/OMM_Mobile` | `application-frontend` | app.offmarketmatch.com.au | **The product.** One Expo Router codebase → iOS, Android and web (react-native-web) |
+| `appify-global/OMM_BACKEND` | `application-backend` | api.offmarketmatch.com.au | **The API.** Serves `/api/mobile/*`, port **3102** locally. Owns the Drizzle schema/migrations |
+| `appify-global/OMM_ENRICHMENT` | `application-enrichment` | — | PropertyData / SOI generation |
+
+Shared services: Postgres, Redis, an `application-imagery` bucket, and
+`omm-dashboard`.
+
+Clerk is one instance across all of them — the web session and the mobile
+Bearer token come from the same application.
+
+## Contents of this repo
 
 | Path | Purpose |
-|------|---------|
-| [`apps/web`](../apps/web) | Next.js — marketing, authenticated `/app` workspace, Drizzle + Postgres. Exposes **`/api/mobile/*`** JSON for the Expo app (same DB loaders as server components where applicable). |
-| [`apps/mobile/`](../apps/mobile/) | Expo Router + NativeWind — primary native client; uses Clerk Expo and **`EXPO_PUBLIC_API_URL`** to reach the Next app. |
-| [`packages/shared`](../packages/shared) | Shared TypeScript surface for **`/api/mobile/*`** payloads (keep aligned with web route handlers). |
+|---|---|
+| [`apps/web`](../apps/web) | Next.js marketing site. Home, about, listings, suburbs, briefs, insights, waitlist, Clerk auth shell |
+| [`apps/web/src/db`](../apps/web/src/db) | Drizzle client + queries. Used only by the waitlist, the Clerk webhook and notification reads |
+| [`packages/shared`](../packages/shared) | Legacy types for the removed mobile API. Imported nowhere — safe to delete |
 
-## Run web locally
+## Run locally
 
 ```sh
-cd /path/to/omm
 npm install
-npm run dev
+npm run dev            # port 3101
 ```
 
-Next listens on **port 3101** by default (`apps/web/package.json`).
+Copy [`.env.example`](../.env.example) to `apps/web/.env.local`. See the README
+for the full variable table.
 
-## Native vs web UI
-
-Marketing and authenticated **web UI** lives under `apps/web`. The native app (`app/` at repo root) is a separate React Native codebase (Expo Router) that should stay visually aligned with web product decisions via shared tokens/design language as you evolve both.
-
-## Run mobile locally (root Expo app)
+**Typechecking — read this.** Run:
 
 ```sh
-npm run dev:mobile
+cd apps/web && npx tsc --noEmit --ignoreDeprecations 6.0
 ```
 
-`dev:mobile` runs **`expo start --localhost`** so simulator + Metro resolve `127.0.0.1` cleanly. For a **physical device** or Expo Go on Wi‑Fi, use **`npm run dev:mobile:lan`** (`expo start`) and set **`EXPO_PUBLIC_API_URL`** to your Mac’s **LAN IP** (not `127.0.0.1`).
+Without `--ignoreDeprecations`, `tsc` aborts on a `TS5101` deprecation error in
+`tsconfig.json` and **exits 0 without checking a single file**. A plain
+`tsc --noEmit` reports success even when imports are broken.
 
-### Env (mobile)
+**Don't run a production build while the dev server is running** — both write
+to the same `.next`, and it corrupts what the dev server serves.
 
-Configure **repo root** `.env` (see [`../.env.example`](../.env.example)):
+## Site behaviour worth knowing
 
-- **`EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`** — must match web **`NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`** (same Clerk application).
-- **`EXPO_PUBLIC_API_URL`** — local: **`http://127.0.0.1:3101`**; device: **`http://<LAN-IP>:3101`**; prod: **`https://<your-deployment>`** origin only.
+- **Waitlist mode** (`NEXT_PUBLIC_WAITLIST_MODE`, default on) redirects
+  `/sign-in` and `/sign-up` to home and swaps every CTA for the waitlist modal.
+  The modal requires a **real estate licence number** — the site is pitched at
+  licensed listing agents and buyers agents, not consumers.
+- **Links into the product** use `APP_ORIGIN`
+  ([`apps/web/app/lib/nav.ts`](../apps/web/app/lib/nav.ts)), which defaults to
+  app.offmarketmatch.com.au and is overridable with `NEXT_PUBLIC_APP_ORIGIN`.
+  That covers the Dashboard button, the post-signup redirect, and the legal
+  links on `/welcome` (Terms, Privacy, Community Guidelines all live in
+  `OMM_Mobile`).
+- **Hero copy is width-constrained.** `.hero-find__title` and
+  `.hero-find__lede` are `white-space: nowrap` above 560px / 720px, so
+  replacement strings must be no longer than what they replace or they will
+  overflow. Below those breakpoints they clamp to `14ch` / `32ch` and wrap.
 
-## Environment (web)
+## Deploy
 
-Copy [`.env.example`](../.env.example) hints into **`apps/web/.env`** (and Railway vars). Required for mobile APIs:
-
-- **`CLERK_SECRET_KEY`** — verifies Bearer tokens on **`/api/mobile/*`** (must match the same Clerk app as publishable keys above).
-
-## Mobile HTTP API (`/api/mobile/*`)
-
-Route handlers under **`apps/web/app/api/mobile/`** implement JSON for authenticated native clients. Middleware skips cookie **`auth.protect()`** for **`/api/mobile/*`**; each handler validates **`Authorization: Bearer`** via **`getUserIdFromMobileRequest`** (`apps/web/src/lib/mobile-bearer-auth.ts`).
-
-## EAS / stores
-
-- [`eas.json`](../eas.json) — **`development`**, **`preview`**, **`production`** build profiles at repo root.
-- Set a real Expo project id in **`app.json`** → **`expo.extra.eas.projectId`** (replace placeholder).
-- EAS CLI: `npx eas-cli` from repo root (`eas build …` targets this app).
-
-## Mobile using the same backend as Railway
-
-The deployed Next app is the backend the native app talks to (**`/api/mobile/*`**). Mirror Railway web env into Expo/EAS:
-
-| Railway (web) | Mobile (Expo / EAS) | Notes |
-|---------------|---------------------|--------|
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY` | **Same string** — one Clerk application. |
-| Public site URL (e.g. `https://your-app.up.railway.app`) | `EXPO_PUBLIC_API_URL` | **Origin only**, no trailing slash. |
-
-**EAS:** define **`EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`** and **`EXPO_PUBLIC_API_URL`** for preview/production build profiles ([EAS environment variables](https://docs.expo.dev/eas/environment-variables/)).
-
-**Clerk:** allowed origins / redirect URLs must include your Railway hostname and Clerk’s Expo redirect URI patterns.
-
-## Deploy (Railway)
-
-[`railway.json`](../railway.json): **Build** `npm install && npm run build:website`, **Start** `npm run start:website`.
+Railway builds with `build:website` and starts with `start:website` — see
+[`railway.json`](../railway.json). Healthcheck is `/api/healthz`, which
+middleware deliberately skips Clerk for.
