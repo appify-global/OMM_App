@@ -10,8 +10,8 @@ function LockIcon() {
   return (
     <svg
       className="find-listing-card__lock-icon"
-      width="22"
-      height="22"
+      width="13"
+      height="13"
       viewBox="0 0 24 24"
       fill="none"
       aria-hidden="true"
@@ -55,8 +55,8 @@ export default function FindNearbyListings({ suburbLabel, listings }: Props) {
             <Link
               key={item.id}
               href="/sign-up"
-              className="find-listing-card find-listing-card--locked"
-              aria-label={`${item.address}, ${item.suburb} - members only`}
+              className="find-listing-card"
+              aria-label={`${item.tag} in ${item.suburb}, ${item.state}, ${item.priceGuide} - address available to members`}
             >
               <div className="find-listing-card__media">
                 <div
@@ -64,22 +64,22 @@ export default function FindNearbyListings({ suburbLabel, listings }: Props) {
                   style={{ backgroundImage: `url(${item.image})` }}
                   aria-hidden="true"
                 />
-                <div className="find-listing-card__lock">
-                  <LockIcon />
-                  <span className="find-listing-card__lock-label">
-                    Members only
-                  </span>
-                </div>
+                <span className="find-listing-card__tag">{item.tag}</span>
               </div>
               <div className="find-listing-card__body">
-                <div className="find-listing-card__body-blur" aria-hidden="true">
-                  <h3>{item.address}</h3>
-                  <p>
-                    {item.suburb}, {item.state} · {item.priceGuide}
-                  </p>
-                </div>
-                <p className="find-listing-card__body-mask">
-                  Address available to members
+                <h3 className="find-listing-card__suburb">
+                  {item.suburb}, {item.state}
+                </h3>
+                <p className="find-listing-card__price">{item.priceGuide}</p>
+                <ul className="find-listing-card__specs">
+                  <li>{item.bed} bed</li>
+                  <li>{item.bath} bath</li>
+                  <li>{item.car} car</li>
+                  <li>{item.land}</li>
+                </ul>
+                <p className="find-listing-card__withheld">
+                  <LockIcon />
+                  Address on request
                 </p>
               </div>
             </Link>

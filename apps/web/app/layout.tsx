@@ -6,8 +6,9 @@ import { clerkAuthAppearance } from "../lib/clerk-appearance";
 import { satoshi } from "../lib/fonts";
 
 export const metadata: Metadata = {
-  title: "MATCH - Private property search",
-  description: "Search off-market property across Victoria before it reaches the portals.",
+  title: "MATCH - The off-market network for agents",
+  description:
+    "MATCH connects listing agents and buyers agents to transact off-market across Victoria - private stock, verified briefs, deals done before the campaign goes live.",
   icons: {
     icon: [
       { url: "/favicon-16.png?v=9", sizes: "16x16", type: "image/png" },

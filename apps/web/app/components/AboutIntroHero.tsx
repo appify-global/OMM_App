@@ -1,6 +1,6 @@
 const stats = [
   { label: "Founded", value: "Melbourne" },
-  { label: "Focus", value: "Buy-side" },
+  { label: "Focus", value: "Off-market" },
   { label: "Market", value: "Australia" },
 ] as const;
 
@@ -96,7 +96,7 @@ export default function AboutIntroHero() {
       <div className="about-hero__content">
         <p className="find-page__kicker about-hero__kicker">About</p>
         <h1 className="about-hero__title" id="about-intro-title">
-          <span className="about-hero__title-strong">A members&rsquo; network</span>
+          <span className="about-hero__title-strong">An agents&rsquo; network</span>
           <span className="about-hero__title-soft"> for the private market.</span>
         </h1>
         <p className="about-hero__lede">

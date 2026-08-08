@@ -1,10 +1,9 @@
 {
-  "name": "unlisted-monorepo",
+  "name": "omm-website",
   "version": "1.0.0",
   "private": true,
   "workspaces": [
-    "apps/web",
-    "packages/*"
+    "apps/web"
   ],
   "engines": {
     "node": ">=20.19.4 <26",
@@ -15,16 +14,8 @@
     "react-dom": "19.1.0"
   },
   "scripts": {
-    "start": "npm run start -w apps/web",
     "dev": "npm run dev -w apps/web",
-    "web": "npm run dev -w apps/web",
-    "dev:web": "npm run dev -w apps/web",
-    "dev:mobile": "npm run start --prefix apps/mobile",
-    "dev:mobile:lan": "npm run start:lan --prefix apps/mobile",
-    "build:web": "npm run build -w apps/web",
     "build:website": "npm run build -w apps/web",
-    "verify:website": "npm run build:website",
-    "start:website": "npm run start -w apps/web",
-    "install:mobile": "npm install --prefix apps/mobile"
+    "start:website": "npm run start -w apps/web"
   }
 }

@@ -156,8 +156,8 @@ export default function WaitlistModal({ open, onClose, source = "web" }: Waitlis
                 Join the MATCH waitlist.
               </h2>
               <p className="apply-modal__lede">
-                MATCH is opening to verified agents in small batches. Share a
-                few details and we&rsquo;ll be in touch.
+                MATCH is opening to licensed listing agents and buyers agents in
+                small batches. Share a few details and we&rsquo;ll be in touch.
               </p>
             </div>
 
