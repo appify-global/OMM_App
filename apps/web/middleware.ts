@@ -11,9 +11,9 @@ const bypassClerkAuth =
  * collects waitlist applications instead. Default: ON. Set
  * NEXT_PUBLIC_WAITLIST_MODE=false to re-enable Clerk sign-in pages.
  *
- * Note: We do NOT block /app server-side here — that would break internal QA
- * via direct URL. Marketing CTAs simply never link to /sign-in while the
- * flag is on, so end users won't land there.
+ * Marketing CTAs never link to /sign-in while the flag is on, so end users
+ * won't land there. Post-auth, Clerk hands off to APP_ORIGIN — this site
+ * owns no signed-in surface.
  */
 const waitlistRaw = (process.env.NEXT_PUBLIC_WAITLIST_MODE ?? "true")
   .trim()
@@ -28,8 +28,6 @@ const isPublicAuth = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/forgot-password(.*)",
-  "/welcome",
-  "/auth/(.*)",
   "/api/webhooks/(.*)",
 ]);
 /** Marketing homepage only - everything else needs a session. */

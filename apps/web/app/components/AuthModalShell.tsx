@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useId, useRef } from "react";
 import { clerkAuthAppearance } from "../../lib/clerk-appearance";
+import { APP_ORIGIN } from "../lib/nav";
 
 type AuthMode = "sign-in" | "sign-up";
 
@@ -104,7 +105,7 @@ export default function AuthModalShell({ mode }: Props) {
               routing="path"
               path="/sign-in"
               signUpUrl="/sign-up"
-              forceRedirectUrl="/app"
+              forceRedirectUrl={APP_ORIGIN}
               appearance={clerkAuthAppearance}
             />
           ) : (
@@ -112,7 +113,7 @@ export default function AuthModalShell({ mode }: Props) {
               routing="path"
               path="/sign-up"
               signInUrl="/sign-in"
-              forceRedirectUrl="/sign-up/step-2"
+              forceRedirectUrl={APP_ORIGIN}
               appearance={clerkAuthAppearance}
             />
           )}
