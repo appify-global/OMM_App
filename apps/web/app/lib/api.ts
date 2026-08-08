@@ -387,10 +387,4 @@ export async function fetchSuburbs(): Promise<Suburb[]> {
   return swrOrMock("/suburbs", MOCK_SUBURBS);
 }
 
-export async function fetchBriefs(): Promise<Brief[]> {
-  return swrOrMock("/briefs", MOCK_BRIEFS);
-}
 
-export async function fetchPosts(): Promise<Post[]> {
-  return swrOrMock("/posts", MOCK_POSTS);
-}

@@ -14,44 +14,16 @@ export type NavItem = {
   disabled?: boolean;
 };
 
-/** Top header - FIND-style horizontal nav.
- *  Pre-launch: only `About` is navigable. The rest stay visible (so the
- *  product surface is implied) but don't route anywhere. Flip `disabled`
- *  to false when the relevant page is ready to ship. */
+/**
+ * Header + footer nav. Search / Suburbs / Briefs / Insights used to be
+ * fixture-backed pages here; they were removed once the product moved to
+ * OMM_Mobile. They stay listed as inert labels so the surface is implied
+ * pre-launch — give them a real href only when there is something to link to.
+ */
 export const headerNavItems: NavItem[] = [
-  { label: "Search", href: "/listings", disabled: true },
-  { label: "Suburbs", href: "/suburbs", disabled: true },
-  { label: "Briefs", href: "/briefs", disabled: true },
-  { label: "Insights", href: "/blog", disabled: true },
+  { label: "Search", href: "/", disabled: true },
+  { label: "Suburbs", href: "/", disabled: true },
+  { label: "Briefs", href: "/", disabled: true },
+  { label: "Insights", href: "/", disabled: true },
   { label: "About", href: "/about" },
 ];
-
-/** Overlay menu - mobile / legacy. */
-export const menuNavItems: NavItem[] = [
-  { label: "Listings", href: "/listings", disabled: true },
-  { label: "Suburbs", href: "/suburbs", disabled: true },
-  { label: "Briefs", href: "/briefs", disabled: true },
-  { label: "Insights", href: "/blog", disabled: true },
-  { label: "About", href: "/about" },
-];
-
-export const navItems: NavItem[] = headerNavItems;
-
-export function dockLabelForPath(pathname: string): string {
-  if (pathname === "/") return "Home";
-  if (pathname.startsWith("/listings")) return "Listings";
-  if (pathname.startsWith("/suburbs")) return "Suburbs";
-  if (pathname.startsWith("/briefs")) return "Briefs";
-  if (pathname.startsWith("/blog")) return "Insights";
-  if (pathname.startsWith("/about")) return "About";
-  return "Menu";
-}
-
-export const todayDateline = (): string => {
-  const d = new Date();
-  return d.toLocaleDateString("en-AU", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-  });
-};

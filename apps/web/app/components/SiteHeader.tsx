@@ -35,7 +35,7 @@ export default function SiteHeader() {
             if (item.disabled) {
               return (
                 <span
-                  key={item.href}
+                  key={item.label}
                   className="is-disabled"
                   aria-disabled="true"
                   title="Coming soon"
@@ -49,7 +49,7 @@ export default function SiteHeader() {
               (item.href !== "/" && pathname.startsWith(item.href));
             return (
               <Link
-                key={item.href}
+                key={item.label}
                 href={item.href}
                 className={active ? "is-active" : undefined}
                 aria-current={active ? "page" : undefined}

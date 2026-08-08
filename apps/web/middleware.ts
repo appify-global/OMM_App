@@ -42,12 +42,11 @@ const isPublicMarketing = createRouteMatcher([
   "/privacy(.*)",
 ]);
 
-const isMembersOnly = createRouteMatcher([
-  "/listings(.*)",
-  "/suburbs(.*)",
-  "/briefs(.*)",
-  "/blog(.*)",
-]);
+/**
+ * Nothing is members-only on the marketing site any more - the product surface
+ * moved to OMM_Mobile. Re-add matchers here if a gated page ever lands back.
+ */
+const isMembersOnly = createRouteMatcher([]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (isHealthcheck(req)) return;

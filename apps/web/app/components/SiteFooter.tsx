@@ -13,7 +13,7 @@ export default function SiteFooter() {
         </p>
         <nav className="site-footer__nav" aria-label="Footer">
           {headerNavItems.map((item) => (
-            <Link key={item.href} href={item.href}>
+            <Link key={item.label} href={item.href}>
               {item.label}
             </Link>
           ))}
