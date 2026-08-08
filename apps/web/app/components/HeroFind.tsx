@@ -441,7 +441,7 @@ export default function HeroFind() {
           }
         >
           <p className="hero-find__lede">
-            <span className="hero-find__lede-strong">
+            <span className="hero-find__lede-soft">
               Where listing agents meet buyers agents.
             </span>{" "}
             <span className="hero-find__lede-strong">

@@ -70,6 +70,10 @@ export default function AuthModalShell({ mode }: Props) {
               width={118}
               height={22}
               priority
+              // The ?v= cache-buster makes Next's optimizer reject this unless
+              // images.localPatterns allows a query string. SiteHeader renders
+              // the same asset unoptimized for exactly this reason.
+              unoptimized
               className="auth-modal__logo"
             />
           </Link>
