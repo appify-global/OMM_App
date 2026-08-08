@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import SiteFooter from "../components/SiteFooter";
+import { APP_ORIGIN } from "../lib/nav";
 
 export default function WelcomePage() {
   return (
@@ -76,11 +77,11 @@ export default function WelcomePage() {
 
           <p className="auth-fineprint">
             By continuing you agree to our{" "}
-            <Link href="/app/profile/legal/terms">Terms</Link>,{" "}
-            <Link href="/app/profile/legal/privacy">Privacy policy</Link> and{" "}
-            <Link href="/app/profile/legal/community">
+            <a href={`${APP_ORIGIN}/terms-of-service`}>Terms</a>,{" "}
+            <a href={`${APP_ORIGIN}/privacy-policy`}>Privacy policy</a> and{" "}
+            <a href={`${APP_ORIGIN}/community-guidelines`}>
               Community guidelines
-            </Link>
+            </a>
             .
           </p>
         </section>

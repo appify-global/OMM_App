@@ -1,3 +1,12 @@
+/**
+ * The product lives in its own repo/deployment (`OMM_Mobile` →
+ * app.offmarketmatch.com.au). This site is marketing only, so anything that
+ * sends a signed-in member "into the app" has to leave this origin.
+ * Override locally with NEXT_PUBLIC_APP_ORIGIN.
+ */
+export const APP_ORIGIN =
+  process.env.NEXT_PUBLIC_APP_ORIGIN ?? "https://app.offmarketmatch.com.au";
+
 export type NavItem = {
   label: string;
   href: string;

@@ -6,7 +6,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import { snapshotHeroMotion } from "../lib/hero-motion";
-import { headerNavItems } from "../lib/nav";
+import { APP_ORIGIN, headerNavItems } from "../lib/nav";
 import { isWaitlistMode } from "../lib/site-mode";
 import WaitlistModal from "./WaitlistModal";
 
@@ -76,9 +76,12 @@ export default function SiteHeader() {
           </>
         ) : isLoaded && isSignedIn ? (
           <div className="site-header-auth">
-            <Link href="/app" className="btn-pill btn-pill--sm btn-pill--ghost">
+            <a
+              href={APP_ORIGIN}
+              className="btn-pill btn-pill--sm btn-pill--ghost"
+            >
               Dashboard
-            </Link>
+            </a>
             <UserButton
               appearance={{
                 elements: {

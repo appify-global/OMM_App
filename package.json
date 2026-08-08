@@ -19,12 +19,9 @@
     "dev": "npm run dev -w apps/web",
     "web": "npm run dev -w apps/web",
     "dev:web": "npm run dev -w apps/web",
-    "dev:mobile": "npm run start --prefix apps/mobile",
-    "dev:mobile:lan": "npm run start:lan --prefix apps/mobile",
     "build:web": "npm run build -w apps/web",
     "build:website": "npm run build -w apps/web",
     "verify:website": "npm run build:website",
-    "start:website": "npm run start -w apps/web",
-    "install:mobile": "npm install --prefix apps/mobile"
+    "start:website": "npm run start -w apps/web"
   }
 }

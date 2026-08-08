@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
+
+import { APP_ORIGIN } from "../../lib/nav";
 
 const SUGGESTED = [
   "Brighton",
@@ -18,7 +19,6 @@ const SUGGESTED = [
 ];
 
 export default function SignUpStep4() {
-  const router = useRouter();
   const [name, setName] = useState("");
   const [headline, setHeadline] = useState("");
   const [suburbs, setSuburbs] = useState<string[]>([]);
@@ -71,7 +71,8 @@ export default function SignUpStep4() {
           className="auth-form auth-form--padded"
           onSubmit={(e) => {
             e.preventDefault();
-            router.push("/app");
+            // The workspace is a separate deployment, so this leaves the site.
+            window.location.href = APP_ORIGIN;
           }}
         >
           <label className="subpage-field">

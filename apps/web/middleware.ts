@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-/** Set BYPASS_CLERK_AUTH=true to skip sign-in for /app (dev / staging only). */
+/** Set BYPASS_CLERK_AUTH=true to skip sign-in on members-only pages (dev / staging only). */
 const bypassClerkAuth =
   process.env.BYPASS_CLERK_AUTH === "true" ||
   process.env.BYPASS_CLERK_AUTH === "1";
@@ -24,8 +24,6 @@ const isAuthPage = createRouteMatcher(["/sign-in(.*)", "/sign-up(.*)"]);
 
 /** Railway healthcheck - must skip Clerk entirely to stay sub-50ms. */
 const isHealthcheck = createRouteMatcher(["/api/healthz"]);
-/** Native app: Bearer session verified inside route handlers. */
-const isMobileApi = createRouteMatcher(["/api/mobile(.*)"]);
 const isPublicAuth = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
@@ -49,12 +47,10 @@ const isMembersOnly = createRouteMatcher([
   "/suburbs(.*)",
   "/briefs(.*)",
   "/blog(.*)",
-  "/app(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, req) => {
   if (isHealthcheck(req)) return;
-  if (isMobileApi(req)) return;
 
   // Waitlist mode: send /sign-in and /sign-up to home. Webhooks still work
   // (covered by isPublicAuth catch-all below being skipped after this).
