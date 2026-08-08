@@ -53,6 +53,23 @@ Without `--ignoreDeprecations`, `tsc` aborts on a `TS5101` deprecation error in
 **Don't run a production build while the dev server is running** — both write
 to the same `.next`, and it corrupts what the dev server serves.
 
+## Keep it lean
+
+Dead code gets deleted, not commented out or left "just in case" — git has it.
+Removing a feature means removing everything it owned in the same change:
+components, CSS, API routes, DB queries, fixtures, scripts, env vars.
+
+This repo has already been burned by the opposite. A superseded `/app`
+prototype, an `apps/mobile` fork months behind its own repo, and an
+`/api/mobile` surface all sat here still building and deploying, which made
+them look like the live product. Roughly 56k lines of it, plus 148KB of CSS
+that nothing referenced and two stylesheets nobody imported.
+
+See the README for the grep recipes that find unused components, unimported
+stylesheets and uncalled exports. One trap: Clerk classes are applied via
+[`lib/clerk-appearance.ts`](../apps/web/lib/clerk-appearance.ts) rather than
+`className`, so a naive scan reports them as dead.
+
 ## Site behaviour worth knowing
 
 - **Waitlist mode** (`NEXT_PUBLIC_WAITLIST_MODE`, default on) redirects

@@ -36,6 +36,36 @@ Anything on the site that sends a signed-in member into the product links to
 `APP_ORIGIN` ([`apps/web/app/lib/nav.ts`](apps/web/app/lib/nav.ts)), overridable
 with `NEXT_PUBLIC_APP_ORIGIN`.
 
+## Keep it lean
+
+**Dead code gets deleted, not left "just in case."** Git remembers it; the repo
+shouldn't. This codebase already cost real time by keeping a superseded app
+prototype alive — it still built, still deployed, and looked current enough to
+debug for an hour before anyone checked which repo the product was in.
+
+If you remove a feature, remove everything it owned in the same change:
+components, CSS, API routes, DB queries, fixtures, scripts and env vars. Then
+prove nothing dangled.
+
+```sh
+# components referenced nowhere
+for f in app/components/*.tsx; do n=$(basename "$f" .tsx); \
+  [ "$(grep -rl "\b$n\b" app lib src --include='*.tsx' --include='*.ts' | grep -vc "components/$n.tsx")" = 0 ] \
+  && echo "DEAD $n"; done
+
+# stylesheets nobody imports
+grep -rn "import.*\.css" app lib src
+
+# exported functions nobody calls
+for fn in $(grep -oE "^export (async )?function [a-zA-Z]+" src/db/queries.ts | awk '{print $NF}'); do \
+  [ "$(grep -rn "\b$fn\b" app lib src | grep -vc queries.ts)" = 0 ] && echo "DEAD $fn"; done
+```
+
+CSS classes are the usual hiding place — check against source before deleting,
+and remember Clerk classes are applied through
+[`lib/clerk-appearance.ts`](apps/web/lib/clerk-appearance.ts), not `className`,
+so a naive grep will call them dead.
+
 ## Common commands
 
 ```sh
