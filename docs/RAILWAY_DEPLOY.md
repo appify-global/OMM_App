@@ -18,19 +18,14 @@ When you push or merge to `main`, Railway should build and deploy automatically 
 2. Check **Deployments** for skipped builds (watch paths, failed healthcheck).
 3. Manual redeploy: `railway redeploy --service website-frontend` from a linked repo directory, or Command Palette → **Deploy Latest Commit**.
 
-## GitHub Actions backup (optional)
+## Deploys are Railway-native only
 
-Workflow: [`.github/workflows/deploy-railway.yml`](../.github/workflows/deploy-railway.yml)
-
-Runs on every push to `main` **only if** `RAILWAY_TOKEN` is set in GitHub repo secrets.
-
-### One-time: add `RAILWAY_TOKEN`
-
-1. Railway → project **OMM: Web & Mobile Platform** → **Settings** → **Tokens** → **Create token** (environment: **production**).
-2. GitHub → **appify-global/OMM_App** → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
-3. Name: `RAILWAY_TOKEN` · Value: paste the token from step 1.
-
-Without this secret, the workflow is skipped; native Railway autodeploy still applies.
+There is deliberately **no GitHub Actions deploy workflow**. One existed
+(`deploy-railway.yml`) and never worked: it used `if: ${{ secrets.RAILWAY_TOKEN }}`
+at job level, which GitHub rejects as invalid, so every run failed in 0s with no
+jobs. That permanent red check is the likely reason Railway marked pushes to
+`main` as SKIPPED instead of deploying. Railway's own GitHub integration is the
+only deploy path — keep it that way.
 
 ## CI
 
