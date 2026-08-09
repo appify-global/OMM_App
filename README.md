@@ -1,3 +1,19 @@
+> # ⚠️ NOT LIVE — PRE-LAUNCH, NO REAL USERS
+>
+> **OMM has not launched. There are no customers and no real user data.**
+> The Railway environment is named `production` and the database holds a few
+> dozen rows, but those are **internal test records** — not people.
+>
+> So: **move fast.** Change the schema, drop and reshape tables, delete dead
+> code, redeploy whenever. Do **not** hedge, stage rollouts, ask for approval
+> before touching data, or add "this is production, are you sure?" caveats.
+> None of that applies yet.
+>
+> The one thing that still matters is **not breaking the build for the team.**
+>
+> This paragraph exists because it kept getting re-litigated. When this ships to
+> real agents, delete it — and then the caution is warranted.
+
 # OMM — Marketing website
 
 Public marketing site for **MATCH** (Off the Market Match) — www.offmarketmatch.com.au.
