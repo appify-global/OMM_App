@@ -23,6 +23,31 @@ type Payload = {
 
 const EMAIL_RX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/i;
 
+/**
+ * Per-IP rate limit. This route is public and unauthenticated - middleware
+ * protects nothing on the marketing site - so without this a single client can
+ * flood the applications table. In-memory is sufficient here because Railway
+ * runs this as one long-lived container, not per-request lambdas; if the site
+ * is ever scaled to multiple replicas this needs to move to Redis.
+ */
+const RATE_LIMIT_WINDOW_MS = 60 * 60 * 1000;
+const RATE_LIMIT_MAX = 5;
+const submissions = new Map<string, number[]>();
+
+function rateLimited(ip: string): boolean {
+  const now = Date.now();
+  const cutoff = now - RATE_LIMIT_WINDOW_MS;
+  const recent = (submissions.get(ip) ?? []).filter((t) => t > cutoff);
+  if (submissions.size > 5000) submissions.clear(); // crude unbounded-growth guard
+  if (recent.length >= RATE_LIMIT_MAX) {
+    submissions.set(ip, recent);
+    return true;
+  }
+  recent.push(now);
+  submissions.set(ip, recent);
+  return false;
+}
+
 function str(v: unknown, max: number) {
   if (typeof v !== "string") return null;
   const trimmed = v.trim();
@@ -58,6 +83,18 @@ function newId() {
 }
 
 export async function POST(req: Request) {
+  const clientIp =
+    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    req.headers.get("x-real-ip") ??
+    "unknown";
+
+  if (rateLimited(clientIp)) {
+    return NextResponse.json(
+      { ok: false, error: "Too many applications. Please try again later." },
+      { status: 429 },
+    );
+  }
+
   let body: Payload;
   try {
     body = (await req.json()) as Payload;
@@ -111,23 +148,12 @@ export async function POST(req: Request) {
       .limit(1);
 
     if (existing.length > 0) {
-      await db
-        .update(waitlistApplications)
-        .set({
-          name: record.name,
-          phone: record.phone,
-          agency: record.agency,
-          role: record.role,
-          licence: record.licence,
-          yearsExperience: record.yearsExperience,
-          suburbs: record.suburbs,
-          notes: record.notes,
-          source: record.source,
-          ipAddress: record.ipAddress,
-          userAgent: record.userAgent,
-          updatedAt: new Date(),
-        })
-        .where(eq(waitlistApplications.email, email));
+      // Deliberately a no-op. This endpoint is public and unauthenticated, so
+      // updating on a known email let anyone who guessed an applicant's address
+      // overwrite their stored name, phone, agency and LICENCE NUMBER. We still
+      // answer { ok: true } so the response does not reveal whether an email is
+      // already on the list.
+      console.info(`[waitlist] Duplicate submission ignored for ${email}`);
     } else {
       await db.insert(waitlistApplications).values(record);
     }

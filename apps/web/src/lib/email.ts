@@ -22,7 +22,15 @@ type SendArgs = {
 const FROM =
   process.env.WAITLIST_FROM_EMAIL ?? "MATCH <onboarding@resend.dev>";
 
-let resendClient: { emails: { send: (...args: unknown[]) => Promise<unknown> } } | null = null;
+/** Resend v6 resolves with { data, error } and does not throw on API errors. */
+type ResendSendResult = {
+  data: { id: string } | null;
+  error: { name?: string; message?: string } | null;
+};
+
+let resendClient: {
+  emails: { send: (...args: unknown[]) => Promise<ResendSendResult> };
+} | null = null;
 let resendInitTried = false;
 
 async function getResend() {
@@ -46,7 +54,11 @@ export async function sendEmail(args: SendArgs): Promise<{ ok: boolean; reason?:
     return { ok: false, reason: "no-client" };
   }
   try {
-    await client.emails.send({
+    // Resend v6 does NOT throw on API errors - it resolves with { data, error }.
+    // Discarding the result meant a 403 (e.g. the sandbox sender refusing to
+    // deliver to anyone but the account owner) was reported as a successful
+    // send, so waitlist applicants got silence and nothing surfaced in logs.
+    const { data, error } = await client.emails.send({
       from: FROM,
       to: args.to,
       subject: args.subject,
@@ -54,9 +66,17 @@ export async function sendEmail(args: SendArgs): Promise<{ ok: boolean; reason?:
       text: args.text,
       replyTo: args.replyTo,
     });
+    if (error) {
+      console.error(`[email] Resend rejected send to ${args.to}:`, error);
+      return { ok: false, reason: error.name ?? "resend-error" };
+    }
+    if (!data?.id) {
+      console.error(`[email] Resend returned no id for ${args.to}`);
+      return { ok: false, reason: "no-id" };
+    }
     return { ok: true };
   } catch (err) {
-    console.error(`[email] Send failed to ${args.to}:`, err);
+    console.error(`[email] Send threw for ${args.to}:`, err);
     return { ok: false, reason: "send-error" };
   }
 }
